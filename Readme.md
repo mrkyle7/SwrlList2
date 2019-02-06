@@ -14,7 +14,7 @@ Recommend them to your friends - a recommendation from a friend is much more val
 
 Swrl  - You Should Watch, Read or Listen!
 
-# Developement details
+# Development details
 
 This app is written and built with [Cordova](https://cordova.apache.org/)
 
