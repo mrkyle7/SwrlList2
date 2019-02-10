@@ -1,0 +1,1 @@
+web: npm install -g cordova && cordova prepare browser && node server.js
