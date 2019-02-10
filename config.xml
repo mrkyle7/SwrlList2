@@ -4,7 +4,7 @@
     <description>
         Remember and recommend what you should watch, read or listen to
     </description>
-    <author email="kylejharrison@gmail.com" href="https://swrl.co">
+    <author email="kylejharrison@gmail.com" href="https://swrl-list.herokuapp.com/">
         Kyle Harrison
     </author>
     <content src="index.html" />
