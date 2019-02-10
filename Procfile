@@ -1,1 +1,2 @@
-web: npm install -g cordova && cordova prepare browser && node server.js
+release: npm install -g cordova && cordova prepare browser
+web: node server.js
