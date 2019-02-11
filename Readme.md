@@ -38,4 +38,5 @@ Setup
 4. Set up the git remote to Heroku: `heroku git:remote -a my-app`
 
 Push
+
 Simply run `git push heroku master`
