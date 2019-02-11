@@ -26,6 +26,8 @@ Run the usual `npm install` and `cordova prepare` then (as per the guides above)
 
 N.B. When running in iOS, run `cordova prepare ios` to ensure your latest changes are built. 
 
+To run the local browser, run `npm start`
+
 # How to publish
 
 ## Browser
