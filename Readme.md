@@ -34,8 +34,7 @@ Setup
 
 1. Install the Heroku cli tool: [Guide](https://devcenter.heroku.com/articles/heroku-cli)
 2. Login to Heroku: `heroku login`
-3. Initialise a git repo in your app directory: `git init .`
-4. Set up the git remote to Heroku: `heroku git:remote -a my-app`
+3. Set up the git remote to Heroku: `heroku git:remote -a my-app`
 
 Push
 
