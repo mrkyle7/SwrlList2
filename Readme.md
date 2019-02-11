@@ -25,3 +25,17 @@ Run the usual `npm install` and `cordova prepare` then (as per the guides above)
 `openXcode.sh` is a helper script to launch Xcode for this project. 
 
 N.B. When running in iOS, run `cordova prepare ios` to ensure your latest changes are built. 
+
+# How to publish
+
+## Browser
+
+Setup
+
+1. Install the Heroku cli tool: [Guide](https://devcenter.heroku.com/articles/heroku-cli)
+2. Login to Heroku: `heroku login`
+3. Initialise a git repo in your app directory: `git init .`
+4. Set up the git remote to Heroku: `heroku git:remote -a my-app`
+
+Push
+Simply run `git push heroku master`
