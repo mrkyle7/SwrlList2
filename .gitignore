@@ -1,3 +1,6 @@
 node_modules
 plugins
 platforms
+play-store-keys.json
+fastlane/.env
+.DS_Store

@@ -1,0 +1,32 @@
+platform :ios do
+  desc "Deploy ios app on the appstore"
+  lane :create do
+    produce(app_name: "SwrlList2")
+  end
+  lane :deploy do
+    match(
+      type: "appstore",
+      git_url: "git@github.com:mrkyle7/swrl-list-certificates.git",
+    )
+    cordova(platform: "ios") # Using the Cordova Fastlane Plugin
+    appstore(ipa: ENV["CORDOVA_IOS_RELEASE_BUILD_PATH"])
+  end
+end
+
+platform :android do
+  desc "Deploy android app on play store"
+  lane :deploy do
+    cordova(
+      platform: "android",
+      keystore_path: "/Users/kyle/androidkey-swrl-list.jks",
+      keystore_alias: "kjhandroid",
+      key_password: ENV["KEYPASSWORD"],
+      keystore_password: ENV["STOREPASSWORD"],
+    ) # Cordova Fastlane Plugin
+    upload_to_play_store(
+      apk: ENV["CORDOVA_ANDROID_RELEASE_BUILD_PATH"],
+      track: "beta",
+      package_name: "co.swrl.List2"
+    )
+  end
+end

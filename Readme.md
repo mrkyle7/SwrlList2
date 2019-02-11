@@ -41,3 +41,40 @@ Setup
 Push
 
 Simply run `git push heroku master`
+
+## iOS and Android
+
+Setup
+
+Note iOS needs a developer account, of which I don't have yet!
+
+Make sure you have the latest version of the Xcode command line tools installed:
+
+```
+xcode-select --install
+```
+
+
+Install _fastlane_ using
+```
+[sudo] gem install fastlane -NV
+```
+or alternatively using `brew cask install fastlane`
+
+Install _bundler_ using
+
+```
+[sudo] gem install bundler
+```
+
+Run `bundle install`
+
+### Android
+
+1. Update config.xml with a bumped android-version
+2. Create a change log file in ./fastlane/metadata/android/en-GB/changelogs/ using the same version as per config.xml
+3. Run `bundle exec fastlane android deploy`
+
+### iOS
+
+TBD
