@@ -7,7 +7,9 @@
     <author email="kylejharrison@gmail.com" href="https://swrl-list.herokuapp.com/">
         Kyle Harrison
     </author>
-    <icon src="res/icon/icon.png" />
+    <platform name="android">
+        <icon src="res/icon/icon.png" />
+    </platform>
     <content src="index.html" />
     <plugin name="cordova-plugin-whitelist" spec="1" />
     <access origin="*" />
@@ -30,6 +32,6 @@
         <variable name="PLAY_SERVICES_VERSION" value="11.8.0" />
     </plugin>
     <engine name="browser" spec="^5.0.4" />
-    <engine name="ios" spec="^4.5.5" />
     <engine name="android" spec="^7.1.4" />
+    <engine name="ios" spec="~4.5.5" />
 </widget>

@@ -4,3 +4,4 @@ platforms
 play-store-keys.json
 fastlane/.env
 .DS_Store
+.vscode

@@ -18,7 +18,7 @@
  */
 var app = {
     // Application Constructor
-    initialize: function() {
+    initialize: function () {
         document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
     },
 
@@ -26,21 +26,95 @@ var app = {
     //
     // Bind any cordova events here. Common events are:
     // 'pause', 'resume', etc.
-    onDeviceReady: function() {
+    onDeviceReady: function () {
         this.receivedEvent('deviceready');
     },
 
     // Update DOM on a Received Event
-    receivedEvent: function(id) {
+    receivedEvent: function (id) {
         var parentElement = document.getElementById(id);
         var listeningElement = parentElement.querySelector('.listening');
-        var receivedElement = parentElement.querySelector('.received');
-
         listeningElement.setAttribute('style', 'display:none;');
-        receivedElement.setAttribute('style', 'display:block;');
-
         console.log('Received Event: ' + id);
+        trySilentLogin();
     }
 };
+function isAvailable() {
+    window.plugins.googleplus.isAvailable(function (avail) { alert(avail) });
+}
+
+function login() {
+    console.log("Logging in");
+    window.plugins.googleplus.login(
+        {},
+        function (obj) {
+            document.querySelector("#image").src = obj.imageUrl;
+            document.querySelector("#image").classList.remove('hidden');
+
+            document.querySelector("#logout").classList.remove('hidden');
+
+            document.querySelector("#login").classList.add('hidden');
+
+            document.querySelector("#feedback").innerHTML = "Hi, " + obj.displayName;
+        },
+        function (msg) {
+            document.querySelector("#feedback").innerHTML = "error: " + msg;
+        }
+    );
+}
+
+function trySilentLogin() {
+    window.plugins.googleplus.trySilentLogin(
+        {},
+        function (obj) {
+            document.querySelector("#image").src = obj.imageUrl;
+            document.querySelector("#image").classList.remove('hidden');
+
+            document.querySelector("#logout").classList.remove('hidden');
+
+            document.querySelector("#feedback").innerHTML = "Hi, " + obj.displayName;
+        },
+        function (msg) {
+            document.querySelector("#login").classList.remove('hidden');
+        }
+    );
+}
+
+function logout() {
+    window.plugins.googleplus.logout(
+        function (msg) {
+            document.querySelector("#image").classList.add('hidden');
+
+            document.querySelector("#logout").classList.add('hidden');
+
+            document.querySelector("#login").classList.remove('hidden');
+
+            document.querySelector("#feedback").innerHTML = "Logged out";
+        },
+        function (msg) {
+            document.querySelector("#feedback").innerHTML = msg;
+        }
+    );
+}
+
+function disconnect() {
+    window.plugins.googleplus.disconnect(
+        function (msg) {
+            document.querySelector("#image").style.visibility = 'hidden';
+            document.querySelector("#feedback").innerHTML = msg;
+        },
+        function (msg) {
+            document.querySelector("#feedback").innerHTML = msg;
+        }
+    );
+}
+
+window.onerror = function (what, line, file) {
+    alert(what + '; ' + line + '; ' + file);
+};
+
+function handleOpenURL(url) {
+    document.querySelector("#feedback").innerHTML = "App was opened by URL: " + url;
+}
 
 app.initialize();
