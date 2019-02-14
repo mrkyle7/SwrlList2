@@ -1,0 +1,1 @@
+Add fade when menu opens and move logout to menu
