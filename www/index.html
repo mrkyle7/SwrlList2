@@ -15,7 +15,7 @@
 <body>
   <div class="header">
     <img class="hidden" id="image" src="" />
-    <p class="hidden" id="login" onclick="login()">LOG IN</p>
+    <p id="login">LOG IN</p>
   </div>
   <input type="checkbox" class="openSidebarMenu" id="openSidebarMenu">
   <label for="openSidebarMenu" class="sidebarIconToggle">
@@ -26,7 +26,7 @@
   <div id="sidebarMenu">
     <ul class="sidebarMenuInner">
       <li>Welcome to Swrl List 2</li>
-      <li class="hidden" id="logout" onclick="logout()">Logout</li>
+      <li class="hidden" id="logout">Logout</li>
     </ul>
   </div>
   <div id='center' class="main center">
@@ -41,10 +41,11 @@
     </div>
   </div>
   <script type="text/javascript" src="cordova.js"></script>
-  <script type="text/javascript" src="js/index.js"></script>
-  <script type="text/javascript">
+  <!-- <script type="text/javascript" src="js/swipeUtils.js"></script> -->
+  <script type="text/javascript" src="bundle.js"></script>
+  <!-- <script type="text/javascript">
     app.initialize();
-  </script>
+  </script> -->
 </body>
 
 </html>

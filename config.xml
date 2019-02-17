@@ -31,6 +31,7 @@
         <variable name="WEB_APPLICATION_CLIENT_ID" value="443237991407-lf3hnmvsfbntfc0ui1ds2vgufbah41so.apps.googleusercontent.com" />
         <variable name="PLAY_SERVICES_VERSION" value="11.8.0" />
     </plugin>
+    <plugin name="cordova-plugin-webpack" spec="0.0.2" />
     <engine name="browser" spec="^5.0.4" />
     <engine name="android" spec="^7.1.4" />
     <engine name="ios" spec="^4.5.5" />
