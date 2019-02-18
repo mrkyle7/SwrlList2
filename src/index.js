@@ -18,7 +18,6 @@
  */
 
 import bindMenuSwipeAction from './utils/swipeUtils';
-import setUpLogin from './login';
 import initialiseFirebaseAuth from './firebase/firebaseUIAuth';
 
 var app = {
@@ -42,7 +41,6 @@ var app = {
         listeningElement.setAttribute('style', 'display:none;');
         console.log('Received Event: ' + id);
         bindMenuSwipeAction();
-        // setUpLogin();
         initialiseFirebaseAuth();
     }
 };

@@ -21,6 +21,7 @@ export default function initialiseFirebaseAuth() {
     }).then(function (firebaseUIAuth) {
         myfirebaseUIAuthInstance = firebaseUIAuth;
         setUpAuthListeners();
+        signInToFirebase();
     }).catch(function (error) {
         console.error("Firebase Init failed: " + error);
     });
@@ -40,12 +41,14 @@ function signInToFirebase() {
 }
 
 function signOutOfFirebase() {
+    console.log("Signing out");
     myfirebaseUIAuthInstance.signOut();
     document.querySelector("#openSidebarMenu").checked = false;
 }
 
 function setUpLoginButtons() {
     document.querySelector("#logout").addEventListener("click", signOutOfFirebase);
+    document.querySelector("#logout").addEventListener("touchstart", signOutOfFirebase);
     document.querySelector("#login").addEventListener("click", signInToFirebase);
 }
 

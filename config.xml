@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="10004" id="co.swrl.List2" version="1.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="10005" id="co.swrl.List2" version="1.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Swrl List 2</name>
     <description>
         Remember and recommend what you should watch, read or listen to
@@ -51,6 +51,6 @@
     <plugin name="cordova-plugin-android-fragmentactivity" spec="0.0.9" />
     <plugin name="cordova-support-google-services" spec="1.2.1" />
     <engine name="browser" spec="^5.0.4" />
-    <engine name="ios" spec="^4.5.5" />
     <engine name="android" spec="^7.1.4" />
+    <engine name="ios" spec="^4.5.5" />
 </widget>
