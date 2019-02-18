@@ -18,8 +18,8 @@
  */
 
 import bindMenuSwipeAction from './utils/swipeUtils';
-import setupLogin from './login';
 import setUpLogin from './login';
+import initialiseFirebaseAuth from './firebase/firebaseUIAuth';
 
 var app = {
     // Application Constructor
@@ -42,7 +42,8 @@ var app = {
         listeningElement.setAttribute('style', 'display:none;');
         console.log('Received Event: ' + id);
         bindMenuSwipeAction();
-        setUpLogin();
+        // setUpLogin();
+        initialiseFirebaseAuth();
     }
 };
 
