@@ -15,41 +15,25 @@
         "cordova-android": "^7.1.4",
         "cordova-browser": "^5.0.4",
         "cordova-ios": "^4.5.5",
-        "cordova-plugin-android-fragmentactivity": "0.0.9",
-        "cordova-plugin-firebaseui-auth": "^1.0.2",
+        "cordova-plugin-googleplus": "git+https://github.com/EddyVerbruggen/cordova-plugin-googleplus.git",
         "cordova-plugin-webpack": "0.0.2",
         "cordova-plugin-whitelist": "^1.3.3",
-        "cordova-support-google-services": "1.2.1",
         "express": "^4.16.4"
     },
     "cordova": {
         "plugins": {
             "cordova-plugin-whitelist": {},
-            "cordova-plugin-webpack": {},
-            "cordova-plugin-android-fragmentactivity": {},
-            "cordova-plugin-firebaseui-auth": {
-                "FACEBOOK_APPLICATION_ID": "893395944039576",
-                "FACEBOOK_DISPLAY_NAME": "Swrl List 2",
-                "REVERSED_CLIENT_ID": "com.googleusercontent.apps.443237991407-vjp78u87itoi9pf11tvcfughho2n8ck1",
-                "COLOR_PRIMARY": "#ffffff",
-                "COLOR_DARK_PRIMARY": "#555555",
-                "COLOR_LIGHT_PRIMARY": "#aaaaaa",
-                "COLOR_ACCENT": "#7C4DFF",
-                "COLOR_SECONDARY": "#FFC107",
-                "COLOR_CONTROL": "#ffffff",
-                "COLOR_BACKGROUND": "#000000",
-                "ANDROID_FIREBASE_CORE_VERSION": "16.0.4",
-                "ANDROID_FIREBASE_AUTH_VERSION": "16.0.4",
-                "ANDROID_PLAY_SERVICES_AUTH_VERSION": "16.0.1",
-                "ANDROID_FIREBASEUI_VERSION": "4.2.1",
-                "ANDROID_FACEBOOK_SDK_VERSION": "4.33.0"
+            "cordova-plugin-googleplus": {
+                "REVERSED_CLIENT_ID": "com.googleusercontent.apps.443237991407-ghpr7lu5b3otonkmc9tdmjdp9ic42e08",
+                "WEB_APPLICATION_CLIENT_ID": "443237991407-lf3hnmvsfbntfc0ui1ds2vgufbah41so.apps.googleusercontent.com",
+                "PLAY_SERVICES_VERSION": "11.8.0"
             },
-            "cordova-support-google-services": {}
+            "cordova-plugin-webpack": {}
         },
         "platforms": [
             "browser",
-            "ios",
-            "android"
+            "android",
+            "ios"
         ]
     }
 }

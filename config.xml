@@ -9,10 +9,6 @@
     </author>
     <platform name="android">
         <icon src="res/icon/icon.png" />
-        <resource-file src="google-services.json" target="app/google-services.json" />
-    </platform>
-    <platform name="ios">
-        <resource-file src="GoogleService-Info.plist" />
     </platform>
     <content src="index.html" />
     <plugin name="cordova-plugin-whitelist" spec="1" />
@@ -30,27 +26,13 @@
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
     </platform>
-    <plugin name="cordova-plugin-webpack" spec="0.0.2" />
-    <plugin name="cordova-plugin-firebaseui-auth" spec="^1.0.2">
-        <variable name="FACEBOOK_APPLICATION_ID" value="893395944039576" />
-        <variable name="FACEBOOK_DISPLAY_NAME" value="Swrl List 2" />
-        <variable name="REVERSED_CLIENT_ID" value="com.googleusercontent.apps.443237991407-vjp78u87itoi9pf11tvcfughho2n8ck1" />
-        <variable name="COLOR_PRIMARY" value="#ffffff" />
-        <variable name="COLOR_DARK_PRIMARY" value="#555555" />
-        <variable name="COLOR_LIGHT_PRIMARY" value="#aaaaaa" />
-        <variable name="COLOR_ACCENT" value="#7C4DFF" />
-        <variable name="COLOR_SECONDARY" value="#FFC107" />
-        <variable name="COLOR_CONTROL" value="#ffffff" />
-        <variable name="COLOR_BACKGROUND" value="#000000" />
-        <variable name="ANDROID_FIREBASE_CORE_VERSION" value="16.0.4" />
-        <variable name="ANDROID_FIREBASE_AUTH_VERSION" value="16.0.4" />
-        <variable name="ANDROID_PLAY_SERVICES_AUTH_VERSION" value="16.0.1" />
-        <variable name="ANDROID_FIREBASEUI_VERSION" value="4.2.1" />
-        <variable name="ANDROID_FACEBOOK_SDK_VERSION" value="4.33.0" />
+    <plugin name="cordova-plugin-googleplus" spec="https://github.com/EddyVerbruggen/cordova-plugin-googleplus">
+        <variable name="REVERSED_CLIENT_ID" value="com.googleusercontent.apps.443237991407-ghpr7lu5b3otonkmc9tdmjdp9ic42e08" />
+        <variable name="WEB_APPLICATION_CLIENT_ID" value="443237991407-lf3hnmvsfbntfc0ui1ds2vgufbah41so.apps.googleusercontent.com" />
+        <variable name="PLAY_SERVICES_VERSION" value="11.8.0" />
     </plugin>
-    <plugin name="cordova-plugin-android-fragmentactivity" spec="0.0.9" />
-    <plugin name="cordova-support-google-services" spec="1.2.1" />
+    <plugin name="cordova-plugin-webpack" spec="0.0.2" />
     <engine name="browser" spec="^5.0.4" />
-    <engine name="ios" spec="^4.5.5" />
     <engine name="android" spec="^7.1.4" />
+    <engine name="ios" spec="^4.5.5" />
 </widget>

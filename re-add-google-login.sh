@@ -1,1 +1,0 @@
-cordova plugin add https://github.com/EddyVerbruggen/cordova-plugin-googleplus --save --variable REVERSED_CLIENT_ID=com.googleusercontent.apps.443237991407-ghpr7lu5b3otonkmc9tdmjdp9ic42e08 --variable WEB_APPLICATION_CLIENT_ID=443237991407-lf3hnmvsfbntfc0ui1ds2vgufbah41so.apps.googleusercontent.com
