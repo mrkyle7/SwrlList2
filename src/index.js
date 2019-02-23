@@ -18,8 +18,9 @@
  */
 
 import bindMenuSwipeAction from './utils/swipeUtils';
-import setupLogin from './login';
-import setUpLogin from './login';
+import initialiseFirebase from './firebase/init';
+import setUpLogin from './firebase/login';
+require("typeface-raleway");
 
 var app = {
     // Application Constructor
@@ -32,17 +33,10 @@ var app = {
     // Bind any cordova events here. Common events are:
     // 'pause', 'resume', etc.
     onDeviceReady: function () {
-        this.receivedEvent('deviceready');
-    },
-
-    // Update DOM on a Received Event
-    receivedEvent: function (id) {
-        var parentElement = document.getElementById(id);
-        var listeningElement = parentElement.querySelector('.listening');
-        listeningElement.setAttribute('style', 'display:none;');
-        console.log('Received Event: ' + id);
+        console.log('Received Event: onDeviceReady');
         bindMenuSwipeAction();
-        setUpLogin();
+        var firebase = initialiseFirebase();
+        setUpLogin(firebase);
     }
 };
 

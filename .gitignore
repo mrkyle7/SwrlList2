@@ -6,3 +6,4 @@ fastlane/.env
 .DS_Store
 .vscode
 www/bundle.js
+www/fonts

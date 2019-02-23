@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <meta name="format-detection" content="telephone=no" />
   <meta name="viewport"
-    content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" />
+    content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height viewport-fit=cover" />
   <link rel="stylesheet" type="text/css" href="css/index.css" />
   <link rel="icon" href="/img/logo.png">
   <meta name="msapplication-tap-highlight" content="no" />
@@ -14,8 +14,13 @@
 
 <body>
   <div class="header">
-    <img class="hidden" id="image" src="" />
-    <p id="login">LOG IN</p>
+    <div class="title">
+      <div class="title-details">
+        <h1>You Should</h1>
+      </div>
+    </div>
+    <img class="profile-photo login hidden" id="image" src="" />
+    <p class="login" id="login">LOG IN</p>
   </div>
   <input type="checkbox" class="openSidebarMenu" id="openSidebarMenu">
   <label for="openSidebarMenu" class="sidebarIconToggle">
@@ -25,45 +30,44 @@
   </label>
   <div id="sidebarMenu">
     <ul class="sidebarMenuInner">
-      <li>Welcome to Swrl List 2</li>
+      <li id="loginStatus">Logging you in...</li>
       <li class="hidden" id="logout">Logout</li>
     </ul>
   </div>
-  <div id='center' class="main center">
-    <div class="mainInner">
-      <div id="fade"></div>
-      <img class="logo" src="img/logo.png" />
-      <h1>Swrl List 2</h1>
-      <div id="deviceready">
-        <p class="event listening">Connecting to Device</p>
-        <p id="feedback">not logged in</p>
+  <div id='center' class="main">
+    <div id="fade"></div>
+    <div class="sections">
+      <div class="section watch">
+        <div class="section-detail">
+          <img class="icon" src="img/watch.png" />
+          <h2>Watch</h2>
+        </div>
+      </div>
+
+      <div class="section read">
+        <div class="section-detail">
+          <img class="icon" src="img/read.png" />
+          <h2>Read</h2>
+        </div>
+      </div>
+
+      <div class="section listen">
+        <div class="section-detail">
+          <img class="icon" src="img/listen.png" />
+          <h2>Listen</h2>
+        </div>
+      </div>
+
+      <div class="section other">
+        <div class="section-detail">
+          <img class="icon" src="img/other.png" />
+          <h2>Other</h2>
+        </div>
       </div>
     </div>
   </div>
-  <!-- <script src="https://www.gstatic.com/firebasejs/5.8.3/firebase.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/5.8.3/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/5.8.3/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/5.8.3/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/5.8.3/firebase-messaging.js"></script> -->
-
-  <!-- <script>
-    // Initialize Firebase
-    // var config = {
-    //   apiKey: "AIzaSyAWAhzSXf6M_dhxNS4SI830qWNy-zF51wk",
-    //   authDomain: "swrl-1118.firebaseapp.com",
-    //   databaseURL: "https://swrl-1118.firebaseio.com",
-    //   projectId: "swrl-1118",
-    //   storageBucket: "swrl-1118.appspot.com",
-    //   messagingSenderId: "443237991407"
-    // };
-    // firebase.initializeApp(config);
-  </script> -->
   <script type="text/javascript" src="cordova.js"></script>
-  <!-- <script type="text/javascript" src="js/swipeUtils.js"></script> -->
   <script type="text/javascript" src="bundle.js"></script>
-  <!-- <script type="text/javascript">
-    app.initialize();
-  </script> -->
 </body>
 
 </html>

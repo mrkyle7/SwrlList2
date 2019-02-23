@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css?family=Varela+Round');
 @import "_variables.css";
+
 html, body {
     overflow-x: hidden;
     height: 100%;
@@ -13,12 +14,11 @@ body {
     background: #fff;
     padding: 0;
     margin: 0;
-    font-family: 'Varela Round', sans-serif;
+    font-family: 'Raleway', sans-serif;
     color: #222222
 }
 
 .header {
-    display: block;
     margin: 0 auto;
     width: 100%;
     max-width: 100%;
@@ -30,56 +30,174 @@ body {
     z-index: 10;
 }
 
-.header img {
-    float: right;
-    border-radius: 50%;
-    height: 40px;
-    margin: 8px;
-    margin-right: 12px;
+.header .title {
+    display: flex;
+    flex-direction: row;
+    vertical-align: middle;
+    height: 100%;
+    width: 100%;
+    margin: auto;
+    position: relative;
+    color: #fff;
 }
 
-#login {
-    float: right;
+.header .title-details {
+    display: flex;
+    flex-direction: row;
+    vertical-align: middle;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0;
+    margin-bottom: 0;
+    height: 100%;
+}
+
+.title img {
+    height: 40px;
+    width: 40px;
+    margin-top: 8px;
+}
+
+.title h1 {
+    margin-top: auto;
+    margin-bottom: auto;
+    font-size: 7vw;
+}
+
+.login {
     margin: 18px;
     margin-right: 12px;
     color: #fff;
     text-decoration: none;
     font-size: 16px;
+    position: fixed;
+    top: 0;
+    right: 0;
+}
+
+.header .profile-photo {
+    position: fixed;
+    top: 0;
+    right: 0;
+    border-radius: 50%;
+    height: 40px;
+    width: 40px;
+    margin: 8px;
+    margin-right: 12px;
+    z-index: 15;
+}
+
+#login {
     cursor: pointer;
 }
 
 .main {
     margin: 0 auto;
-    display: block;
+    display: flex;
+    flex-direction: column;
     height: 100%;
+    margin-left: 12px;
+    margin-right: 12px;
     margin-top: 56px;
 }
 
 .main .logo {
-    height: 48px;
+    max-height: 48px;
     width: 48px;
+    vertical-align: middle;
 }
 
-.mainInner {
-    display: block;
+.main .icon {
+    max-height: 72px;
+    width: 72px;
+    vertical-align: middle;
+}
+
+.main .sections {
+    position: absolute;
+    bottom: 0;
+    top: 56px;
+    right: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.main .title {
+    display: flex;
+    flex-direction: row;
+    vertical-align: middle;
+    padding: 12px;
+    color: #fff
+}
+
+.main .section {
+    display: flex;
+    flex-direction: row;
+    vertical-align: middle;
+    padding-top: 4px;
+    padding-bottom: 4px;
     height: 100%;
-    width: 100%;
-    text-align: center;
-    padding-top: 12px;
 }
 
-.mainInner div {
-    display: block;
-    font-size: 1em;
-    font-weight: bold;
+.main .section-detail {
+    display: flex;
+    flex-direction: row;
+    vertical-align: middle;
+    margin: auto;
+    margin-left: 24px;
+    font-size: 40px;
 }
 
-.mainInner p {
-    margin: 8px;
+.main .section.watch {
+    background: #3EB283;
 }
 
-.mainInner h1 {
-    margin: 12px;
+.main .section.read {
+    background: #F6A900;
+}
+
+.main .section.listen {
+    background: #b042f4;
+}
+
+.main .section.other {
+    background: #71A8D6;
+}
+
+.main h1, .main h2 {
+    margin: 0px;
+    margin-left: 12px;
+}
+
+.main h1 {
+    line-height: 48px;
+}
+
+.main h2 {
+    line-height: 72px;
+}
+
+@media only screen and (min-width: 1025px) {
+    .title h1 {
+        font-size: 4vw;
+    }
+    .main .sections {
+        top: 68px;
+        bottom: 12px;
+    }
+    .main .section {
+        margin-left: auto;
+        margin-right: auto;
+        width: 640px;
+        padding-left: 0px;
+    }
+    .main .section-detail {
+        margin-left: 176px;
+    }
 }
 
 #sidebarMenu {
