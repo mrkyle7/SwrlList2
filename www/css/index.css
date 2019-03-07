@@ -309,6 +309,16 @@ body {
         margin-right: auto;
         width: 640px;
     }
+    #swrlList .tabs div {
+        width: 320px;
+        position: absolute;
+    }
+    #yourListTab {
+        margin-left: calc(50% - 320px);
+    }
+    #discoverTab {
+        margin-left: 50%;
+    }
     .section .close {
         position: absolute;
         left: 50%;
