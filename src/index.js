@@ -17,10 +17,11 @@
  * under the License.
  */
 
+require("typeface-raleway");
 import bindMenuSwipeAction from './utils/swipeUtils';
 import initialiseFirebase from './firebase/init';
 import setUpLogin from './firebase/login';
-require("typeface-raleway");
+import bindHomeButtons from './views/homePage';
 
 var app = {
     // Application Constructor
@@ -36,7 +37,9 @@ var app = {
         console.log('Received Event: onDeviceReady');
         bindMenuSwipeAction();
         var firebase = initialiseFirebase();
+        var firestore = firebase.firestore();
         setUpLogin(firebase);
+        bindHomeButtons(firestore);
     }
 };
 

@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css?family=Varela+Round');
-@import "_variables.css";
-
 html, body {
     overflow-x: hidden;
     height: 100%;
+}
+
+input, p {
+    font-size: 16px;
 }
 
 .hidden {
@@ -111,6 +112,13 @@ body {
     max-height: 72px;
     width: 72px;
     vertical-align: middle;
+    transition: all 0.2s;
+}
+
+.selected .icon {
+    transition: all 0.2s;
+    max-height: 20px;
+    width: 20px;
 }
 
 .main .sections {
@@ -124,6 +132,67 @@ body {
     margin: auto;
     margin-top: 0px;
     margin-bottom: 0px;
+}
+
+#swrlList, #searchResults {
+    position: absolute;
+    top: 104px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+#swrlList .tabs {
+    display: flex;
+    flex-direction: row;
+    margin: 0, auto;
+}
+
+#swrlList .tabs div {
+    width: 100%;
+    text-align: center;
+    padding-bottom: 4px;
+    cursor: pointer;
+}
+
+.tabs div.selected {
+    transition: 0.2s;
+    font-weight: bolder;
+    border-bottom-style: solid;
+    border-bottom-width: 2px;
+    border-bottom-color: #FF2E63;
+}
+
+#searchResults {
+    top: 116px
+}
+
+#swrlSearch {
+    z-index: 99;
+    position: absolute;
+    top: 100px;
+    left: 0px;
+    right: 0px;
+    height: 24px;
+    margin: auto;
+    width: calc(100% - 8px);
+    line-height: 24px;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    background-color: white;
+    background-image: url('../img/search.png');
+    background-size: 16px;
+    background-position: 4px 4px;
+    background-repeat: no-repeat;
+    padding: 12px 20px 12px 28px;
+}
+
+.statusMessage {
+    margin: auto;
 }
 
 .main .title {
@@ -141,6 +210,32 @@ body {
     padding-top: 4px;
     padding-bottom: 4px;
     height: 100%;
+    cursor: pointer;
+    transition: all 0.5s;
+}
+
+.selected.section {
+    transition: all 0.5s;
+    cursor: default;
+    height: 32px;
+}
+
+.section .close {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    height: 20px;
+    width: 20px;
+    cursor: pointer;
+}
+
+.section .search {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    height: 20px;
+    width: 20px;
+    cursor: pointer;
 }
 
 .main .section-detail {
@@ -150,6 +245,11 @@ body {
     margin: auto;
     margin-left: 24px;
     font-size: 40px;
+}
+
+.selected .section-detail {
+    font-size: 20px;
+    margin-left: auto;
 }
 
 .main .section.watch {
@@ -179,6 +279,12 @@ body {
 
 .main h2 {
     line-height: 72px;
+    transition: all 0.2s;
+}
+
+.selected h2 {
+    transition: all 0.2s;
+    line-height: 24px;
 }
 
 @media only screen and (min-width: 1025px) {
@@ -189,14 +295,35 @@ body {
         top: 68px;
         bottom: 12px;
     }
+    #swrlList, #swrlSearch {
+        top: 112px;
+    }
+    #searchResults {
+        top: 128px;
+    }
     .main .section {
+        padding-left: 0px;
+    }
+    .main .section, #swrlSearch {
         margin-left: auto;
         margin-right: auto;
         width: 640px;
-        padding-left: 0px;
+    }
+    .section .close {
+        position: absolute;
+        left: 50%;
+        margin-left: -312px;
+    }
+    .section .search {
+        position: absolute;
+        left: 50%;
+        margin-left: 292px;
     }
     .main .section-detail {
         margin-left: 176px;
+    }
+    .main .selected .section-detail {
+        margin-left: 256px;
     }
 }
 

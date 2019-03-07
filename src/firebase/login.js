@@ -3,7 +3,6 @@ var firebase;
 
 export default function setUpLogin(firebaseInstance) {
     firebase = firebaseInstance;
-    console.log(firebase);
     document.querySelector("#logout").addEventListener("click", logout);
     document.querySelector("#logout").addEventListener("touchstart", logout);
     document.querySelector("#login").addEventListener("click", login);
@@ -30,12 +29,14 @@ export default function setUpLogin(firebaseInstance) {
 function loginAnonymously() {
     firebase.auth().signInAnonymously().catch(function (error) {
         console.error("anonymous log in failed: " + JSON.stringify(error));
+        handleLogout();
     });
 }
 
 function logout() {
     firebase.auth().signOut();
     document.querySelector("#openSidebarMenu").checked = false;
+    handleLogout();
 }
 
 function login() {
@@ -81,5 +82,5 @@ function handleLogout() {
     document.querySelector("#image").classList.add('hidden');
     document.querySelector("#logout").classList.add('hidden');
     document.querySelector("#login").classList.remove('hidden');
-    document.querySelector("#loginStatus").innerHTML = "Mystery Swrler";
+    document.querySelector("#loginStatus").innerHTML = "Not Logged In";
 }

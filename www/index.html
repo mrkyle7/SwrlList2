@@ -34,35 +34,64 @@
       <li class="hidden" id="logout">Logout</li>
     </ul>
   </div>
+  <input id="swrlSearch" class="hidden" type="text" placeholder="Search by title..." autofocus>
   <div id='center' class="main">
     <div id="fade"></div>
     <div class="sections">
       <div class="section watch">
+        <img class="close hidden" src="img/x.png" />
         <div class="section-detail">
           <img class="icon" src="img/watch.png" />
           <h2>Watch</h2>
         </div>
+        <img class="search hidden" src="img/search.png" />
       </div>
 
       <div class="section read">
+        <img class="close hidden" src="img/x.png" />
         <div class="section-detail">
           <img class="icon" src="img/read.png" />
           <h2>Read</h2>
         </div>
+        <img class="search hidden" src="img/search.png" />
       </div>
 
       <div class="section listen">
+        <img class="close hidden" src="img/x.png" />
         <div class="section-detail">
           <img class="icon" src="img/listen.png" />
           <h2>Listen</h2>
         </div>
+        <img class="search hidden" src="img/search.png" />
       </div>
 
       <div class="section other">
+        <img class="close hidden" src="img/x.png" />
         <div class="section-detail">
           <img class="icon" src="img/other.png" />
           <h2>Other</h2>
         </div>
+        <img class="search hidden" src="img/search.png" />
+      </div>
+    </div>
+    <div class="hidden" id="swrlList">
+      <div class="tabs">
+          <div id="yourListTab">
+            <a>YOUR LIST</a>
+          </div>
+          <div id="discoverTab">
+            <a>DISCOVER</a>
+          </div>
+      </div>
+      <div id="loadingSwrls" class="statusMessage">Loading Swrls...</div>
+      <div id="noSwrls" class="hidden statusMessage">
+        <p id="noSwrlsMessage">No Swrls found for category!</p>
+      </div>
+    </div>
+    <div class="hidden" id="searchResults">
+      <div id="loadingResult" class="statusMessage">Searching...</div>
+      <div id="noResults" class="hidden statusMessage">
+        <p id="noResultsMessage">No Results found!</p>
       </div>
     </div>
   </div>
