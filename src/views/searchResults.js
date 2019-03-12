@@ -11,6 +11,7 @@ var messageContainer = document.querySelector('#messageContainer');
 var message = document.querySelector('#message');
 var swrlTemplate = document.querySelector('#swrl');
 var currentSearchID;
+var resultsShowing = false;
 
 export function showSearch(category) {
     currentCategory = category;
@@ -36,8 +37,8 @@ export function destroySearch() {
 export function initSearchBar(firestore) {
     var searchDelay;
     var currentSearchController;
-    searchBar.addEventListener('keydown', function(e) {
-        if (e.code === 'Enter'){
+    searchBar.addEventListener('keydown', function (e) {
+        if (e.code === 'Enter') {
             console.log('enter was pressed');
             searchBar.blur();
         }
@@ -56,8 +57,10 @@ export function initSearchBar(firestore) {
                 var signal = currentSearchController.signal;
                 currentSearchID = Math.random();
 
-                messageContainer.classList.remove('hidden');
-                message.innerText = 'Searching for ' + searchText + '...';
+                if (!resultsShowing) {
+                    messageContainer.classList.remove('hidden');
+                    message.innerText = 'Searching for ' + searchText + '...';
+                }
 
                 var searchFn = Category.properties[currentCategory].search;
                 searchFn(searchText, signal, currentSearchID)
@@ -72,6 +75,7 @@ export function initSearchBar(firestore) {
                     .catch(function (err) {
                         //TODO: add better view for errors?
                         console.error(err);
+                        messageContainer.classList.remove('hidden');
                         message.innerText = 'No results found for ' + searchText;
                     })
             }, 500)
@@ -90,6 +94,7 @@ function clearResults() {
     while (searchResultsContainer.firstChild) {
         searchResultsContainer.removeChild(searchResultsContainer.firstChild);
     }
+    resultsShowing = false;
 }
 
 function processResults(results) {
@@ -105,5 +110,6 @@ function processResults(results) {
             $swrl('.swrlType').innerText = Type.properties[result.type].name;
             searchResultsContainer.appendChild(swrl);
         });
+        resultsShowing = true;
     }
 }

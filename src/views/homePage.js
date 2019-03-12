@@ -9,7 +9,7 @@ import { View } from '../constants/View';
 export default function bindHomeButtons(firestore) {
 
     var state = {
-        view: View.LIST,
+        view: View.YOUR_LIST,
         selectedCategory: undefined
     }
 
@@ -23,6 +23,7 @@ export default function bindHomeButtons(firestore) {
         bindSectionClick(section, category, closeSectionButton);
         bindCloseSectionButton(closeSectionButton, category, section);
     });
+
     var tabs = document.querySelector('#tabs');
     var yourListTab = document.querySelector('#yourListTab');
     var discoverTab = document.querySelector('#discoverTab');
@@ -34,9 +35,35 @@ export default function bindHomeButtons(firestore) {
     yourListTab.classList.add('selected');
 
     //functions
+    function bindYourListTab(element) {
+        element.addEventListener('click', function (e) {
+            searchTab.classList.remove('selected');
+            yourListTab.classList.add('selected');
+            discoverTab.classList.remove('selected');
+            destroySearch();
+            showList(state.selectedCategory, View.YOUR_LIST, firestore);
+            state.view = View.YOUR_LIST;
+            e.stopPropagation();
+            e.preventDefault();
+        });
+    }
+    function bindDiscoverTab(element) {
+        element.addEventListener('click', function (e) {
+            searchTab.classList.remove('selected');
+            yourListTab.classList.remove('selected');
+            discoverTab.classList.add('selected');
+            destroySearch();
+            showList(state.selectedCategory, View.DISCOVER, firestore);
+            state.view = View.DISCOVER;
+            e.stopPropagation();
+            e.preventDefault();
+        });
+    }
     function bindSearchTab(element) {
-        ['click', 'touchstart'].forEach(function (eventType) {
-            element.addEventListener(eventType, function (e) {
+        element.addEventListener('click', function (e) {
+            if (state.view === View.SEARCH) {
+                console.log('Search already selected');
+            } else {
                 searchTab.classList.add('selected');
                 yourListTab.classList.remove('selected');
                 discoverTab.classList.remove('selected');
@@ -44,39 +71,15 @@ export default function bindHomeButtons(firestore) {
                 showSearch(state.selectedCategory, firestore);
                 state.view = View.SEARCH;
                 e.stopPropagation();
-            });
+                e.preventDefault();
+            }
         });
     }
-    function bindDiscoverTab(element) {
-        ['click', 'touchstart'].forEach(function (eventType) {
-            element.addEventListener(eventType, function (e) {
-                searchTab.classList.remove('selected');
-                yourListTab.classList.remove('selected');
-                discoverTab.classList.add('selected');
-                destroySearch();
-                showList(state.selectedCategory, firestore);
-                state.view = View.LIST;
-                e.stopPropagation();
-            });
-        });
-    }
-    function bindYourListTab(element) {
-        ['click', 'touchstart'].forEach(function (eventType) {
-            element.addEventListener(eventType, function (e) {
-                searchTab.classList.remove('selected');
-                yourListTab.classList.add('selected');
-                discoverTab.classList.remove('selected');
-                destroySearch();
-                showList(state.selectedCategory, firestore);
-                state.view = View.LIST;
-                e.stopPropagation();
-            });
-        });
-    }
-
     function bindCloseSectionButton(closeSectionButton, category, section) {
         ['click', 'touchstart'].forEach(function (eventType) {
             closeSectionButton.addEventListener(eventType, function (e) {
+                e.stopPropagation();
+                e.preventDefault();
                 console.log('Clicked Close for section: ' + category);
                 destroyList();
                 destroySearch();
@@ -85,30 +88,27 @@ export default function bindHomeButtons(firestore) {
                 restoreSections();
                 section.classList.remove('selected');
                 state.selectedCategory = undefined;
-                e.stopPropagation();
             });
         });
     }
 
     function bindSectionClick(section, category, closeSectionButton) {
-        ['click', 'touchstart'].forEach(function (eventType) {
-            section.addEventListener(eventType, function () {
-                if (!state.selectedCategory) {
-                    console.log('Clicked section ' + category);
-                    section.classList.add('selected');
-                    clearOtherCategories(category);
-                    closeSectionButton.classList.remove('hidden');
-                    tabs.classList.remove('hidden');
-                    if (state.view === View.LIST) {
-                        showList(category, firestore);
-                    } else if (state.view === View.SEARCH) {
-                        showSearch(category, firestore);
-                    }
-                    state.selectedCategory = category;
-                } else {
-                    console.log('Section already expanded');
+        section.addEventListener('click', function () {
+            if (!state.selectedCategory) {
+                console.log('Clicked section ' + category);
+                section.classList.add('selected');
+                clearOtherCategories(category);
+                closeSectionButton.classList.remove('hidden');
+                tabs.classList.remove('hidden');
+                if (state.view === View.LIST) {
+                    showList(category, firestore);
+                } else if (state.view === View.SEARCH) {
+                    showSearch(category, firestore);
                 }
-            });
+                state.selectedCategory = category;
+            } else {
+                console.log('Section already expanded');
+            }
         });
     }
 

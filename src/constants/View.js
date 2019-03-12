@@ -1,7 +1,8 @@
 export default { View };
 
 export var View = {
-    LIST: 1,
-    SEARCH: 2
+    YOUR_LIST: 1,
+    DISCOVER: 2,
+    SEARCH: 3
 }
 Object.freeze(View);

@@ -1,16 +1,18 @@
 export default { showList, destroyList };
 
-import { ListView } from '../constants/ListView';
+import { View } from '../constants/View';
 import { Category } from '../constants/Category';
 
-var currentListView = ListView.YOURLIST;
+var currentListView;;
 var currentID;
 
 /**
  * @param {Category} category
+ * @param {View} view
  * @param {firebase.firestore.Firestore} firestore
  */
-export function showList(category, firestore) {
+export function showList(category, view, firestore) {
+    currentListView = view;
     currentID = Math.random();
     var resultsID = currentID;
     var categoryName = Category.properties[category].name;
