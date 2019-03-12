@@ -35,11 +35,15 @@ var app = {
     // 'pause', 'resume', etc.
     onDeviceReady: function () {
         console.log('Received Event: onDeviceReady');
-        bindMenuSwipeAction();
-        var firebase = initialiseFirebase();
-        var firestore = firebase.firestore();
-        setUpLogin(firebase);
-        bindHomeButtons(firestore);
+        try {
+            bindMenuSwipeAction();
+            var firebase = initialiseFirebase();
+            var firestore = firebase.firestore();
+            setUpLogin(firebase);
+            bindHomeButtons(firestore);
+        } catch (error) {
+            console.log(error);
+        }
     }
 };
 

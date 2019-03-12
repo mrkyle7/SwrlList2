@@ -1,9 +1,9 @@
 export default function bindMenuSwipeAction() {
-    var mainBody = document.getElementById('center')
+    var mainBody = document.getElementById('centre');
     swipedetect(mainBody, function (swipedir) {
-        openCloseMenu(swipedir)
+        openCloseMenu(swipedir);
     })
-    var menu = document.getElementById('sidebarMenu')
+    var menu = document.getElementById('sidebarMenu');
     swipedetect(menu, function (swipedir) {
         openCloseMenu(swipedir);
     })

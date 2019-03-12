@@ -1,63 +1,61 @@
 export default { showList, destroyList };
 
-var ListViewEnum = {
-    YOURLIST: 1,
-    DISCOVER: 2,
-    properties:
-    {
-        1: {
-            name: "YOUR LIST",
-            value: 1,
-            selector: "#yourListTab"
-        },
-        2: {
-            name: "DISCOVER",
-            value: 2,
-            selector: "#discoverTab"
-        }
-    }
-}
+import { ListView } from '../constants/ListView';
+import { Category } from '../constants/Category';
 
-var currentListView = ListViewEnum.YOURLIST;
+var currentListView = ListView.YOURLIST;
+var currentID;
 
 /**
- * @param {string} category
+ * @param {Category} category
  * @param {firebase.firestore.Firestore} firestore
  */
 export function showList(category, firestore) {
-    document.querySelector(ListViewEnum.properties[currentListView].selector).classList.add('selected');
+    currentID = Math.random();
+    var resultsID = currentID;
+    var categoryName = Category.properties[category].name;
     document.querySelector('#swrlList').classList.remove('hidden');
+    document.querySelector('#messageContainer').classList.remove('hidden');
+    document.querySelector('#message').innerText = 'Loading Swrls...';
     var swrlsRef = firestore.collection("swrls");
     if (swrlsRef) {
-        console.log("Getting Swrls for: " + category);
-        swrlsRef.where("category", "==", category).get()
+        console.log("Getting Swrls for: " + categoryName);
+        swrlsRef.where("category", "==", categoryName).get()
             .then(function (querySnapshot) {
-                document.querySelector('#loadingSwrls').classList.add('hidden');
-                if (!querySnapshot.empty) {
-                    querySnapshot.forEach(function (swrl) {
-                        console.log(JSON.stringify(swrl));
-                    })
+                if (currentID === resultsID){
+                    document.querySelector('#messageContainer').classList.add('hidden');
+                    if (!querySnapshot.empty) {
+                        querySnapshot.forEach(function (swrl) {
+                            console.log(JSON.stringify(swrl));
+                        })
+                    } else {
+                        console.log("No Swrls found");
+                        showNoSwrlsView(category);
+                    }
                 } else {
-                    console.log("No Swrls found");
-                    showNoSwrlsView(category);
+                    console.log('View was changed');
                 }
             })
             .catch(function (error) {
                 console.error("Couldn't get swrls! " + JSON.stringify(error));
             })
     } else {
-        console.log("No Swrls found");
-        document.querySelector('#loadingSwrls').classList.add('hidden');
-        showNoSwrlsView(category);
+        if (currentID === resultsID) {
+            console.log("No Swrls found");
+            showNoSwrlsView(category);
+        } else {
+            console.log('View was changed');
+        }
     }
 }
 
 export function destroyList() {
     document.querySelector('#swrlList').classList.add('hidden');
-    document.querySelector('#loadingSwrls').classList.remove('hidden');
-    document.querySelector('#noSwrls').classList.add('hidden');
-}
+    document.querySelector('#messageContainer').classList.add('hidden');
+    currentID = undefined;
+}   
 
 function showNoSwrlsView(category) {
-    document.querySelector('#noSwrls').classList.remove('hidden');
+    document.querySelector('#messageContainer').classList.remove('hidden');
+    document.querySelector('#message').innerText = Category.properties[category].noSwrlsMessage;
 }

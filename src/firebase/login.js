@@ -10,7 +10,7 @@ export default function setUpLogin(firebaseInstance) {
         if (user) {
             // User is signed in.
             swrlUser = user;
-            console.log("user logged in: " + JSON.stringify(swrlUser));
+            console.log("user logged in: " + swrlUser.displayName);
 
             var isAnonymous = swrlUser.isAnonymous;
             if (isAnonymous) {
@@ -44,7 +44,7 @@ function login() {
 
     firebase.auth().getRedirectResult().then(function(result) {
         swrlUser = result.user;
-        console.log("firebase user from get redirect result: " + JSON.stringify(swrlUser));
+        console.log("firebase user from get redirect result: " + swrlUser.displayName);
         handleLoginSuccess();
     }).catch(function(error) {
         console.error("got redirect error: " + JSON.stringify(error));
@@ -52,11 +52,9 @@ function login() {
             return firebase.auth().getRedirectResult();
         }).then(function (result) {
             swrlUser = result.user;
-            console.log("firebase user: " + JSON.stringify(swrlUser));
+            console.log("firebase user: " + swrlUser.displayName);
             handleLoginSuccess();
         }).catch(function (error) {
-            var errorCode = error.code;
-            var errorMessage = error.message;
             console.error("Login failed: " + JSON.stringify(error))
             loginAnonymously();
         });

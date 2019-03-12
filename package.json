@@ -12,6 +12,7 @@
     "author": "Kyle Harrison",
     "license": "Apache-2.0",
     "dependencies": {
+        "abortcontroller-polyfill": "^1.2.6",
         "cordova-android": "^7.1.4",
         "cordova-browser": "^5.0.4",
         "cordova-ios": "^4.5.5",
@@ -57,5 +58,12 @@
             "browser",
             "android"
         ]
+    },
+    "devDependencies": {
+        "@babel/core": "^7.3.4",
+        "@babel/plugin-transform-runtime": "^7.3.4",
+        "@babel/preset-env": "^7.3.4",
+        "@babel/runtime": "^7.3.4",
+        "babel-loader": "^8.0.5"
     }
 }

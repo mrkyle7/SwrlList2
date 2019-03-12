@@ -35,7 +35,7 @@
     </ul>
   </div>
   <input id="swrlSearch" class="hidden" type="text" placeholder="Search by title..." autofocus>
-  <div id='center' class="main">
+  <div id='centre' class="main">
     <div id="fade"></div>
     <div class="sections">
       <div class="section watch">
@@ -44,7 +44,6 @@
           <img class="icon" src="img/watch.png" />
           <h2>Watch</h2>
         </div>
-        <img class="search hidden" src="img/search.png" />
       </div>
 
       <div class="section read">
@@ -53,7 +52,6 @@
           <img class="icon" src="img/read.png" />
           <h2>Read</h2>
         </div>
-        <img class="search hidden" src="img/search.png" />
       </div>
 
       <div class="section listen">
@@ -62,7 +60,6 @@
           <img class="icon" src="img/listen.png" />
           <h2>Listen</h2>
         </div>
-        <img class="search hidden" src="img/search.png" />
       </div>
 
       <div class="section other">
@@ -71,30 +68,36 @@
           <img class="icon" src="img/other.png" />
           <h2>Other</h2>
         </div>
-        <img class="search hidden" src="img/search.png" />
       </div>
     </div>
-    <div class="hidden" id="swrlList">
-      <div class="tabs">
-          <div id="yourListTab">
-            <a>YOUR LIST</a>
-          </div>
-          <div id="discoverTab">
-            <a>DISCOVER</a>
-          </div>
+    <div id="tabs" class="hidden tabs">
+      <div id="yourListTab">
+        <a>YOUR LIST</a>
       </div>
-      <div id="loadingSwrls" class="statusMessage">Loading Swrls...</div>
-      <div id="noSwrls" class="hidden statusMessage">
-        <p id="noSwrlsMessage">No Swrls found for category!</p>
+      <div id="discoverTab">
+        <a>DISCOVER</a>
+      </div>
+      <div id="searchTab">
+        <a>SEARCH</a>
       </div>
     </div>
-    <div class="hidden" id="searchResults">
-      <div id="loadingResult" class="statusMessage">Searching...</div>
-      <div id="noResults" class="hidden statusMessage">
-        <p id="noResultsMessage">No Results found!</p>
-      </div>
+    <div id="swrlList" class="hidden swrlsContainer"></div>
+    <div id="searchResults" class="hidden swrlsContainer"></div>
+
+    <div id="messageContainer" class="hidden statusMessage">
+      <p id="message">No Swrls found for category!</p>
     </div>
+
   </div>
+  <template id="swrl">
+    <div class="swrl">
+      <img class="swrlImage" src="" />
+      <div class="swrlDetails">
+        <p class="swrlTitle">Title</p>
+        <p class="swrlType">Type</p>
+      </div>
+    </div>
+  </template>
   <script type="text/javascript" src="cordova.js"></script>
   <script type="text/javascript" src="bundle.js"></script>
 </body>

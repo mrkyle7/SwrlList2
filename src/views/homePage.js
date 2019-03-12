@@ -1,91 +1,130 @@
-var categories = ['watch', 'read', 'listen', 'other'];
 import { showList, destroyList } from './swrlList';
-import { destroySearch, showSearch } from './searchResults';
+import { destroySearch, showSearch, initSearchBar } from './searchResults';
+import { Category, Categories } from '../constants/Category';
+import { View } from '../constants/View';
 
 /**
  * @param {firebase.firestore.Firestore} firestore
  */
 export default function bindHomeButtons(firestore) {
 
-    var ViewEnum = {
-        LIST: 1,
-        SEARCH: 2
-    }
-
     var state = {
-        view: ViewEnum.LIST,
+        view: View.LIST,
+        selectedCategory: undefined
     }
 
-    categories.forEach(function (category) {
-        var section = document.querySelector('.section.' + category);
-        var closeSectionButton = document.querySelector('.section.' + category + ' .close');
-        var searchButton = document.querySelector('.section.' + category + ' .search');
+    initSearchBar(firestore);
 
-        bindSectionClick(section, category, closeSectionButton, searchButton);
-        bindCloseSectionButton(closeSectionButton, category, searchButton, section);
-        bindSearchButton(searchButton, category);
+    Categories.forEach(function (category) {
+        var categoryName = Category.properties[category].name;
+        var section = document.querySelector('.section.' + categoryName);
+        var closeSectionButton = document.querySelector('.section.' + categoryName + ' .close');
+
+        bindSectionClick(section, category, closeSectionButton);
+        bindCloseSectionButton(closeSectionButton, category, section);
     });
+    var tabs = document.querySelector('#tabs');
+    var yourListTab = document.querySelector('#yourListTab');
+    var discoverTab = document.querySelector('#discoverTab');
+    var searchTab = document.querySelector('#searchTab');
+    bindYourListTab(yourListTab);
+    bindDiscoverTab(discoverTab);
+    bindSearchTab(searchTab);
 
-    function bindSearchButton(searchButton, category) {
+    yourListTab.classList.add('selected');
+
+    //functions
+    function bindSearchTab(element) {
         ['click', 'touchstart'].forEach(function (eventType) {
-            searchButton.addEventListener(eventType, function (e) {
-                if (state.view === ViewEnum.LIST) {
-                    destroyList();
-                    showSearch(category, firestore);
-                    state.view = ViewEnum.SEARCH;
-                } else if (state.view === ViewEnum.SEARCH) {
-                    destroySearch();
-                    showList(category, firestore);
-                    state.view = ViewEnum.LIST;
-                }
+            element.addEventListener(eventType, function (e) {
+                searchTab.classList.add('selected');
+                yourListTab.classList.remove('selected');
+                discoverTab.classList.remove('selected');
+                destroyList();
+                showSearch(state.selectedCategory, firestore);
+                state.view = View.SEARCH;
+                e.stopPropagation();
+            });
+        });
+    }
+    function bindDiscoverTab(element) {
+        ['click', 'touchstart'].forEach(function (eventType) {
+            element.addEventListener(eventType, function (e) {
+                searchTab.classList.remove('selected');
+                yourListTab.classList.remove('selected');
+                discoverTab.classList.add('selected');
+                destroySearch();
+                showList(state.selectedCategory, firestore);
+                state.view = View.LIST;
+                e.stopPropagation();
+            });
+        });
+    }
+    function bindYourListTab(element) {
+        ['click', 'touchstart'].forEach(function (eventType) {
+            element.addEventListener(eventType, function (e) {
+                searchTab.classList.remove('selected');
+                yourListTab.classList.add('selected');
+                discoverTab.classList.remove('selected');
+                destroySearch();
+                showList(state.selectedCategory, firestore);
+                state.view = View.LIST;
                 e.stopPropagation();
             });
         });
     }
 
-    function bindCloseSectionButton(closeSectionButton, category, searchButton, section) {
+    function bindCloseSectionButton(closeSectionButton, category, section) {
         ['click', 'touchstart'].forEach(function (eventType) {
             closeSectionButton.addEventListener(eventType, function (e) {
                 console.log('Clicked Close for section: ' + category);
                 destroyList();
                 destroySearch();
+                tabs.classList.add('hidden');
                 closeSectionButton.classList.add('hidden');
-                searchButton.classList.add('hidden');
                 restoreSections();
                 section.classList.remove('selected');
+                state.selectedCategory = undefined;
                 e.stopPropagation();
             });
         });
     }
 
-    function bindSectionClick(section, category, closeSectionButton, searchButton) {
+    function bindSectionClick(section, category, closeSectionButton) {
         ['click', 'touchstart'].forEach(function (eventType) {
             section.addEventListener(eventType, function () {
-                console.log('Clicked section ' + category);
-                section.classList.add('selected');
-                clearOtherCategories(category);
-                closeSectionButton.classList.remove('hidden');
-                searchButton.classList.remove('hidden');
-                if (state.view === ViewEnum.LIST) {
-                    showList(category, firestore);
-                } else if (state.view === ViewEnum.SEARCH) {
-                    showSearch(category, firestore);
+                if (!state.selectedCategory) {
+                    console.log('Clicked section ' + category);
+                    section.classList.add('selected');
+                    clearOtherCategories(category);
+                    closeSectionButton.classList.remove('hidden');
+                    tabs.classList.remove('hidden');
+                    if (state.view === View.LIST) {
+                        showList(category, firestore);
+                    } else if (state.view === View.SEARCH) {
+                        showSearch(category, firestore);
+                    }
+                    state.selectedCategory = category;
+                } else {
+                    console.log('Section already expanded');
                 }
             });
         });
     }
 
     function clearOtherCategories(category) {
-        categories.filter(function (c) {
+        Categories.filter(function (c) {
             return c !== category;
         }).forEach(function (c) {
-            document.querySelector('.section.' + c).classList.add('hidden');
+            var categoryName = Category.properties[c].name;
+            document.querySelector('.section.' + categoryName).classList.add('hidden');
         })
     }
 
     function restoreSections() {
-        categories.forEach(function (c) {
-            document.querySelector('.section.' + c).classList.remove('hidden');
+        Categories.forEach(function (c) {
+            var categoryName = Category.properties[c].name;
+            document.querySelector('.section.' + categoryName).classList.remove('hidden');
         })
     }
 }
