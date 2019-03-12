@@ -92,6 +92,15 @@ body {
     cursor: pointer;
 }
 
+#menuSwipeable {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 24px;
+    z-index: 1;
+}
+
 .main {
     margin: 0 auto;
     display: flex;
@@ -230,7 +239,7 @@ body {
 .tabs div {
     width: 100%;
     text-align: center;
-    padding-bottom: 4px;
+    padding-bottom: 2px;
     cursor: pointer;
 }
 

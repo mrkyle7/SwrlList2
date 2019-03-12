@@ -1,5 +1,5 @@
 export default function bindMenuSwipeAction() {
-    var mainBody = document.getElementById('centre');
+    var mainBody = document.getElementById('menuSwipeable');
     swipedetect(mainBody, function (swipedir) {
         openCloseMenu(swipedir);
     })
@@ -9,7 +9,7 @@ export default function bindMenuSwipeAction() {
     })
 }
 
-var debug = false;
+var debug = true;
 
 var swipedetect = function(el, callback) {
     var touchsurface = el,
