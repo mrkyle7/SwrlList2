@@ -20,7 +20,7 @@
 require("typeface-raleway");
 import bindMenuSwipeAction from './utils/swipeUtils';
 import initialiseFirebase from './firebase/init';
-import setUpLogin from './firebase/login';
+import { setUpLogin } from './firebase/login';
 import bindHomeButtons from './views/homePage';
 
 var app = {

@@ -13,5 +13,15 @@ export default function initialiseFirebase() {
         messagingSenderId: "443237991407"
     };
     firebase.initializeApp(config);
+
+    firebase.firestore().enablePersistence()
+        .catch(function (err) {
+            console.error(err);
+            if (err.code == 'failed-precondition') {
+                console.error('multiple tabs opened');
+            } else if (err.code == 'unimplemented') {
+                console.error('browser not supported');
+            }
+        });
     return firebase;
 }

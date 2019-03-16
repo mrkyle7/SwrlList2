@@ -13,24 +13,28 @@ export var Category = {
         1: {
             name: 'watch',
             noSwrlsMessage: 'Nothing to Watch :( Try Searching or Discover a TV Show or Movie!',
+            noSwrlsDiscoverMessage: 'Nothing to Watch :( Try Searching for a TV Show or Movie!',
             searchMessage: 'Search for a TV Show or Movie',
             search: watchSearch
         },
         2: {
             name: 'read',
             noSwrlsMessage: 'Nothing to Read :( Try Searching or Discover a book!',
+            noSwrlsDiscoverMessage: 'Nothing to Read :( Try Searching for a book!',
             searchMessage: 'Search for a book',            
             search: readSearch
         },
         3: {
             name: 'listen',
             noSwrlsMessage: 'Nothing to Watch :( Try Searching or Discover an album or podcast!',
+            noSwrlsDiscoverMessage: 'Nothing to Watch :( Try Searching for an album or podcast!',
             searchMessage: 'Search for an album or podcast',
             search: listenSearch
         },
         4: {
             name: 'other',
             noSwrlsMessage: 'Nothing to see here :( Try Searching or Discover something to do!',
+            noSwrlsDiscoverMessage: 'Nothing to see here :( Try Searching for something to do!',
             searchMessage: 'Search for a boardgame or video game',
             search: otherSearch
         },

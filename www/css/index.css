@@ -258,20 +258,20 @@ body {
     top: 136px;
     left: 0px;
     right: 0px;
-    height: 24px;
+    height: 36px;
     margin: auto;
     width: calc(100% - 8px);
-    line-height: 24px;
+    line-height: 36px;
     box-sizing: border-box;
     border: 2px solid rgba(0, 0, 0, 0.12);
-    border-radius: 4px;
-    font-size: 16px;
+    border-radius: 16px;
+    font-size: 20px;
     background-color: white;
-    background-image: url('../img/search.png');
-    background-size: 16px;
-    background-position: 4px 4px;
+    background-image: url(../img/search.png);
+    background-size: 18px;
+    background-position: 8px 8px;
     background-repeat: no-repeat;
-    padding: 12px 20px 12px 28px;
+    padding: 12px 20px 12px 32px;
 }
 
 #swrlList, #searchResults {
@@ -283,7 +283,7 @@ body {
 }
 
 #searchResults {
-    top: 158px
+    top: 166px
 }
 
 .swrlsContainer {
@@ -295,7 +295,29 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
     display: flex;
     flex-direction: row;
+    position: relative;
     margin: 12px 4px 12px 4px;
+}
+
+.swrlAdded {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    height: 64px;
+    line-height: 64px;
+    margin: 1px;
+    font-size: 20px;
+    z-index: 1;
+    color: white;
+    background: black
+}
+
+.swrlInfo {
+    display: flex;
+    overflow: hidden;
 }
 
 .swrlImage {
@@ -324,6 +346,26 @@ body {
     margin-top: 12px;
 }
 
+.swrlButtons {
+    display: flex;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    color: #4990E2;
+}
+
+.swrlButton {
+    align-self: flex-end;
+    margin: 0 8px 8px 0;
+    cursor: pointer;
+    height: 24px;
+    width: 24px;
+}
+
+.swrlButton.swrlSpinner {
+    cursor: default;
+}
+
 .statusMessage {
     margin: auto 56px;
     text-align: center;
@@ -350,7 +392,7 @@ body {
         top: 156px;
     }
     #searchResults {
-        top: 180px;
+        top: 184px;
     }
     .main .section {
         padding-left: 0px;

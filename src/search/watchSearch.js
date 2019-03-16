@@ -2,6 +2,7 @@ export default { watchSearch }
 
 import { zip } from '../utils/zip';
 import { Type } from '../constants/Type';
+import { Category } from '../constants/Category';
 
 var tmdbAPIKey = 'c3356e66739e40233c7870d42b30bc34';
 var imageUrlPrefix = 'https://image.tmdb.org/t/p/original';
@@ -30,12 +31,15 @@ function filmSearch(query, signal) {
             var data = await response.json();
             resolve(data.results.map(function (result) {
                 return {
-                    title: result.title,
+                    details: {
+                        title: result.title,
+                        releaseYear: releaseYear(result.release_date),
+                        id: result.id,
+                        imageUrl: result.poster_path ? imageUrlPrefix + result.poster_path : '/img/NoPoster.jpg'
+                    },
                     type: Type.FILM,
-                    releaseYear: releaseYear(result.release_date),
-                    id: result.id,
-                    swrlID: 'TMDBMOVIE_' + result.id,
-                    imageUrl: result.poster_path ? imageUrlPrefix + result.poster_path : '/img/NoPoster.jpg'
+                    category: Category.WATCH,
+                    swrlID: 'TMDBMOVIE_' + result.id
                 }
             }));
         } catch (error) {
@@ -54,12 +58,14 @@ function TVSearch(query, signal) {
             var data = await response.json();
             resolve(data.results.map(function (result) {
                 return {
-                    title: result.name,
+                    details: {
+                        title: result.name,
+                        id: result.id,
+                        imageUrl: result.poster_path ? imageUrlPrefix + result.poster_path : '/img/NoPoster.jpg'
+                    },
                     type: Type.TV,
-                    releaseYear: releaseYear(result.release_date),
-                    id: result.id,
-                    swrlID: 'TMDBTV_' + result.id,
-                    imageUrl: result.poster_path ? imageUrlPrefix + result.poster_path : '/img/NoPoster.jpg'
+                    category: Category.WATCH,
+                    swrlID: 'TMDBTV_' + result.id
                 }
             }));
         } catch (error) {

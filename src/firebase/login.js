@@ -1,7 +1,9 @@
-var swrlUser;
+export default { swrlUser, setUpLogin };
+
+export var swrlUser;
 var firebase;
 
-export default function setUpLogin(firebaseInstance) {
+export function setUpLogin(firebaseInstance) {
     firebase = firebaseInstance;
     document.querySelector("#logout").addEventListener("click", logout);
     document.querySelector("#logout").addEventListener("touchstart", logout);
@@ -12,13 +14,13 @@ export default function setUpLogin(firebaseInstance) {
             swrlUser = user;
             console.log("user logged in: " + swrlUser.displayName);
 
-            var isAnonymous = swrlUser.isAnonymous;
-            if (isAnonymous) {
+            if (swrlUser.isAnonymous) {
                 handleAnonymous();
             } else {
                 handleLoginSuccess()
             }
         } else {
+            swrlUser = undefined;
             console.log("user not logged in");
             loginAnonymously();
             handleLogout();
@@ -42,11 +44,11 @@ function logout() {
 function login() {
     var provider = new firebase.auth.GoogleAuthProvider();
 
-    firebase.auth().getRedirectResult().then(function(result) {
+    firebase.auth().getRedirectResult().then(function (result) {
         swrlUser = result.user;
         console.log("firebase user from get redirect result: " + swrlUser.displayName);
         handleLoginSuccess();
-    }).catch(function(error) {
+    }).catch(function (error) {
         console.error("got redirect error: " + JSON.stringify(error));
         firebase.auth().signInWithRedirect(provider).then(function () {
             return firebase.auth().getRedirectResult();

@@ -3,6 +3,9 @@ export default { showSearch, destroySearch, initSearchBar };
 import { Category } from '../constants/Category';
 import { Type } from '../constants/Type';
 import 'abortcontroller-polyfill/dist/polyfill-patch-fetch'
+import { swrlUser } from '../firebase/login';
+import showRequireLoginScreen from '../components/requireLoginScreen';
+var firebase = require("firebase/app");
 
 var currentCategory;
 var searchResultsContainer = document.querySelector('#searchResults');
@@ -67,7 +70,7 @@ export function initSearchBar(firestore) {
                     .then(function (result) {
                         if (result.id === currentSearchID) {
                             clearResults();
-                            processResults(result.results);
+                            processResults(result.results, firestore, searchText);
                         } else {
                             console.log('Not the current search, so ignoring the results');
                         }
@@ -97,19 +100,53 @@ function clearResults() {
     resultsShowing = false;
 }
 
-function processResults(results) {
+function processResults(results, firestore, searchText) {
     if (results.length == 0) {
         message.innerText = 'No results found for ' + searchText;
     } else {
         messageContainer.classList.add('hidden');
         results.forEach((result) => {
-            var swrl = swrlTemplate.content.cloneNode(true);
-            var $swrl = swrl.querySelector.bind(swrl);
-            $swrl('.swrlImage').src = result.imageUrl;
-            $swrl('.swrlTitle').innerText = result.title;
+            var swrlFragment = swrlTemplate.content.cloneNode(true);
+            var swrlDiv = swrlFragment.querySelector('div');
+            swrlDiv.id = result.swrlID;
+            var $swrl = swrlFragment.querySelector.bind(swrlFragment);
+            $swrl('.swrlImage').src = result.details.imageUrl;
+            $swrl('.swrlTitle').innerText = result.details.title;
             $swrl('.swrlType').innerText = Type.properties[result.type].name;
-            searchResultsContainer.appendChild(swrl);
+            $swrl('.swrlAdd').classList.remove('hidden');
+            $swrl('.swrlAdded').classList.add(Category.properties[currentCategory].name);
+            $swrl('.swrlAdd').addEventListener('click', (e) => {
+                if (!swrlUser || swrlUser.isAnonymous) {
+                    showRequireLoginScreen('to add a Swrl to your list');
+                } else {
+                    swrlDiv.querySelector('.swrlAdd').classList.add('hidden');
+                    swrlDiv.querySelector('.swrlSpinner').classList.remove('hidden');
+                    addSwrlToList(result, firestore)
+                        .then(function () {
+                            swrlDiv.querySelector('.swrlAdded').classList.remove('hidden');
+                            setTimeout(function () {
+                                searchResultsContainer.removeChild(swrlDiv);
+                            }, 1000)
+                        }
+                        )
+                        .catch(function (error) {
+                            console.error('Could not add to list');
+                            console.error(error);
+                        });
+                }
+            })
+            searchResultsContainer.appendChild(swrlFragment);
         });
         resultsShowing = true;
     }
+}
+
+/**
+ * @param {firebase.firestore.Firestore} firestore 
+ */
+function addSwrlToList(result, firestore) {
+    console.log(swrlUser);
+    result.added = firebase.firestore.FieldValue.serverTimestamp();
+    result.later = firebase.firestore.FieldValue.arrayUnion(swrlUser.uid);
+    return firestore.collection('swrls').doc(result.swrlID).set(result, { merge: true });
 }

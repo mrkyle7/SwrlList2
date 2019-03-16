@@ -100,8 +100,10 @@ export default function bindHomeButtons(firestore) {
                 clearOtherCategories(category);
                 closeSectionButton.classList.remove('hidden');
                 tabs.classList.remove('hidden');
-                if (state.view === View.LIST) {
-                    showList(category, firestore);
+                if (state.view === View.YOUR_LIST) {
+                    showList(category, View.YOUR_LIST, firestore);
+                } else if (state.view === View.DISCOVER) {
+                    showList(category, View.DISCOVER, firestore);
                 } else if (state.view === View.SEARCH) {
                     showSearch(category, firestore);
                 }
