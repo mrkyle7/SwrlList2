@@ -73,12 +73,17 @@ function runQuery(db, category, view) {
             } else {
                 return db.where("category", "==", category)
                     .where("later", "array-contains", swrlUser.uid)
+                    .orderBy("details.title")
                     .get();
             }
         case View.DISCOVER:
-            return db.where("category", "==", category).get();
+            return db.where("category", "==", category)
+                .orderBy("details.title")
+                .get();
         default:
-            return db.where("category", "==", category).get();
+            return db.where("category", "==", category)
+                .orderBy("details.title")
+                .get();
     }
 }
 
