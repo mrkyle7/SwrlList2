@@ -5,7 +5,7 @@ import { Type } from '../constants/Type';
 import 'abortcontroller-polyfill/dist/polyfill-patch-fetch'
 import { swrlUser } from '../firebase/login';
 import showRequireLoginScreen from '../components/requireLoginScreen';
-var firebase = require("firebase/app");
+import addSwrlToList from '../actions/addSwrlToList';
 
 var currentCategory;
 var searchResultsContainer = document.querySelector('#searchResults');
@@ -113,8 +113,8 @@ function processResults(results, firestore, searchText) {
             $swrl('.swrlImage').src = result.details.imageUrl;
             $swrl('.swrlTitle').innerText = result.details.title;
             $swrl('.swrlType').innerText = Type.properties[result.type].name;
-            $swrl('.swrlAdd').classList.remove('hidden');
             $swrl('.swrlAdded').classList.add(Category.properties[currentCategory].name);
+            $swrl('.swrlAdd').classList.remove('hidden');
             $swrl('.swrlAdd').addEventListener('click', (e) => {
                 if (!swrlUser || swrlUser.isAnonymous) {
                     showRequireLoginScreen('to add a Swrl to your list');
@@ -139,14 +139,4 @@ function processResults(results, firestore, searchText) {
         });
         resultsShowing = true;
     }
-}
-
-/**
- * @param {firebase.firestore.Firestore} firestore 
- */
-function addSwrlToList(result, firestore) {
-    console.log(swrlUser);
-    result.added = firebase.firestore.FieldValue.serverTimestamp();
-    result.later = firebase.firestore.FieldValue.arrayUnion(swrlUser.uid);
-    return firestore.collection('swrls').doc(result.swrlID).set(result, { merge: true });
 }

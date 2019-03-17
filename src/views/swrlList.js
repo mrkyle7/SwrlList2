@@ -5,6 +5,7 @@ import { Type } from '../constants/Type';
 import { Category } from '../constants/Category';
 import { swrlUser } from '../firebase/login';
 import showRequireLoginScreen from '../components/requireLoginScreen';
+import addSwrlToList from '../actions/addSwrlToList';
 
 var swrlsContainer = document.getElementById('swrlList');
 var swrlTemplate = document.querySelector('#swrl');
@@ -33,7 +34,7 @@ export function showList(category, view, firestore) {
                     if (!querySnapshot.empty) {
                         numSwrlsDisplayed = 0;
                         querySnapshot.forEach(function (swrl) {
-                            processSwrl(view, swrl.data());
+                            processSwrl(view, category, swrl.data(), firestore);
                         })
                         if (view === View.DISCOVER && numSwrlsDisplayed == 0) {
                             console.log('No Swrls to discover');
@@ -87,15 +88,41 @@ function runQuery(db, category, view) {
     }
 }
 
-function processSwrl(view, swrl) {
+function processSwrl(view, category, swrl, firestore) {
     if (!(view === View.DISCOVER && swrl.later.indexOf(swrlUser.uid) !== -1)) {
         numSwrlsDisplayed++;
         var swrlFragment = swrlTemplate.content.cloneNode(true);
+        var swrlDiv = swrlFragment.querySelector('div');
         var $swrl = swrlFragment.querySelector.bind(swrlFragment);
         $swrl('.swrlImage').src = swrl.details.imageUrl;
         $swrl('.swrlTitle').innerText = swrl.details.title;
         $swrl('.swrlType').innerText = Type.properties[swrl.type].name;
+        if (view === View.DISCOVER) {
+            $swrl('.swrlAdded').classList.add(Category.properties[category].name);
+            $swrl('.swrlAdd').classList.remove('hidden');
+            $swrl('.swrlAdd').addEventListener('click', (e) => {
+                if (!swrlUser || swrlUser.isAnonymous) {
+                    showRequireLoginScreen('to add a Swrl to your list');
+                } else {
+                    swrlDiv.querySelector('.swrlAdd').classList.add('hidden');
+                    swrlDiv.querySelector('.swrlSpinner').classList.remove('hidden');
+                    addSwrlToList(swrl, firestore)
+                        .then(function () {
+                            swrlDiv.querySelector('.swrlAdded').classList.remove('hidden');
+                            setTimeout(function () {
+                                swrlsContainer.removeChild(swrlDiv);
+                            }, 1000)
+                        }
+                        )
+                        .catch(function (error) {
+                            console.error('Could not add to list');
+                            console.error(error);
+                        });
+                }
+            })
+        }
         swrlsContainer.appendChild(swrlFragment);
+
     }
 }
 
