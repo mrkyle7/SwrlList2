@@ -1,18 +1,15 @@
 export default { showSearch, destroySearch, initSearchBar };
 
-import { Category } from '../constants/Category';
-import { Type } from '../constants/Type';
 import 'abortcontroller-polyfill/dist/polyfill-patch-fetch'
-import { swrlUser } from '../firebase/login';
-import showRequireLoginScreen from '../components/requireLoginScreen';
-import addSwrlToList from '../actions/addSwrlToList';
+import { Category } from '../constants/Category';
+import { View } from '../constants/View';
+import { renderSwrl } from '../components/swrl';
 
 var currentCategory;
 var searchResultsContainer = document.querySelector('#searchResults');
 var searchBar = document.querySelector('#swrlSearch');
 var messageContainer = document.querySelector('#messageContainer');
 var message = document.querySelector('#message');
-var swrlTemplate = document.querySelector('#swrl');
 var currentSearchID;
 var resultsShowing = false;
 
@@ -105,37 +102,8 @@ function processResults(results, firestore, searchText) {
         message.innerText = 'No results found for ' + searchText;
     } else {
         messageContainer.classList.add('hidden');
-        results.forEach((result) => {
-            var swrlFragment = swrlTemplate.content.cloneNode(true);
-            var swrlDiv = swrlFragment.querySelector('div');
-            swrlDiv.id = result.swrlID;
-            var $swrl = swrlFragment.querySelector.bind(swrlFragment);
-            $swrl('.swrlImage').src = result.details.imageUrl;
-            $swrl('.swrlTitle').innerText = result.details.title;
-            $swrl('.swrlType').innerText = Type.properties[result.type].name;
-            $swrl('.swrlAdded').classList.add(Category.properties[currentCategory].name);
-            $swrl('.swrlAdd').classList.remove('hidden');
-            $swrl('.swrlAdd').addEventListener('click', (e) => {
-                if (!swrlUser || swrlUser.isAnonymous) {
-                    showRequireLoginScreen('to add a Swrl to your list');
-                } else {
-                    swrlDiv.querySelector('.swrlAdd').classList.add('hidden');
-                    swrlDiv.querySelector('.swrlSpinner').classList.remove('hidden');
-                    addSwrlToList(result, firestore)
-                        .then(function () {
-                            swrlDiv.querySelector('.swrlAdded').classList.remove('hidden');
-                            setTimeout(function () {
-                                searchResultsContainer.removeChild(swrlDiv);
-                            }, 1000)
-                        }
-                        )
-                        .catch(function (error) {
-                            console.error('Could not add to list');
-                            console.error(error);
-                        });
-                }
-            })
-            searchResultsContainer.appendChild(swrlFragment);
+        results.forEach((swrl) => {
+            renderSwrl(View.SEARCH, currentCategory, swrl, firestore, searchResultsContainer);
         });
         resultsShowing = true;
     }

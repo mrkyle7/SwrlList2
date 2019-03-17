@@ -1,16 +1,12 @@
 export default { showList, destroyList };
 
 import { View } from '../constants/View';
-import { Type } from '../constants/Type';
 import { Category } from '../constants/Category';
 import { swrlUser } from '../firebase/login';
-import showRequireLoginScreen from '../components/requireLoginScreen';
-import addSwrlToList from '../actions/addSwrlToList';
+import { renderSwrl } from '../components/swrl';
 
 var swrlsContainer = document.getElementById('swrlList');
-var swrlTemplate = document.querySelector('#swrl');
 var currentID;
-var numSwrlsDisplayed = 0;
 
 /**
  * @param {Category} category
@@ -32,11 +28,10 @@ export function showList(category, view, firestore) {
                 if (currentID === resultsID) {
                     document.querySelector('#messageContainer').classList.add('hidden');
                     if (!querySnapshot.empty) {
-                        numSwrlsDisplayed = 0;
                         querySnapshot.forEach(function (swrl) {
-                            processSwrl(view, category, swrl.data(), firestore);
+                            renderSwrl(view, category, swrl.data(), firestore, swrlsContainer);
                         })
-                        if (view === View.DISCOVER && numSwrlsDisplayed == 0) {
+                        if (view === View.DISCOVER && swrlsContainer.querySelectorAll('div').length == 0) {
                             console.log('No Swrls to discover');
                             showNoSwrlsDiscoverView(category);
                         }
@@ -79,50 +74,12 @@ function runQuery(db, category, view) {
             }
         case View.DISCOVER:
             return db.where("category", "==", category)
-                .orderBy("details.title")
+                .orderBy("added", "desc")
                 .get();
         default:
             return db.where("category", "==", category)
-                .orderBy("details.title")
+                .orderBy("added", "desc")
                 .get();
-    }
-}
-
-function processSwrl(view, category, swrl, firestore) {
-    if (!(view === View.DISCOVER && swrl.later.indexOf(swrlUser.uid) !== -1)) {
-        numSwrlsDisplayed++;
-        var swrlFragment = swrlTemplate.content.cloneNode(true);
-        var swrlDiv = swrlFragment.querySelector('div');
-        var $swrl = swrlFragment.querySelector.bind(swrlFragment);
-        $swrl('.swrlImage').src = swrl.details.imageUrl;
-        $swrl('.swrlTitle').innerText = swrl.details.title;
-        $swrl('.swrlType').innerText = Type.properties[swrl.type].name;
-        if (view === View.DISCOVER) {
-            $swrl('.swrlAdded').classList.add(Category.properties[category].name);
-            $swrl('.swrlAdd').classList.remove('hidden');
-            $swrl('.swrlAdd').addEventListener('click', (e) => {
-                if (!swrlUser || swrlUser.isAnonymous) {
-                    showRequireLoginScreen('to add a Swrl to your list');
-                } else {
-                    swrlDiv.querySelector('.swrlAdd').classList.add('hidden');
-                    swrlDiv.querySelector('.swrlSpinner').classList.remove('hidden');
-                    addSwrlToList(swrl, firestore)
-                        .then(function () {
-                            swrlDiv.querySelector('.swrlAdded').classList.remove('hidden');
-                            setTimeout(function () {
-                                swrlsContainer.removeChild(swrlDiv);
-                            }, 1000)
-                        }
-                        )
-                        .catch(function (error) {
-                            console.error('Could not add to list');
-                            console.error(error);
-                        });
-                }
-            })
-        }
-        swrlsContainer.appendChild(swrlFragment);
-
     }
 }
 

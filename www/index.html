@@ -92,7 +92,9 @@
   </div>
   <template id="swrl">
     <div class="swrl">
-      <div class="swrlAdded hidden">Added to your list</div>
+      <div class="swrlBanner swrlAdded hidden">Added to your list</div>
+      <div class="swrlBanner swrlMarkedAsDone hidden">Marked as Done</div>
+      <div class="swrlBanner swrlDeleted hidden">Swrl Deleted</div>
       <div class="swrlInfo">
         <img class="swrlImage" src="" />
         <div class="swrlDetails">
@@ -102,7 +104,12 @@
       </div>
       <div class="swrlButtons">
         <!-- <a class="swrlShare swrlButton">SHARE</a> -->
+        <img class="swrlDelete swrlButton hidden" src="img/delete.svg"/>
+        <img class="swrlSpinnerDelete swrlButton hidden" src="img/spinner.gif"/>
+        <img class="swrlLoved swrlButton hidden" src="img/loved.svg"/>
+        <img class="swrlNotLoved swrlButton hidden" src="img/notLoved.svg"/>
         <img class="swrlSpinner swrlButton hidden" src="img/spinner.gif"/>
+        <img class="swrlDone swrlButton hidden" src="img/done.svg" />
         <img class="swrlAdd swrlButton hidden" src="img/addIcon.svg" />
       </div>
     </div>
