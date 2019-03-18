@@ -28,8 +28,8 @@ export var Category = {
         },
         3: {
             name: 'listen',
-            noSwrlsMessage: 'Nothing to Watch :( Try Searching or Discover an album or podcast!',
-            noSwrlsDiscoverMessage: 'Nothing to Watch :( Try Searching for an album or podcast!',
+            noSwrlsMessage: 'Nothing to Listen to :( Try Searching or Discover an album or podcast!',
+            noSwrlsDiscoverMessage: 'Nothing to Listen to :( Try Searching for an album or podcast!',
             searchMessage: 'Search for an album or podcast',
             searchPlaceholder: 'Search by title or artist',
             search: listenSearch
