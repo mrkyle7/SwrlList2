@@ -19,6 +19,7 @@ export function showSearch(category) {
     searchBar.classList.remove('hidden');
     messageContainer.classList.remove('hidden');
     message.innerText = Category.properties[category].searchMessage;
+    searchBar.placeholder = Category.properties[category].searchPlaceholder;
 }
 
 export function destroySearch() {
