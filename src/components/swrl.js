@@ -2,7 +2,6 @@ export default { renderSwrl };
 
 import { Type } from '../constants/Type';
 import { View } from '../constants/View';
-import { Category } from '../constants/Category';
 import { swrlUser } from '../firebase/login';
 import showRequireLoginScreen from '../components/requireLoginScreen';
 import addSwrlToList from '../actions/addSwrlToList';
@@ -11,7 +10,7 @@ import unloveASwrl from '../actions/unloveASwrl';
 import markASwrlAsDone from '../actions/markASwrlAsDone';
 import deleteSwrl from '../actions/deleteSwrl';
 
-export function renderSwrl(view, category, swrl, firestore, swrlsContainer) {
+export function renderSwrl(view, swrl, firestore, swrlsContainer) {
     if (!(view === View.DISCOVER && (isOnList(swrl) || isDeleted(swrl)))) {
         var swrlTemplate = document.querySelector('#swrl');
         var swrlFragment = swrlTemplate.content.cloneNode(true);
@@ -21,7 +20,7 @@ export function renderSwrl(view, category, swrl, firestore, swrlsContainer) {
         $swrl('.swrlTitle').innerText = swrl.details.title;
         $swrl('.swrlType').innerText = Type.properties[swrl.type].name;
 
-        addAddButton(view, $swrl, category, swrlDiv, swrl, firestore, swrlsContainer);
+        addAddButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer);
         addLoveButton(view, swrl, $swrl, swrlDiv, firestore);
         addDoneButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer);
         addDeleteButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer);
@@ -134,9 +133,8 @@ function isLoved(swrl) {
     return swrl.loved && swrl.loved.indexOf(swrlUser.uid) !== -1;
 }
 
-function addAddButton(view, $swrl, category, swrlDiv, swrl, firestore, swrlsContainer) {
+function addAddButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer) {
     if (view === View.DISCOVER || view === View.SEARCH) {
-        $swrl('.swrlAdded').classList.add(Category.properties[category].name);
         $swrl('.swrlAdd').classList.remove('hidden');
         $swrl('.swrlAdd').addEventListener('click', (e) => {
             if (!swrlUser || swrlUser.isAnonymous) {

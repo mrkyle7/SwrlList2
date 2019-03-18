@@ -4,6 +4,7 @@ import { View } from '../constants/View';
 import { Category } from '../constants/Category';
 import { swrlUser } from '../firebase/login';
 import { renderSwrl } from '../components/swrl';
+import showRequireLoginScreen from '../components/requireLoginScreen';
 
 var swrlsContainer = document.getElementById('swrlList');
 var currentID;
@@ -22,14 +23,13 @@ export function showList(category, view, firestore) {
     document.querySelector('#message').innerText = 'Loading Swrls...';
     var swrlsRef = firestore.collection("swrls");
     if (swrlsRef) {
-        console.log("Getting Swrls for: " + Category.properties[category].name);
         runQuery(swrlsRef, category, view)
             .then(function (querySnapshot) {
                 if (currentID === resultsID) {
                     document.querySelector('#messageContainer').classList.add('hidden');
                     if (!querySnapshot.empty) {
                         querySnapshot.forEach(function (swrl) {
-                            renderSwrl(view, category, swrl.data(), firestore, swrlsContainer);
+                            renderSwrl(view, swrl.data(), firestore, swrlsContainer);
                         })
                         if (view === View.DISCOVER && swrlsContainer.querySelectorAll('div').length == 0) {
                             console.log('No Swrls to discover');

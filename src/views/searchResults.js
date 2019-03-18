@@ -103,7 +103,7 @@ function processResults(results, firestore, searchText) {
     } else {
         messageContainer.classList.add('hidden');
         results.forEach((swrl) => {
-            renderSwrl(View.SEARCH, currentCategory, swrl, firestore, searchResultsContainer);
+            renderSwrl(View.SEARCH, swrl, firestore, searchResultsContainer);
         });
         resultsShowing = true;
     }
