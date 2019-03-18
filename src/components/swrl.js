@@ -20,12 +20,65 @@ export function renderSwrl(view, swrl, firestore, swrlsContainer) {
         $swrl('.swrlTitle').innerText = swrl.details.title;
         $swrl('.swrlType').innerText = Type.properties[swrl.type].name;
 
+        addStats($swrl, swrlDiv, swrl, view, firestore);
         addAddButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer);
         addLoveButton(view, swrl, $swrl, swrlDiv, firestore);
         addDoneButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer);
         addDeleteButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer);
 
         swrlsContainer.appendChild(swrlFragment);
+    }
+}
+
+/**
+* @param {firebase.firestore.Firestore} firestore 
+*/
+function addStats($swrl, swrlDiv, swrl, view, firestore) {
+    if (view === View.SEARCH) {
+        $swrl('.swrlListCount').classList.add('hidden');
+        $swrl('.swrlSpinnerListCount').classList.remove('hidden');
+        $swrl('.swrlLoveCount').classList.add('hidden');
+        $swrl('.swrlSpinnerLoveCount').classList.remove('hidden');
+        var docRef = firestore.collection('swrls').doc(swrl.swrlID);
+        docRef.get()
+            .then((doc) => {
+                if (doc.exists) {
+                    var data = doc.data();
+                    var laterCount = data.later ? data.later.length : 0;
+                    var doneCount = data.done ? data.done.length : 0;
+                    var lovedCount = data.loved ? data.loved.length : 0;
+                    if (swrlDiv) {
+                        updateStats(laterCount + doneCount, lovedCount);
+                    }
+                } else if (swrlDiv) {
+                    updateStats(0, 0);
+                }
+            })
+            .catch((err) => {
+                console.error('Error when getting swrl stats');
+                console.error(err);
+                if (swrlDiv) {
+                    updateStats(0, 0);
+                }
+            })
+
+    } else {
+        var laterCount = swrl.later ? swrl.later.length : 0;
+        var doneCount = swrl.done ? swrl.done.length : 0;
+        var lovedCount = swrl.loved ? swrl.loved.length : 0;
+
+        $swrl('.swrlListCount').innerText = laterCount + doneCount;
+        $swrl('.swrlLoveCount').innerText = lovedCount;
+    }
+
+    function updateStats(listCount, LoveCount) {
+        swrlDiv.querySelector('.swrlListCount').classList.remove('hidden');
+        swrlDiv.querySelector('.swrlSpinnerListCount').classList.add('hidden');
+        swrlDiv.querySelector('.swrlLoveCount').classList.remove('hidden');
+        swrlDiv.querySelector('.swrlSpinnerLoveCount').classList.add('hidden');
+
+        swrlDiv.querySelector('.swrlListCount').innerText = listCount;
+        swrlDiv.querySelector('.swrlLoveCount').innerText = LoveCount;
     }
 }
 

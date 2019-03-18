@@ -340,10 +340,14 @@ body {
     text-overflow: ellipsis;
 }
 
-.swrlType {
+.swrlStats {
     font-size: 12px;
     padding-left: 4px;
     margin-top: 12px;
+}
+
+.swrlMiniIcon {
+    height: 12px;
 }
 
 .swrlButtons {
@@ -351,7 +355,6 @@ body {
     position: absolute;
     bottom: 0;
     right: 0;
-    color: #4990E2;
 }
 
 .swrlButton {

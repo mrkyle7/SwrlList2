@@ -1,0 +1,1 @@
+Each Swrl now shows how many times it's been swrled and how much love it's gotten
