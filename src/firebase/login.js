@@ -49,7 +49,8 @@ function login() {
         console.log("firebase user from get redirect result: " + swrlUser.displayName);
         handleLoginSuccess();
     }).catch(function (error) {
-        console.error("got redirect error: " + JSON.stringify(error));
+        console.error("got redirect error");
+        console.error(error);
         firebase.auth().signInWithRedirect(provider).then(function () {
             return firebase.auth().getRedirectResult();
         }).then(function (result) {
@@ -57,7 +58,8 @@ function login() {
             console.log("firebase user: " + swrlUser.displayName);
             handleLoginSuccess();
         }).catch(function (error) {
-            console.error("Login failed: " + JSON.stringify(error))
+            console.error("Login failed");
+            console.error(error);
             loginAnonymously();
         });
     })

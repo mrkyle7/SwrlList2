@@ -90,21 +90,17 @@ function addDeleteButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer) 
                 showRequireLoginScreen('to delete a Swrl');
             }
             else {
-                swrlDiv.querySelector('.swrlDelete').classList.add('hidden');
-                swrlDiv.querySelector('.swrlSpinnerDelete').classList.remove('hidden');
                 deleteSwrl(swrl, firestore)
-                    .then(() => {
-                        swrlDiv.querySelector('.swrlDeleted').classList.remove('hidden');
-                        setTimeout(function () {
-                            swrlsContainer.removeChild(swrlDiv);
-                        }, 1000);
-                    })
                     .catch(function (error) {
                         console.error('Could not delete');
                         console.error(error);
-                        swrlDiv.querySelector('.swrlDelete').classList.remove('hidden');
-                        swrlDiv.querySelector('.swrlSpinnerDelete').classList.add('hidden');
                     });
+                swrlDiv.querySelector('.swrlDeleted').classList.remove('hidden');
+                setTimeout(function () {
+                    if (swrlDiv && swrlsContainer) {
+                        swrlsContainer.removeChild(swrlDiv);
+                    }
+                }, 1000);
             }
         });
     }
@@ -118,21 +114,17 @@ function addDoneButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer) {
                 showRequireLoginScreen('to mark a Swrl as done');
             }
             else {
-                swrlDiv.querySelector('.swrlDone').classList.add('hidden');
-                swrlDiv.querySelector('.swrlSpinner').classList.remove('hidden');
                 markASwrlAsDone(swrl, firestore)
-                    .then(() => {
-                        swrlDiv.querySelector('.swrlMarkedAsDone').classList.remove('hidden');
-                        setTimeout(function () {
-                            swrlsContainer.removeChild(swrlDiv);
-                        }, 1000);
-                    })
                     .catch(function (error) {
                         console.error('Could not add to list');
                         console.error(error);
-                        swrlDiv.querySelector('.swrlDone').classList.remove('hidden');
-                        swrlDiv.querySelector('.swrlSpinner').classList.add('hidden');
                     });
+                swrlDiv.querySelector('.swrlMarkedAsDone').classList.remove('hidden');
+                setTimeout(function () {
+                    if (swrlDiv && swrlsContainer) {
+                        swrlsContainer.removeChild(swrlDiv);
+                    }
+                }, 1000);
             }
         });
     }
@@ -145,12 +137,12 @@ function addLoveButton(view, swrl, $swrl, swrlDiv, firestore) {
                 showRequireLoginScreen('to unlove a Swrl');
             }
             else {
+                unloveASwrl(swrl, firestore)
+                    .catch((error) => {
+                        console.error(error);
+                    });;
                 swrlDiv.querySelector('.swrlLoved').classList.add('hidden');
-                swrlDiv.querySelector('.swrlSpinner').classList.remove('hidden');
-                unloveASwrl(swrl, firestore).then(() => {
-                    swrlDiv.querySelector('.swrlSpinner').classList.add('hidden');
-                    swrlDiv.querySelector('.swrlNotLoved').classList.remove('hidden');
-                });
+                swrlDiv.querySelector('.swrlNotLoved').classList.remove('hidden');
             }
         });
         $swrl('.swrlNotLoved').addEventListener('click', (e) => {
@@ -158,12 +150,12 @@ function addLoveButton(view, swrl, $swrl, swrlDiv, firestore) {
                 showRequireLoginScreen('to love a Swrl');
             }
             else {
+                loveASwrl(swrl, firestore)
+                    .catch((error) => {
+                        console.error(error);
+                    });
                 swrlDiv.querySelector('.swrlNotLoved').classList.add('hidden');
-                swrlDiv.querySelector('.swrlSpinner').classList.remove('hidden');
-                loveASwrl(swrl, firestore).then(() => {
-                    swrlDiv.querySelector('.swrlSpinner').classList.add('hidden');
-                    swrlDiv.querySelector('.swrlLoved').classList.remove('hidden');
-                });
+                swrlDiv.querySelector('.swrlLoved').classList.remove('hidden');
             }
         });
         if (isLoved(swrl)) {
@@ -175,7 +167,7 @@ function addLoveButton(view, swrl, $swrl, swrlDiv, firestore) {
 }
 
 function isOnList(swrl) {
-    return swrl.later.indexOf(swrlUser.uid) !== -1 || (swrl.done && swrl.done.indexOf(swrlUser.uid) !== -1);
+    return (swrl.later && swrl.later.indexOf(swrlUser.uid) !== -1) || (swrl.done && swrl.done.indexOf(swrlUser.uid) !== -1);
 }
 
 function isDeleted(swrl) {
@@ -194,21 +186,17 @@ function addAddButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer) {
                 showRequireLoginScreen('to add a Swrl to your list');
             }
             else {
-                swrlDiv.querySelector('.swrlAdd').classList.add('hidden');
-                swrlDiv.querySelector('.swrlSpinner').classList.remove('hidden');
                 addSwrlToList(swrl, firestore)
-                    .then(function () {
-                        swrlDiv.querySelector('.swrlAdded').classList.remove('hidden');
-                        setTimeout(function () {
-                            swrlsContainer.removeChild(swrlDiv);
-                        }, 1000);
-                    })
                     .catch(function (error) {
                         console.error('Could not add to list');
                         console.error(error);
                         swrlDiv.querySelector('.swrlAdd').classList.remove('hidden');
                         swrlDiv.querySelector('.swrlSpinner').classList.add('hidden');
                     });
+                swrlDiv.querySelector('.swrlAdded').classList.remove('hidden');
+                setTimeout(function () {
+                    swrlsContainer.removeChild(swrlDiv);
+                }, 1000);
             }
         });
     }

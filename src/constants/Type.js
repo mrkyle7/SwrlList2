@@ -14,8 +14,8 @@ export var Type = {
         3: { name: "BOOK" },
         4: { name: "PODCAST" },
         5: { name: "ALBUM" },
-        6: { name: "BOARDGAME" },
-        7: { name: "VIDEO GAME" }
+        6: { name: "BOARDGAME", geekType: 'boardgame' },
+        7: { name: "VIDEO GAME", geekType: 'videogame' }
     }
 }
 Object.freeze(Type);

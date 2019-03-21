@@ -1,0 +1,2 @@
+Added Other search for video and board games
+Handle offline operations better

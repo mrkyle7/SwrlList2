@@ -49,7 +49,7 @@ export function initSearchBar(firestore) {
         if (searchDelay) {
             clearTimeout(searchDelay);
         }
-        if (searchText.length >= 3) {
+        if (searchText.length > 0) {
             searchDelay = setTimeout(function () {
                 if (currentSearchController) {
                     currentSearchController.abort();
@@ -77,7 +77,7 @@ export function initSearchBar(firestore) {
                         //TODO: add better view for errors?
                         console.error(err);
                         messageContainer.classList.remove('hidden');
-                        message.innerText = 'No results found for ' + searchText;
+                        message.innerText = 'Error - No results found for ' + searchText;
                     })
             }, 500)
         } else {

@@ -15,6 +15,9 @@ export default function initialiseFirebase() {
     firebase.initializeApp(config);
 
     firebase.firestore().enablePersistence()
+        .then(() => {
+            console.log('Firestore Persistence enabled');
+        })
         .catch(function (err) {
             console.error(err);
             if (err.code == 'failed-precondition') {
