@@ -7,7 +7,7 @@
     "scripts": {
         "start": "cordova prepare browser && node server.js",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "heroku-postbuild": "npm install -g cordova && cordova platform add browser && cordova prepare browser"
+        "heroku-postbuild": "npm install -g cordova@8.1.2 && cordova platform add browser && cordova prepare browser"
     },
     "engines": {
         "node": "11.7.0"
@@ -67,7 +67,6 @@
         "@babel/plugin-transform-runtime": "^7.3.4",
         "@babel/preset-env": "^7.3.4",
         "@babel/runtime": "^7.3.4",
-        "babel-loader": "^8.0.5",
-        "q": "1.5.1"
+        "babel-loader": "^8.0.5"
     }
 }
