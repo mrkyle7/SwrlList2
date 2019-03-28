@@ -1,7 +1,7 @@
 const fs = require('fs');
+const Q = require('q');
 
 module.exports = function(ctx) {
-    var Q = ctx.requireCordovaModule('q');
     var deferral = new Q.defer();
 
     if (ctx.opts.plugins.includes('cordova-plugin-browsertab')) {
