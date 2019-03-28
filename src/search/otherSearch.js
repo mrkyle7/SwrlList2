@@ -38,7 +38,7 @@ function geekSearch(type, query, signal) {
         var parser = new DOMParser();
         var xmlResults = parser.parseFromString(xmlData, 'application/xml');
         var items = xmlResults.getElementsByTagName('item');
-        var maxResults = items.length < 10 ? items.length : 10;
+        var maxResults = items.length < 20 ? items.length : 20;
         var results = [];
         for (var index = 0; index < maxResults; index++) {
             var item = items[index];

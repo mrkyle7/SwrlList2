@@ -17,7 +17,10 @@ export function renderSwrl(view, swrl, firestore, swrlsContainer) {
         var swrlDiv = swrlFragment.querySelector('div');
         var $swrl = swrlFragment.querySelector.bind(swrlFragment);
         $swrl('.swrlImage').src = swrl.details.imageUrl;
-        $swrl('.swrlTitle').innerText = swrl.details.title;
+        var creator = swrl.details.author ? swrl.details.author
+            : swrl.details.artist ? swrl.details.artist : undefined;
+        var title = creator ? swrl.details.title + ' by ' + creator : swrl.details.title;
+        $swrl('.swrlTitle').innerText = title;
         $swrl('.swrlType').innerText = Type.properties[swrl.type].name;
 
         addStats($swrl, swrlDiv, swrl, view, firestore);

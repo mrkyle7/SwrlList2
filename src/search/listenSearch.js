@@ -29,7 +29,8 @@ function albumSearch(query, signal) {
             resolve(data.results.map(function (result) {
                 return {
                     details: {
-                        title: result.collectionName + ' by ' + result.artistName,
+                        title: result.collectionName || 'No title',
+                        artist: result.artistName || 'Unknown',
                         id: result.collectionId,
                         imageUrl: getLargeImage(result) || '/img/NoPoster.jpg'
                     },

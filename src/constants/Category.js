@@ -23,7 +23,7 @@ export var Category = {
             noSwrlsMessage: 'Nothing to Read :( Try Searching or Discover a book!',
             noSwrlsDiscoverMessage: 'Nothing to Read :( Try Searching for a book!',
             searchMessage: 'Search for a book',   
-            searchPlaceholder: 'Search by title',
+            searchPlaceholder: 'Search by title or author',
             search: readSearch
         },
         3: {
