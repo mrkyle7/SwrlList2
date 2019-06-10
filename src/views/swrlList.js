@@ -1,6 +1,7 @@
 export default { showList, destroyList };
 
 import { View } from '../constants/View';
+import { Collection } from '../constants/Collection';
 import { Category } from '../constants/Category';
 import { swrlUser } from '../firebase/login';
 import { renderSwrl } from '../components/swrl';
@@ -21,7 +22,7 @@ export function showList(category, view, firestore) {
     document.querySelector('#swrlList').classList.remove('hidden');
     document.querySelector('#messageContainer').classList.remove('hidden');
     document.querySelector('#message').innerText = 'Loading Swrls...';
-    var swrlsRef = firestore.collection("swrls");
+    var swrlsRef = firestore.collection(Collection.SWRLS);
     if (swrlsRef) {
         runQuery(swrlsRef, category, view)
             .then(function (querySnapshot) {
@@ -29,7 +30,7 @@ export function showList(category, view, firestore) {
                     document.querySelector('#messageContainer').classList.add('hidden');
                     if (!querySnapshot.empty) {
                         querySnapshot.forEach(function (swrl) {
-                            renderSwrl(view, swrl.data(), firestore, swrlsContainer);
+                            renderSwrl(category, view, swrl.data(), firestore, swrlsContainer);
                         })
                         if (view === View.DISCOVER && swrlsContainer.querySelectorAll('div').length == 0) {
                             console.log('No Swrls to discover');

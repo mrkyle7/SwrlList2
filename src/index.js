@@ -39,10 +39,11 @@ var app = {
             bindMenuSwipeAction();
             var firebase = initialiseFirebase();
             var firestore = firebase.firestore();
-            setUpLogin(firebase);
+            setUpLogin(firebase, firestore);
             bindHomeButtons(firestore);
         } catch (error) {
-            console.log(error);
+            console.error('Caught Error loading');
+            console.error(error);
         }
     }
 };

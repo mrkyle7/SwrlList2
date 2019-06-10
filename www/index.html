@@ -16,11 +16,14 @@
   <div class="header">
     <div class="title">
       <div class="title-details">
-        <h1>You Should</h1>
+        <h1>Swrl List 2</h1>
       </div>
     </div>
-    <img class="profile-photo login hidden" id="image" src="" />
-    <p class="login" id="login">LOG IN</p>
+    <div class="hidden" id="inboxDisplay">
+      <img class="login" id="inboxIcon" src="img/inbox2.svg" />
+      <span class="badge" id="inboxCount">0</span>
+    </div>
+    <p id="login">LOG IN</p>
   </div>
   <input type="checkbox" class="openSidebarMenu" id="openSidebarMenu">
   <label for="openSidebarMenu" class="sidebarIconToggle">
@@ -30,7 +33,9 @@
   </label>
   <div id="sidebarMenu">
     <ul class="sidebarMenuInner">
-      <li id="loginStatus">Not logged in</li>
+      <li><img class="profile-photo hidden" id="userPhoto" src="" />
+        <p id="loginStatus">Not logged in</p>
+      </li>
       <li class="hidden" id="logout">Logout</li>
     </ul>
   </div>
@@ -39,38 +44,59 @@
   <div id='centre' class="main">
     <div id="fade"></div>
     <div class="sections">
+      <div id="recommendationsTitleBar" class="section selected hidden">
+        <img id="closeRecommendations" class="close" src="img/x.png" />
+        <div id="recommendationsDetail" class="section-detail">
+          <h2 id="recommendationsTitle" class="defaultTitle">Recommendations</h2>
+        </div>
+      </div>
+    </div>
+    <div class="sections">
       <div class="section watch">
         <img class="close hidden" src="img/x.png" />
+        <img class="back hidden" src="img/arrow-back.svg" />
         <div class="section-detail">
           <img class="icon" src="img/watch.png" />
-          <h2>Watch</h2>
+          <h2 class="defaultTitle">Watch</h2>
+          <h2 class="recommendTitle hidden">Recommend</h2>
         </div>
+        <img class="recommendSend hidden" src="img/send.svg" />
       </div>
 
       <div class="section read">
         <img class="close hidden" src="img/x.png" />
+        <img class="back hidden" src="img/arrow-back.svg" />
         <div class="section-detail">
           <img class="icon" src="img/read.png" />
-          <h2>Read</h2>
+          <h2 class="defaultTitle">Read</h2>
+          <h2 class="recommendTitle hidden">Recommend</h2>
         </div>
+        <img class="recommendSend hidden" src="img/send.svg" />
       </div>
 
       <div class="section listen">
         <img class="close hidden" src="img/x.png" />
+        <img class="back hidden" src="img/arrow-back.svg" />
         <div class="section-detail">
           <img class="icon" src="img/listen.png" />
-          <h2>Listen</h2>
+          <h2 class="defaultTitle">Listen</h2>
+          <h2 class="recommendTitle hidden">Recommend</h2>
         </div>
+        <img class="recommendSend hidden" src="img/send.svg" />
       </div>
 
       <div class="section other">
         <img class="close hidden" src="img/x.png" />
+        <img class="back hidden" src="img/arrow-back.svg" />
         <div class="section-detail">
           <img class="icon" src="img/other.png" />
-          <h2>Other</h2>
+          <h2 class="defaultTitle">Other</h2>
+          <h2 class="recommendTitle hidden">Recommend</h2>
         </div>
+        <img class="recommendSend hidden" src="img/send.svg" />
       </div>
     </div>
+
     <div id="tabs" class="hidden tabs">
       <div id="yourListTab">
         <a>YOUR LIST</a>
@@ -82,11 +108,42 @@
         <a>SEARCH</a>
       </div>
     </div>
+    <div id="recommendationTabs" class="hidden tabs">
+      <div id="inboxTab">
+        <a>INBOX</a>
+      </div>
+      <div id="sentTab">
+        <a>SENT</a>
+      </div>
+    </div>
+    <div id="loggingInView">
+      <img class="loggingInLogo" src="img/logo.png">
+      <p class="loggingInMessage">Logging you in...</p>
+    </div>
+    <div id="loggingInAnonymousView" class="hidden">
+      <img class="loggingInLogo" src="img/logo.png">
+      <p class="loggingInMessage">Logging you in anonymously...</p>
+    </div>
     <div id="swrlList" class="hidden swrlsContainer"></div>
+    <div id="recommendationList" class="hidden swrlsContainer"></div>
     <div id="searchResults" class="hidden swrlsContainer"></div>
+    <div id="recommend" class="hidden swrlsContainer">
+      <div id="recommendedSwrl" class="swrlsContainer"></div>
+      <div class="autocomplete">
+        <form id="recommendToForm" autocomplete="off">
+          <input id="recommendTo" type="text" placeholder="Who do want to recommend this to?" autofocus>
+        </form>
+      </div>
+      <div id="selectedSwrlers"></div>
+      <textarea id="recommendMessage" placeholder="Why are you recommending this?" rows="4" cols="50"></textarea>
+    </div>
 
     <div id="messageContainer" class="hidden statusMessage">
       <p id="message">No Swrls found for category!</p>
+    </div>
+
+    <div id="toasterMessage">
+      <span id="toasterMessageText"></span>
     </div>
 
   </div>
@@ -101,9 +158,15 @@
           <p class="swrlTitle"></p>
           <p class="swrlStats">
             <span class="swrlType"></span>
-            <span> &middot; <img class="swrlMiniIcon" src="img/logo_transparent.svg" /></span>
+
+            <span> &middot; <img class="swrlMiniIcon" src="img/list.svg" /></span>
             <img class="swrlSpinnerListCount swrlMiniIcon hidden" src="img/spinner.gif" />
             <span class="swrlListCount"></span>
+
+            <span> &middot; <img class="swrlMiniIcon" src="img/logo_transparent.svg" /></span>
+            <img class="swrlSpinnerRecommendedCount swrlMiniIcon hidden" src="img/spinner.gif" />
+            <span class="swrlRecommendedCount"></span>
+
             <span> &middot; <img class="swrlMiniIcon" src="img/loved.svg" /></span>
             <img class="swrlSpinnerLoveCount swrlMiniIcon hidden" src="img/spinner.gif" />
             <span class="swrlLoveCount"></span>
@@ -114,9 +177,70 @@
         <img class="swrlDelete swrlButton hidden" src="img/delete.svg" />
         <img class="swrlLoved swrlButton hidden" src="img/loved.svg" />
         <img class="swrlNotLoved swrlButton hidden" src="img/notLoved.svg" />
+        <img class="swrlRecommend swrlButton hidden" src="img/logo_transparent.svg" />
         <img class="swrlDone swrlButton hidden" src="img/done.svg" />
         <img class="swrlAdd swrlButton hidden" src="img/addIcon.svg" />
       </div>
+    </div>
+  </template>
+  <template id="recommendation">
+    <div class="recommendation unread">
+      <div class="recommendationSwrl">
+        <div class="swrlInfo">
+          <img class="swrlImage" src="" />
+          <div class="swrlDetails">
+            <p class="swrlTitle"></p>
+            <p class="swrlStats">
+              <span class="swrlType"></span>
+
+              <span> &middot; <img class="swrlMiniIcon" src="img/list.svg" /></span>
+              <span class="swrlListCount"></span>
+
+              <span> &middot; <img class="swrlMiniIcon" src="img/logo_transparent.svg" /></span>
+              <span class="swrlRecommendedCount"></span>
+
+              <span> &middot; <img class="swrlMiniIcon" src="img/loved.svg" /></span>
+              <span class="swrlLoveCount"></span>
+            </p>
+          </div>
+        </div>
+        <div class="swrlButtons">
+          <img class="swrlLoved swrlButton hidden" src="img/loved.svg" />
+          <img class="swrlNotLoved swrlButton hidden" src="img/notLoved.svg" />
+          <img class="swrlRecommend swrlButton hidden" src="img/logo_transparent.svg" />
+          <img class="swrlDone swrlButton hidden" src="img/done.svg" />
+          <img class="swrlAdd swrlButton hidden" src="img/addIcon.svg" />
+        </div>
+      </div>
+    </div>
+  </template>
+  <template id="recommender">
+    <div class="recommender">
+      <span class="recommendationDetailsTitle">FROM: </span>
+      <img class="swrlerSmallImage" src="" />
+      <span class="recommenderName"></span>
+    </div>
+  </template>
+  <template id="recommendationMessage">
+    <div class="recommendationMessage">
+      <span class="recommendationDetailsTitle">MESSAGE: </span>
+      <span class="recommenderMessage"></span>
+    </div>
+  </template>
+  <template id="recommendationActions">
+    <div>
+      <div class="recommendationActions">
+        <span class="actionText markRead hidden">MARK READ</span>
+        <span class="actionText markUnRead hidden">MARK UNREAD</span>
+        <span class="actionText dismiss">DISMISS</span>
+      </div>
+    </div>
+  </template>
+  <template id="swrlerSmall">
+    <div class="swrlerSmall">
+      <img class="swrlerSmallImage" src="" />
+      <span class="swrlerSmallText"></span>
+      <img class="swrlerSmallDelete hidden" src="img/x.png" />
     </div>
   </template>
   <script type="text/javascript" src="cordova.js"></script>

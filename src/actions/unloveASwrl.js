@@ -1,5 +1,6 @@
 var firebase = require("firebase/app");
 import { swrlUser } from '../firebase/login';
+import { Collection } from '../constants/Collection';
 
 /**
 * @param {firebase.firestore.Firestore} firestore 
@@ -7,5 +8,5 @@ import { swrlUser } from '../firebase/login';
 export default function unloveASwrl(swrl, firestore) {
    swrl.updated = firebase.firestore.FieldValue.serverTimestamp();
    swrl.loved = firebase.firestore.FieldValue.arrayRemove(swrlUser.uid);
-   return firestore.collection('swrls').doc(swrl.swrlID).set(swrl, { merge: true });
+   return firestore.collection(Collection.SWRLS).doc(swrl.swrlID).set(swrl, { merge: true });
 }
