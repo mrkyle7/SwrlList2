@@ -15,6 +15,9 @@ export default function bindHomeButtons(firestore) {
         selectedCategory: undefined
     }
 
+    //Use this lock to prevent double clicking on close then reopen
+    let canReopen = true;
+
     initSearchBar(firestore);
 
     //bind the section category clicks
@@ -66,7 +69,7 @@ export default function bindHomeButtons(firestore) {
             showRecommendations(View.INBOX, firestore);
         })
     }
-    
+
     function bindSentTab() {
         sentTab.addEventListener('click', (e) => {
             e.preventDefault();
@@ -145,6 +148,12 @@ export default function bindHomeButtons(firestore) {
     function bindCloseSectionButton(closeSectionButton, category, section) {
         ['click', 'touchstart'].forEach(function (eventType) {
             closeSectionButton.addEventListener(eventType, function (e) {
+                canReopen = false;
+                console.log('Locked Reopen');
+                setTimeout(() => {
+                    canReopen = true;
+                    console.log('unlocked reopen');
+                }, 200);
                 e.stopPropagation();
                 e.preventDefault();
                 console.log('Clicked Close for section: ' + category);
@@ -161,7 +170,11 @@ export default function bindHomeButtons(firestore) {
 
     function bindSectionClick(section, category, closeSectionButton) {
         section.addEventListener('click', function () {
-            if (!state.selectedCategory) {
+            if (!canReopen) {
+                console.log('cannot open: locked for reopening');
+            } else if (state.selectedCategory) {
+                console.log('cannot open: Section already expanded');
+            } else {
                 console.log('Clicked section ' + category);
                 section.classList.add('selected');
                 clearOtherCategories(category);
@@ -191,8 +204,6 @@ export default function bindHomeButtons(firestore) {
                     discoverTab.classList.add('selected');
                 }
                 state.selectedCategory = category;
-            } else {
-                console.log('Section already expanded');
             }
         });
     }
