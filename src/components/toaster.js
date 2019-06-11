@@ -8,7 +8,7 @@ export function showToasterMessage(message) {
     }
     const toaster = document.getElementById('toasterMessage');
     const toasterText = document.getElementById('toasterMessageText');
-
+    
     toaster.classList.add('show');
     toasterText.innerText = message;
     timeout = setTimeout(() => toaster.classList.remove('show'), 3000);
