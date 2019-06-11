@@ -121,15 +121,9 @@ function bindRecommendSendButton(category, view, swrl, firestore) {
                 .then(function (docRef) {
                     let id = docRef.id;
                     console.log("Recommendation written with ID: ", id);
-                    let recommendations = firebase.firestore.FieldValue.arrayUnion(id);
-                    let isRecommended = firebase.firestore.FieldValue.arrayUnion.apply(this, toSwrlers);
-                    firestore.collection(Collection.SWRLS).doc(swrlID).set(
-                        {
-                            recommendations: recommendations,
-                            isRecommended: isRecommended
-                        },
-                        { merge: true }
-                    )
+                    swrl.recommendations = firebase.firestore.FieldValue.arrayUnion(id);
+                    swrl.isRecommended = firebase.firestore.FieldValue.arrayUnion.apply(this, toSwrlers);
+                    firestore.collection(Collection.SWRLS).doc(swrlID).set(swrl, { merge: true })
                         .catch(e => console.error(e));
                 })
                 .catch(e => console.error(e));
