@@ -75,7 +75,7 @@ body {
 .title h1 {
     margin-top: auto;
     margin-bottom: auto;
-    font-size: 7vw;
+    font-size: 32px;
 }
 
 #inboxDisplay {
@@ -685,9 +685,6 @@ body {
 }
 
 @media only screen and (min-width: 1025px) {
-    .title h1 {
-        font-size: 4vw;
-    }
     .main .sections {
         top: 68px;
         bottom: 12px;
