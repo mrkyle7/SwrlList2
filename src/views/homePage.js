@@ -110,7 +110,7 @@ export default function bindHomeButtons(firestore) {
             searchTab.classList.remove('selected');
             yourListTab.classList.add('selected');
             discoverTab.classList.remove('selected');
-            destroySearch();
+            destroySearch(false);
             showList(state.selectedCategory, View.YOUR_LIST, firestore);
             state.view = View.YOUR_LIST;
             e.stopPropagation();
@@ -122,7 +122,7 @@ export default function bindHomeButtons(firestore) {
             searchTab.classList.remove('selected');
             yourListTab.classList.remove('selected');
             discoverTab.classList.add('selected');
-            destroySearch();
+            destroySearch(false);
             showList(state.selectedCategory, View.DISCOVER, firestore);
             state.view = View.DISCOVER;
             e.stopPropagation();
@@ -158,7 +158,7 @@ export default function bindHomeButtons(firestore) {
                 e.preventDefault();
                 console.log('Clicked Close for section: ' + category);
                 destroyList();
-                destroySearch();
+                destroySearch(true);
                 tabs.classList.add('hidden');
                 closeSectionButton.classList.add('hidden');
                 restoreSections();

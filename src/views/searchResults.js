@@ -17,19 +17,28 @@ export function showSearch(category) {
     currentCategory = category;
     searchResultsContainer.classList.remove('hidden');
     searchBar.classList.remove('hidden');
-    messageContainer.classList.remove('hidden');
-    message.innerText = Category.properties[category].searchMessage;
+    searchBar.focus();
+    if (!resultsShowing) {
+        messageContainer.classList.remove('hidden');
+        message.innerText = Category.properties[category].searchMessage;
+    }
     searchBar.placeholder = Category.properties[category].searchPlaceholder;
 }
 
-export function destroySearch() {
-    searchBar.value = '';
+/**
+ * 
+ * @param {Boolean} shouldClearResults 
+ */
+export function destroySearch(shouldClearResults) {
     searchResultsContainer.classList.add('hidden');
     searchBar.classList.add('hidden');
     messageContainer.classList.add('hidden');
     message.innerText = '';
-    clearResults();
-    currentSearchID = undefined;
+    if (shouldClearResults) {
+        searchBar.value = '';
+        clearResults();
+        currentSearchID = undefined;
+    }
 }
 
 /**

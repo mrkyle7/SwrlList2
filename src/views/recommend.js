@@ -40,7 +40,7 @@ export function showRecommend(swrl, category, view, firestore) {
     recommendTitle = document.querySelector('.section.' + Category.properties[category].name + ' .recommendTitle');
 
     destroyList();
-    destroySearch();
+    destroySearch(false);
     recommendView.classList.remove('hidden');
 
     tabs.classList.add('hidden');
