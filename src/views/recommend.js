@@ -308,7 +308,7 @@ function getSwrlerSmall(swrler, showDeleteButton) {
     var swrlerSmall = swrlerSmallTemplate.content.cloneNode(true);
     var $swrlerSmall = swrlerSmall.querySelector.bind(swrlerSmall);
     $swrlerSmall('.swrlerSmallImage').src = swrler.photoURL;
-    $swrlerSmall('.swrlerSmallText').innerText = swrler.displayName + ' (' + swrler.email + ')';
+    $swrlerSmall('.swrlerSmallText').innerText = swrler.displayName;
     if (showDeleteButton) {
         var deleteButton = $swrlerSmall('.swrlerSmallDelete');
         deleteButton.classList.remove('hidden');
