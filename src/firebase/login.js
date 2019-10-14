@@ -70,7 +70,7 @@ function logout() {
 
 /** @param {firebase.firestore.Firestore} firestore */
 function login(firestore) {
-    var provider = new myFirebase.auth.GoogleAuthProvider();
+    var provider = new firebase.auth.GoogleAuthProvider();
 
     loggingInView.classList.remove('hidden');
     loggingInAnonymousView.classList.add('hidden');
