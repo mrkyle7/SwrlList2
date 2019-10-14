@@ -1,79 +1,104 @@
-export default { listenSearch }
-
 import { zip } from '../utils/zip';
-import { Type } from '../constants/Type';
-import { Category } from '../constants/Category';
+import { ALBUM, PODCAST } from '../constants/Type';
+import { LISTEN } from '../constants/Category';
+import { Swrl } from '../model/swrl';
+import { Details } from '../model/details';
+import { Search } from './search';
 
-export function listenSearch(query, signal, id) {
-    return new Promise(function (resolve, reject) {
-        var encodedQuery = encodeURIComponent(query);
-        var searches = [albumSearch(encodedQuery, signal), podcastSearch(encodedQuery, signal)];
-        Promise.all(searches)
-            .then(function ([albumResults, podcastResults]) {
-                resolve({ id: id, results: zip(albumResults, podcastResults) });
-            })
-            .catch(function (error) {
-                console.error('Error getting list results: ' + JSON.stringify(error))
+export class ListenSearch extends Search {
+
+    constructor() {
+        super();
+    }
+
+    /**
+     * @param {string} query
+     * @param {AbortSignal} signal
+     * @param {number} id
+     * @return {Promise<{id: number, results: Swrl[]}>}
+     */
+    run(query, signal, id) {
+        return new Promise(function (resolve, reject) {
+            const encodedQuery = encodeURIComponent(query);
+            const searches = [this.albumSearch(encodedQuery, signal), this.podcastSearch(encodedQuery, signal)];
+            Promise.all(searches)
+                .then(function ([albumResults, podcastResults]) {
+                    resolve({ id: id, results: zip(albumResults, podcastResults) });
+                })
+                .catch(function (error) {
+                    console.error('Error getting list results: ' + JSON.stringify(error))
+                    console.error(error);
+                    resolve({ id: id, results: [] })
+                })
+        }.bind(this))
+    }
+
+    /**
+     * @param {string} query
+     * @param {AbortSignal} signal
+     * @return {Promise<Swrl[]>}
+     */
+    albumSearch(query, signal) {
+        return new Promise(async function (resolve, reject) {
+            const url = 'https://itunes.apple.com/search?term=' + query + '&media=music&entity=album';
+            try {
+                const response = await fetch(url, { signal });
+                const data = await response.json();
+                resolve(data.results.map(/**
+                 * @param {{ artworkUrl100: string; collectionName?: any; artistName?: any; collectionId?: any; }} result
+                 * @return {Swrl}
+                 */
+                    function (result) {
+                        return new Swrl(ALBUM, LISTEN, 'ITUNESALBUM_' + result.collectionId,
+                            new Details(result.collectionId,
+                                result.collectionName || 'No title',
+                                getLargeImage(result) || '/img/NoPoster.jpg',
+                                result.artistName || 'Unknown',
+                                undefined, undefined));
+                    }));
+            } catch (error) {
+                console.log('Fetch failed for Album search: ' + JSON.stringify(error));
                 console.error(error);
-                resolve({ id: id, results: [] })
-            })
-    })
+                resolve([]);
+            }
+        }.bind(this))
+    }
+
+    /**
+     * @param {string} query
+     * @param {AbortSignal} signal
+     * @return {Promise<Swrl[]>}
+     */
+    podcastSearch(query, signal) {
+        return new Promise(async function (resolve, reject) {
+            const url = 'https://itunes.apple.com/search?term=' + query + '&media=podcast&entity=podcast';
+            try {
+                const response = await fetch(url, { signal });
+                const data = await response.json();
+                resolve(data.results.map(/**
+                 * @param {{ artworkUrl100: string; trackName?: any; collectionId?: any; }} result
+                 * @return {Swrl}
+                 */
+                    function (result) {
+                        return new Swrl(PODCAST, LISTEN, 'ITUNESPODCAST_' + result.collectionId,
+                            new Details(result.collectionId,
+                                result.trackName || 'No title',
+                                getLargeImage(result) || '/img/NoPoster.jpg',
+                                undefined, undefined, undefined));
+                    }));
+            } catch (error) {
+                console.log('Fetch failed for Podcast search: ' + JSON.stringify(error));
+                console.error(error);
+                resolve([]);
+            }
+        }.bind(this))
+    }
 }
 
-function albumSearch(query, signal) {
-    return new Promise(async function (resolve, reject) {
-        var url = 'https://itunes.apple.com/search?term=' + query + '&media=music&entity=album';
-        try {
-            var response = await fetch(url, { signal });
-            var data = await response.json();
-            resolve(data.results.map(function (result) {
-                return {
-                    details: {
-                        title: result.collectionName || 'No title',
-                        artist: result.artistName || 'Unknown',
-                        id: result.collectionId,
-                        imageUrl: getLargeImage(result) || '/img/NoPoster.jpg'
-                    },
-                    type: Type.ALBUM,
-                    category: Category.LISTEN,
-                    swrlID: 'ITUNESALBUM_' + result.collectionId
-                }
-            }));
-        } catch (error) {
-            console.log('Fetch failed for Album search: ' + JSON.stringify(error));
-            console.error(error);
-            resolve([]);
-        }
-    })
-}
-
-function podcastSearch(query, signal) {
-    return new Promise(async function (resolve, reject) {
-        var url = 'https://itunes.apple.com/search?term=' + query + '&media=podcast&entity=podcast';        
-        try {
-            var response = await fetch(url, { signal });
-            var data = await response.json();
-            resolve(data.results.map(function (result) {
-                return {
-                    details: {
-                        title: result.trackName || 'No Title',
-                        id: result.collectionId,
-                        imageUrl: getLargeImage(result) || '/img/NoPoster.jpg'
-                    },
-                    type: Type.PODCAST,
-                    category: Category.LISTEN,
-                    swrlID: 'ITUNESPODCAST_' + result.collectionId
-                }
-            }));
-        } catch (error) {
-            console.log('Fetch failed for Podcast search: ' + JSON.stringify(error));
-            console.error(error);
-            resolve([]);
-        }
-    })
-}
-
-function getLargeImage (result) {
-    var smallerImage = result.artworkUrl100;
+/**
+     * @param {{ artworkUrl100: string; }} result
+     */
+const getLargeImage = (result) => {
+    const smallerImage = result.artworkUrl100;
     return smallerImage.replace('100x100', '600x600');
 }

@@ -1,6 +1,5 @@
-export default { addLoveButton, addAddButton };
+export default { addLoveButton, addAddButton, addRecommendButton };
 
-import { View } from '../constants/View';
 import { swrlUser } from '../firebase/login';
 import loveASwrl from '../actions/loveASwrl';
 import unloveASwrl from '../actions/unloveASwrl';
@@ -8,18 +7,24 @@ import addSwrlToList from '../actions/addSwrlToList';
 import showRequireLoginScreen from '../components/requireLoginScreen';
 import { markRecommendationAsRead } from '../actions/markRecommendationAsRead';
 import { showToasterMessage } from './toaster';
+import { Constant } from '../constants/Constant';
+import { YOUR_LIST, DISCOVER, SEARCH, INBOX, SENT, RECOMMEND } from '../constants/View';
+import { Swrl } from '../model/swrl';
+import { Recommendation } from '../model/recommendation';
+import { Category } from '../constants/Category';
+import { showRecommend } from '../views/recommend';
 
 /**
- * 
- * @param {View} view 
- * @param {Object} swrl 
- * @param {*} selector 
- * @param {HTMLElement} div 
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {Constant} view
+ * @param {Swrl} swrl
+ * @param {*} selector
+ * @param {HTMLElement} div
+ * @param {firebase.firestore.Firestore} firestore
+ * @param {Recommendation} [recommendation]
  */
 export function addLoveButton(view, swrl, selector, div, firestore, recommendation) {
-    if (view === View.YOUR_LIST || view === View.DISCOVER
-        || view === View.INBOX || view === View.SENT) {
+    if (view === YOUR_LIST || view === DISCOVER
+        || view === INBOX || view === SENT) {
         selector('.swrlLoved').addEventListener('click', (e) => {
             if (!swrlUser || swrlUser.isAnonymous) {
                 showRequireLoginScreen('to unlove a Swrl');
@@ -31,7 +36,7 @@ export function addLoveButton(view, swrl, selector, div, firestore, recommendati
                     });;
                 div.querySelector('.swrlLoved').classList.add('hidden');
                 div.querySelector('.swrlNotLoved').classList.remove('hidden');
-                if (view === View.INBOX) {
+                if (view === INBOX) {
                     markRecommendationAsRead(div, recommendation, firestore);
                 }
             }
@@ -47,7 +52,7 @@ export function addLoveButton(view, swrl, selector, div, firestore, recommendati
                     });
                 div.querySelector('.swrlNotLoved').classList.add('hidden');
                 div.querySelector('.swrlLoved').classList.remove('hidden');
-                if (view === View.INBOX) {
+                if (view === INBOX) {
                     markRecommendationAsRead(div, recommendation, firestore);
                 }
             }
@@ -61,17 +66,17 @@ export function addLoveButton(view, swrl, selector, div, firestore, recommendati
 }
 
 /**
- * 
- * @param {View} view 
- * @param {*} selector 
- * @param {HTMLElement} div 
- * @param {Object} swrl 
- * @param {firebase.firestore.Firestore} firestore 
- * @param {HTMLElement} container 
+ * @param {Constant} view
+ * @param {*} selector
+ * @param {HTMLElement} div
+ * @param {Swrl} swrl
+ * @param {firebase.firestore.Firestore} firestore
+ * @param {HTMLElement} swrlsContainer
+ * @param {Recommendation} [recommendation]
  */
 export function addAddButton(view, selector, div, swrl, firestore, swrlsContainer, recommendation) {
-    if (view === View.DISCOVER || view === View.SEARCH
-        || view === View.INBOX || view === View.SENT) {
+    if (view === DISCOVER || view === SEARCH
+        || view === INBOX || view === SENT) {
         selector('.swrlAdd').classList.remove('hidden');
         selector('.swrlAdd').addEventListener('click', (e) => {
             if (!swrlUser || swrlUser.isAnonymous) {
@@ -79,19 +84,22 @@ export function addAddButton(view, selector, div, swrl, firestore, swrlsContaine
             }
             else {
                 addSwrlToList(swrl, firestore)
-                    .catch(function (error) {
-                        console.error('Could not add to list');
-                        console.error(error);
-                        div.querySelector('.swrlAdd').classList.remove('hidden');
-                        div.querySelector('.swrlSpinner').classList.add('hidden');
-                    });
-                if (view === View.DISCOVER || view === View.SEARCH) {
+                    .catch(/**
+                         * @param {any} error
+                         */
+                        function (error) {
+                            console.error('Could not add to list');
+                            console.error(error);
+                            div.querySelector('.swrlAdd').classList.remove('hidden');
+                            div.querySelector('.swrlSpinner').classList.add('hidden');
+                        });
+                if (view === DISCOVER || view === SEARCH) {
                     div.querySelector('.swrlAdded').classList.remove('hidden');
                     setTimeout(function () {
                         swrlsContainer.removeChild(div);
                     }, 1000);
                 }
-                if (view === View.INBOX) {
+                if (view === INBOX) {
                     markRecommendationAsRead(div, recommendation, firestore);
                 }
                 showToasterMessage('Added ' + swrl.details.title + ' to your list');
@@ -100,6 +108,30 @@ export function addAddButton(view, selector, div, swrl, firestore, swrlsContaine
     }
 }
 
+/**
+ * @param {Swrl} swrl
+ */
 function isLoved(swrl) {
     return swrl.loved && swrl.loved.indexOf(swrlUser.uid) !== -1;
+}
+
+/**
+ * 
+ * @param {Function} $swrl 
+ * @param {Swrl} swrl 
+ * @param {Category} category 
+ * @param {Constant} view 
+ * @param {firebase.firestore.Firestore} firestore 
+ */
+export function addRecommendButton($swrl, swrl, category, view, firestore) {
+    if (view !== RECOMMEND) {
+        $swrl('.swrlRecommend').classList.remove('hidden');
+        $swrl('.swrlRecommend').addEventListener('click', function () {
+            if (!swrlUser || swrlUser.isAnonymous) {
+                showRequireLoginScreen('to recommend a Swrl');
+            } else {
+                showRecommend(swrl, category, view, firestore);
+            }
+        });
+    }
 }

@@ -64,11 +64,13 @@ var swipedetect = function(el, callback) {
 function openCloseMenu(swipedir) {
     if (debug) console.log("direction: " + swipedir);
     //swipedir contains either "none", "left", "right", "top", or "down"
+    /** @type {HTMLInputElement} */
+    const openSidebarMenu = document.querySelector("#openSidebarMenu");
     if (swipedir == 'right') {
-        document.querySelector("#openSidebarMenu").checked = true;
+        openSidebarMenu.checked = true;
     }
     if (swipedir == 'left') {
-        document.querySelector("#openSidebarMenu").checked = false;
+        openSidebarMenu.checked = false;
     }
 }
 // export default { bindMenuSwipeAction };

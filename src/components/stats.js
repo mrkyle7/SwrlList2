@@ -1,18 +1,22 @@
 export default { addStats };
 
-import { View } from '../constants/View';
+import { SEARCH } from '../constants/View';
 import { Collection } from '../constants/Collection';
+import { Constant } from '../constants/Constant';
+import { Swrl } from '../model/swrl';
 
 /**
  * 
- * @param {*} selector 
+ * @param {Function} selector 
  * @param {HTMLElement} div 
- * @param {Object} swrl 
- * @param {View} view 
+ * @param {Swrl} swrl 
+ * @param {Constant} view 
  * @param {firebase.firestore.Firestore} firestore 
  */
+
+ 
 export function addStats(selector, div, swrl, view, firestore) {
-    if (view === View.SEARCH) {
+    if (view === SEARCH) {
         selector('.swrlListCount').classList.add('hidden');
         selector('.swrlSpinnerListCount').classList.remove('hidden');
         selector('.swrlRecommendedCount').classList.add('hidden');
@@ -54,6 +58,11 @@ export function addStats(selector, div, swrl, view, firestore) {
         selector('.swrlLoveCount').innerText = lovedCount;
     }
 
+    /**
+     * @param {number} listCount
+     * @param {number} recommendedCount
+     * @param {number} loveCount
+     */
     function updateStats(listCount, recommendedCount, loveCount) {
         div.querySelector('.swrlListCount').classList.remove('hidden');
         div.querySelector('.swrlSpinnerListCount').classList.add('hidden');
@@ -64,8 +73,16 @@ export function addStats(selector, div, swrl, view, firestore) {
         div.querySelector('.swrlLoveCount').classList.remove('hidden');
         div.querySelector('.swrlSpinnerLoveCount').classList.add('hidden');
 
-        div.querySelector('.swrlListCount').innerText = listCount;
-        div.querySelector('.swrlRecommendedCount').innerText = recommendedCount;
-        div.querySelector('.swrlLoveCount').innerText = loveCount;
+        /** @type {HTMLSpanElement} */
+        const listCountElement = div.querySelector('.swrlListCount');
+        listCountElement.innerText = listCount.toString();
+
+        /** @type {HTMLSpanElement} */
+        const recommendedCountElement = div.querySelector('.swrlRecommendedCount');
+        recommendedCountElement.innerText = recommendedCount.toString();
+        
+        /** @type {HTMLSpanElement} */
+        const loveCountElement = div.querySelector('.swrlLoveCount');
+        loveCountElement.innerText = loveCount.toString();
     }
 }

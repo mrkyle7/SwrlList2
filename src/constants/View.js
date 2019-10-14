@@ -1,11 +1,8 @@
-export default { View };
+import { Constant } from "./Constant";
 
-export var View = {
-    YOUR_LIST: 1,
-    DISCOVER: 2,
-    SEARCH: 3,
-    RECOMMEND: 4,
-    INBOX: 5,
-    SENT: 6
-}
-Object.freeze(View);
+export const YOUR_LIST = new Constant(1)
+export const DISCOVER = new Constant(2)
+export const SEARCH = new Constant(3)
+export const RECOMMEND = new Constant(4)
+export const INBOX = new Constant(5)
+export const SENT = new Constant(6)

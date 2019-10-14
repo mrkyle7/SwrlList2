@@ -4,7 +4,7 @@
     --watch-green: #3EB283;
     --read-orange: #F6A900;
     --listen-purple: #b042f4;
-    --other-blue: #71A8D6;
+    --play-blue: #71A8D6;
 }
 
 html, body {
@@ -332,7 +332,7 @@ body {
     background: #b042f4;
 }
 
-.main .section.other {
+.main .section.play {
     background: #71A8D6;
 }
 
@@ -660,6 +660,10 @@ body {
     height: 12px;
 }
 
+.loadingSpinner {
+    height: 48px;
+}
+
 .swrlButtons {
     display: flex;
     position: absolute;
@@ -682,6 +686,7 @@ body {
 .statusMessage {
     margin: auto 56px;
     text-align: center;
+    z-index: 7;
 }
 
 @media only screen and (min-width: 1025px) {

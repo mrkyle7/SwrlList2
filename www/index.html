@@ -56,9 +56,10 @@
         <img class="close hidden" src="img/x.png" />
         <img class="back hidden" src="img/arrow-back.svg" />
         <div class="section-detail">
-          <img class="icon" src="img/watch.png" />
+          <img class="icon" src="img/movie-24px.svg" />
           <h2 class="defaultTitle">Watch</h2>
           <h2 class="recommendTitle hidden">Recommend</h2>
+          <h2 class="swrlFullPageTitle hidden"></h2>
         </div>
         <img class="recommendSend hidden" src="img/send.svg" />
       </div>
@@ -67,9 +68,10 @@
         <img class="close hidden" src="img/x.png" />
         <img class="back hidden" src="img/arrow-back.svg" />
         <div class="section-detail">
-          <img class="icon" src="img/read.png" />
+          <img class="icon" src="img/menu_book-24px.svg" />
           <h2 class="defaultTitle">Read</h2>
           <h2 class="recommendTitle hidden">Recommend</h2>
+          <h2 class="swrlFullPageTitle hidden"></h2>
         </div>
         <img class="recommendSend hidden" src="img/send.svg" />
       </div>
@@ -78,20 +80,22 @@
         <img class="close hidden" src="img/x.png" />
         <img class="back hidden" src="img/arrow-back.svg" />
         <div class="section-detail">
-          <img class="icon" src="img/listen.png" />
+          <img class="icon" src="img/headset-24px.svg" />
           <h2 class="defaultTitle">Listen</h2>
           <h2 class="recommendTitle hidden">Recommend</h2>
+          <h2 class="swrlFullPageTitle hidden"></h2>
         </div>
         <img class="recommendSend hidden" src="img/send.svg" />
       </div>
 
-      <div class="section other">
+      <div class="section play">
         <img class="close hidden" src="img/x.png" />
         <img class="back hidden" src="img/arrow-back.svg" />
         <div class="section-detail">
-          <img class="icon" src="img/other.png" />
-          <h2 class="defaultTitle">Other</h2>
+          <img class="icon" src="img/videogame_asset-24px.svg" />
+          <h2 class="defaultTitle">Play</h2>
           <h2 class="recommendTitle hidden">Recommend</h2>
+          <h2 class="swrlFullPageTitle hidden"></h2>
         </div>
         <img class="recommendSend hidden" src="img/send.svg" />
       </div>
@@ -137,9 +141,15 @@
       <div id="selectedSwrlers"></div>
       <textarea id="recommendMessage" placeholder="Why are you recommending this?" rows="4" cols="50"></textarea>
     </div>
+    <div id="swrlFullPage" class="hidden">
+    </div>
 
     <div id="messageContainer" class="hidden statusMessage">
       <p id="message">No Swrls found for category!</p>
+    </div>
+
+    <div id="loadingSpinner" class="hidden statusMessage">
+      <img class="swrlSpinnerListCount loadingSpinner" src="img/spinner.gif" />      
     </div>
 
     <div id="toasterMessage">

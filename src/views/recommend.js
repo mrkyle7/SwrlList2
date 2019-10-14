@@ -1,7 +1,10 @@
 export default { showRecommend, destroyRecommend };
 
-var firebase = require("firebase/app");
-import { View } from '../constants/View';
+// @ts-ignore
+const firebase = require("firebase/app");
+// @ts-ignore
+import { RECOMMEND, SEARCH, INBOX, SENT } from '../constants/View';
+// @ts-ignore
 import { Category } from '../constants/Category';
 import { Collection } from '../constants/Collection';
 import { swrlUser } from '../firebase/login';
@@ -9,35 +12,44 @@ import { showList, destroyList } from './swrlList';
 import { destroySearch, showSearch } from './searchResults';
 import { renderSwrl } from '../components/swrl';
 import { showToasterMessage } from '../components/toaster';
+import { Constant } from '../constants/Constant';
+import { Swrl } from '../model/swrl';
+import { showRecommendations } from './recommendations';
 
-var tabs = document.getElementById('tabs');
-var fade = document.getElementById('fade');
-var recommendView = document.getElementById('recommend');
-var selectedSwrlersContainer = document.getElementById('selectedSwrlers');
-var recommendToInput = document.getElementById('recommendTo');
-var recommendMessage = document.getElementById('recommendMessage');
-var recommendedSwrl = document.getElementById('recommendedSwrl');
+const tabs = document.getElementById('tabs');
+const fade = document.getElementById('fade');
+const recommendView = document.getElementById('recommend');
+const selectedSwrlersContainer = document.getElementById('selectedSwrlers');
+/** @type {HTMLInputElement} */
+// @ts-ignore
+const recommendToInput = document.getElementById('recommendTo');
+/** @type {HTMLTextAreaElement} */
+// @ts-ignore
+const recommendMessage = document.getElementById('recommendMessage');
+const recommendedSwrl = document.getElementById('recommendedSwrl');
 
-var closeSectionButton;
-var backSectionButton;
-var recommendSendButton;
-var defaultTitle;
-var recommendTitle;
+let closeSectionButton;
+let backSectionButton;
+let recommendSendButton;
+let defaultTitle;
+let recommendTitle;
 
-var swrlers = [];
-var selectedSwrlers = [];
-var autocompleteInitialised = false;
+let swrlers = [];
+let selectedSwrlers = [];
+let autocompleteInitialised = false;
 
 /**
- * @param {View} view
+ * @param {Constant} view
  * @param {firebase.firestore.Firestore} firestore
+ * @param {Swrl} swrl
+ * @param {Category} category
  */
 export function showRecommend(swrl, category, view, firestore) {
-    closeSectionButton = document.querySelector('.section.' + Category.properties[category].name + ' .close');
-    backSectionButton = document.querySelector('.section.' + Category.properties[category].name + ' .back');
-    recommendSendButton = document.querySelector('.section.' + Category.properties[category].name + ' .recommendSend');
-    defaultTitle = document.querySelector('.section.' + Category.properties[category].name + ' .defaultTitle');
-    recommendTitle = document.querySelector('.section.' + Category.properties[category].name + ' .recommendTitle');
+    closeSectionButton = document.querySelector('.section.' + category.name + ' .close');
+    backSectionButton = document.querySelector('.section.' + category.name + ' .back');
+    recommendSendButton = document.querySelector('.section.' + category.name + ' .recommendSend');
+    defaultTitle = document.querySelector('.section.' + category.name + ' .defaultTitle');
+    recommendTitle = document.querySelector('.section.' + category.name + ' .recommendTitle');
 
     destroyList();
     destroySearch(false);
@@ -45,7 +57,7 @@ export function showRecommend(swrl, category, view, firestore) {
 
     tabs.classList.add('hidden');
 
-    renderSwrl(category, View.RECOMMEND, swrl, firestore, recommendedSwrl);
+    renderSwrl(category, RECOMMEND, swrl, firestore, recommendedSwrl);
 
     closeSectionButton.classList.add('hidden');
     backSectionButton.classList.remove('hidden');
@@ -79,6 +91,12 @@ export function showRecommend(swrl, category, view, firestore) {
         })
 }
 
+/**
+ * 
+ * @param {Category} category 
+ * @param {Constant} view 
+ * @param {firebase.firestore.Firestore} firestore 
+ */
 function bindBackButton(category, view, firestore) {
     //remove the old event listeners by replacing the button
     var newBackButton = backSectionButton.cloneNode(true);
@@ -93,44 +111,55 @@ function bindBackButton(category, view, firestore) {
 }
 
 /**
-* @param {firebase.firestore.Firestore} firestore 
-*/
+ * @param {firebase.firestore.Firestore} firestore
+ * @param {Category} category
+ * @param {Constant} view
+ * @param {Swrl} swrl
+ */
 function bindRecommendSendButton(category, view, swrl, firestore) {
     //remove the old event listeners by replacing the button
     var newSendButton = recommendSendButton.cloneNode(true);
     recommendSendButton.parentNode.replaceChild(newSendButton, recommendSendButton);
     recommendSendButton = newSendButton;
     //now add the new eventlistener for this swrl
-    recommendSendButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        if (selectedSwrlers.length === 0) {
-            window.alert('Please select at least one Swrler to send to');
-        } else {
-            let toSwrlers = selectedSwrlers.map(s => s.uid);
-            let fromSwrler = swrlUser.uid;
-            let message = recommendMessage.value;
-            let swrlID = swrl.swrlID;
-            firestore.collection(Collection.RECOMMENDATIONS).add({
-                from: fromSwrler,
-                to: toSwrlers,
-                message: message,
-                swrlID: swrlID,
-                created: firebase.firestore.FieldValue.serverTimestamp()
-            })
-                .then(function (docRef) {
-                    let id = docRef.id;
-                    console.log("Recommendation written with ID: ", id);
-                    swrl.recommendations = firebase.firestore.FieldValue.arrayUnion(id);
-                    swrl.isRecommended = firebase.firestore.FieldValue.arrayUnion.apply(this, toSwrlers);
-                    firestore.collection(Collection.SWRLS).doc(swrlID).set(swrl, { merge: true })
-                        .catch(e => console.error(e));
+
+    recommendSendButton.addEventListener('click',
+        /**
+         * @param {Event} e
+         */
+        (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            if (selectedSwrlers.length === 0) {
+                window.alert('Please select at least one Swrler to send to');
+            } else {
+                let toSwrlers = selectedSwrlers.map(s => s.uid);
+                let fromSwrler = swrlUser.uid;
+                let message = recommendMessage.value;
+                let swrlID = swrl.swrlID;
+                firestore.collection(Collection.RECOMMENDATIONS).add({
+                    from: fromSwrler,
+                    to: toSwrlers,
+                    message: message,
+                    swrlID: swrlID,
+                    created: firebase.firestore.FieldValue.serverTimestamp()
                 })
-                .catch(e => console.error(e));
-            showToasterMessage('Recommendation sent!');
-            goBackToPreviousView(category, view, firestore);
-        }
-    });
+                    .then(function (docRef) {
+                        let id = docRef.id;
+                        console.log("Recommendation written with ID: ", id);
+                        const updateRecommendations = {
+                            recommendations: firebase.firestore.FieldValue.arrayUnion(id),
+                            isRecommended: firebase.firestore.FieldValue.arrayUnion.apply(this, toSwrlers)
+                        }
+                        firestore.collection(Collection.SWRLS).doc(swrlID).set(updateRecommendations,
+                            { merge: true })
+                            .catch(e => console.error(e));
+                    })
+                    .catch(e => console.error(e));
+                showToasterMessage('Recommendation sent!');
+                goBackToPreviousView(category, view, firestore);
+            }
+        });
 }
 
 function sortSwrlers() {
@@ -147,6 +176,7 @@ export function destroyRecommend() {
     recommendView.classList.add('hidden');
     closeAllLists();
     clearSelectedSwrlers();
+    // @ts-ignore
     recommendToInput.value = '';
     recommendMessage.value = '';
 
@@ -162,13 +192,28 @@ export function destroyRecommend() {
     }
 }
 
+/**
+ * 
+ * @param {Category} category 
+ * @param {Constant} view 
+ * @param {firebase.firestore.Firestore} firestore 
+ */
 function goBackToPreviousView(category, view, firestore) {
     destroyRecommend();
     closeSectionButton.classList.remove('hidden');
-    if (view === View.SEARCH) {
-        showSearch(category);
-    } else {
-        showList(category, view, firestore);
+    switch (view) {
+        case SEARCH:
+            showSearch(category);
+            break;
+        case INBOX:
+            showRecommendations(view, firestore);
+            break;
+        case SENT:
+            showRecommendations(view, firestore);
+            break;
+        default:
+            showList(category, view, firestore);
+            break;
     }
 }
 
@@ -179,19 +224,30 @@ function clearSelectedSwrlers() {
     selectedSwrlers = [];
 }
 
+/**
+ * 
+ * @param {Constant} view 
+ * @param {Category} category 
+ * @param {firebase.firestore.Firestore} firestore 
+ */
 function recommendFailAndAbort(view, category, firestore) {
     window.alert("You need to be online to use recommendations, sorry!");
     goBackToPreviousView(category, view, firestore);
 }
 
 //taken and modified from https://www.w3schools.com/howto/howto_js_autocomplete.asp
+/**
+ * @param {HTMLInputElement} toInput
+ */
 function setupAutocomplete(toInput) {
     /*the autocomplete function takes two arguments,
     the text field element and an array of possible autocompleted values:*/
     var currentFocus;
 
     /*execute a function when someone writes in the text field:*/
+    // @ts-ignore
     toInput.addEventListener("input", function (e) {
+        // @ts-ignore
         var autocompleteContainer, autocompleteItem, i, val = this.value;
         /*close any already open lists of autocompleted values*/
         closeAllLists();
@@ -221,6 +277,7 @@ function setupAutocomplete(toInput) {
                     var swrlerSmall = getSwrlerSmall(swrler, false);
                     autocompleteItem.appendChild(swrlerSmall);
 
+                    // @ts-ignore
                     autocompleteItem.addEventListener("click", function (e) {
                         var swrlerSmall = getSwrlerSmall(swrler, true);
                         selectedSwrlersContainer.appendChild(swrlerSmall);
@@ -243,6 +300,7 @@ function setupAutocomplete(toInput) {
     /*execute a function presses a key on the keyboard:*/
     toInput.addEventListener("keydown", function (e) {
         var x = document.getElementById(this.id + "autocomplete-list");
+        // @ts-ignore
         if (x) x = x.getElementsByClassName("swrlerSmall");
         if (e.keyCode == 40) {
             /*If the arrow DOWN key is pressed,
@@ -282,8 +340,10 @@ function setupAutocomplete(toInput) {
         }
     }
     /*execute a function when someone clicks in the document:*/
+    // @ts-ignore
     document.addEventListener("click", function (e) {
         closeAllLists();
+        // @ts-ignore
         recommendToInput.value = '';
     });
 
@@ -303,8 +363,13 @@ function closeAllLists() {
     fade.style.display = 'none';
 }
 
+/**
+ * @param {firebase.User} swrler
+ * @param {boolean} showDeleteButton
+ */
 function getSwrlerSmall(swrler, showDeleteButton) {
     var swrlerSmallTemplate = document.getElementById('swrlerSmall');
+    // @ts-ignore
     var swrlerSmall = swrlerSmallTemplate.content.cloneNode(true);
     var $swrlerSmall = swrlerSmall.querySelector.bind(swrlerSmall);
     $swrlerSmall('.swrlerSmallImage').src = swrler.photoURL;

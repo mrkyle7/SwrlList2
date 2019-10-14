@@ -1,26 +1,33 @@
-export default { showRecommendations };
 
-import { View } from '../constants/View';
+import { INBOX } from '../constants/View';
 import { recommendationsCache } from '../listeners/recommendations';
 import { Collection } from '../constants/Collection';
 import { renderRecommendation } from '../components/recommendation';
 import { swrlUser } from '../firebase/login';
+import { Constant } from '../constants/Constant';
+import { Recommendation } from '../model/recommendation';
 
 const recommendationList = document.getElementById('recommendationList');
+const loadingSpinner = document.getElementById('loadingSpinner');
+/** @type {number} */
+export let currentRenderID;
 
 /**
- * 
- * @param {View} view 
+ * @param {Constant} view 
  * @param {firebase.firestore.Firestore} firestore 
  */
 export const showRecommendations = (view, firestore) => {
+    currentRenderID = Math.random();
     clearList();
-    if (view === View.INBOX) {
-        showInboxFromCache(view, firestore);
+    loadingSpinner.classList.remove('hidden');
+    if (view === INBOX) {
+        showInboxFromCache(view, firestore, currentRenderID);
     } else {
-        showSentFromFirestore(view, firestore);
+        showSentFromFirestore(view, firestore, currentRenderID);
     }
 }
+
+export default { showRecommendations };
 
 const clearList = () => {
     while (recommendationList.firstChild) {
@@ -30,36 +37,43 @@ const clearList = () => {
 
 /**
  * 
- * @param {View} view
+ * @param {Constant} view
  * @param {firebase.firestore.Firestore} firestore 
+ * @param {number} renderID
  */
-const showInboxFromCache = (view, firestore) => {
+const showInboxFromCache = (view, firestore, renderID) => {
     //Object.values isn't supported in cordova browser
     let recommendations = [];
     Object.keys(recommendationsCache).forEach(i => recommendations.push(recommendationsCache[i]));
-    
-    renderRecommendations(recommendations, view, firestore);
+
+    renderRecommendations(recommendations, view, firestore, renderID);
 }
 
 /**
  * 
- * @param {View} view  
+ * @param {Constant} view  
  * @param {firebase.firestore.Firestore} firestore 
+ * @param {number} renderID
  */
-const showSentFromFirestore = (view, firestore) => {
+const showSentFromFirestore = (view, firestore, renderID) => {
     firestore.collection(Collection.RECOMMENDATIONS)
         .where('from', '==', swrlUser.uid)
         .get()
-        .then(querySnapshot => {
+        .then(async querySnapshot => {
             if (!querySnapshot.empty) {
-                let recommendations = [];
+                /**  @type {Recommendation[]} */
+                const recommendations = [];
+                /**  @type {Promise[]} */
+                const recommendationGetters = [];
                 querySnapshot.forEach(doc => {
-                    let recommendation = doc.data();
-                    recommendation.id = doc.id;
-                    console.log(recommendation);
-                    recommendations.push(recommendation)
+                    recommendationGetters.push(new Promise(async (resolve, reject) => {
+                        const recommendation = await Recommendation.fromFirestore(doc, firestore);
+                        recommendations.push(recommendation);
+                        resolve();
+                    }))
                 });
-                renderRecommendations(recommendations, view, firestore);
+                await Promise.all(recommendationGetters);
+                renderRecommendations(recommendations, view, firestore, renderID);
             }
         })
         .catch(err => {
@@ -70,26 +84,27 @@ const showSentFromFirestore = (view, firestore) => {
 
 /**
  * 
- * @param {Array} recommendations 
- * @param {View} view  
+ * @param {Recommendation[]} recommendations 
+ * @param {Constant} view  
  * @param {firebase.firestore.Firestore} firestore 
+ * @param {number} renderID
  */
-const renderRecommendations = (recommendations, view, firestore) => {
-    recommendations
+const renderRecommendations = async (recommendations, view, firestore, renderID) => {
+    const sortedRecommendations = recommendations
         .sort((a, b) => {
             //sort by created date, showing latest first
-            if (!a.created) return 1; //prefer b
-            if (!b.created) return -1; //prefer a
-            if (+a.created.seconds > +b.created.seconds) return -1;
-            if (+b.created.seconds > +a.created.seconds) return 1;
+            if (a.created === undefined) return 1;
+            if (b.created === undefined) return -1;
+            if (a.created > b.created) return -1;
+            if (b.created > a.created) return 1;
             return 0;
-        })
-        .forEach(async recommendation => {
-            let swrl = await firestore.collection(Collection.SWRLS).doc(recommendation.swrlID).get();
-            if (swrl.exists) {
-                let swrlData = swrl.data();
-                recommendation.swrl = swrlData;
-                renderRecommendation(view, recommendation, firestore, recommendationList)
-            }
-        })
+        });
+    for (const next of sortedRecommendations) {
+        if (renderID === currentRenderID) {
+            await renderRecommendation(view, next, firestore, recommendationList, renderID);
+        } else {
+            console.log('Recommendation view changed');
+            break;
+        }
+    }
 }

@@ -1,20 +1,26 @@
+/** @type {firebase.User} */
+export let swrlUser;
 export default { swrlUser, setUpLogin };
-
-export var swrlUser;
 
 import { Collection } from '../constants/Collection';
 import { setUpRecommendationsListener, cancelRecommendationsListener } from '../listeners/recommendations';
+const firebase = require('firebase/app');
 
-var firebase;
+/** firebase.app.App */
+let myFirebase;
 const loggingInView = document.getElementById('loggingInView');
 const loggingInAnonymousView = document.getElementById('loggingInAnonymousView');
 
+/**
+ * @param {firebase.app.App} firebaseInstance
+ * @param {firebase.firestore.Firestore} firestore
+ */
 export function setUpLogin(firebaseInstance, firestore) {
-    firebase = firebaseInstance;
+    myFirebase = firebaseInstance;
     document.querySelector("#logout").addEventListener("click", logout);
     document.querySelector("#logout").addEventListener("touchstart", logout);
     document.querySelector("#login").addEventListener("click", () => login(firestore));
-    firebase.auth().onAuthStateChanged(function (user) {
+    myFirebase.auth().onAuthStateChanged(function (user) {
         if (user) {
             // User is signed in.
             swrlUser = user;
@@ -38,52 +44,63 @@ function loginAnonymously() {
     loggingInView.classList.add('hidden');
     loggingInAnonymousView.classList.remove('hidden');
 
-    firebase.auth().signInAnonymously()
+    myFirebase.auth().signInAnonymously()
         .then(() => {
             loggingInView.classList.add('hidden');
             loggingInAnonymousView.classList.add('hidden');
         })
-        .catch(function (error) {
-            console.error("anonymous log in failed: " + JSON.stringify(error));
-            loggingInView.classList.add('hidden');
-            loggingInAnonymousView.classList.add('hidden');
-            handleLogout();
-        });
+        .catch(/**
+             * @param {Error} error
+             */
+            function (error) {
+                console.error("anonymous log in failed: " + JSON.stringify(error));
+                loggingInView.classList.add('hidden');
+                loggingInAnonymousView.classList.add('hidden');
+                handleLogout();
+            });
 }
 
 function logout() {
-    firebase.auth().signOut();
-    document.querySelector("#openSidebarMenu").checked = false;
+    myFirebase.auth().signOut();
+    /** @type {HTMLInputElement} */
+    const openSidebarMenuElement = document.querySelector("#openSidebarMenu");
+    openSidebarMenuElement.checked = false;
     handleLogout();
 }
 
+/** @param {firebase.firestore.Firestore} firestore */
 function login(firestore) {
-    var provider = new firebase.auth.GoogleAuthProvider();
+    var provider = new myFirebase.auth.GoogleAuthProvider();
 
     loggingInView.classList.remove('hidden');
     loggingInAnonymousView.classList.add('hidden');
 
-    firebase.auth().getRedirectResult().then(function (result) {
-        swrlUser = result.user;
-        console.log("firebase user from get redirect result: " + swrlUser.displayName);
-        handleLoginSuccess(firestore);
-    }).catch(function (error) {
-        console.error("got redirect error");
-        console.error(error);
-        firebase.auth().signInWithRedirect(provider).then(function () {
-            return firebase.auth().getRedirectResult();
-        }).then(function (result) {
+    myFirebase.auth().getRedirectResult().then(
+        /** @param {firebase.auth.UserCredential} result */
+        function (result) {
             swrlUser = result.user;
-            console.log("firebase user: " + swrlUser.displayName);
+            console.log("firebase user from get redirect result: " + swrlUser.displayName);
             handleLoginSuccess(firestore);
-        }).catch(function (error) {
-            console.error("Login failed");
-            console.error(error);
-            if (!swrlUser) {
-                loginAnonymously();
-            }
-        });
-    })
+        }).catch(/**
+             * @param {Error} error
+             */
+            function (error) {
+                console.error("got redirect error");
+                console.error(error);
+                myFirebase.auth().signInWithRedirect(provider).then(function () {
+                    return myFirebase.auth().getRedirectResult();
+                }).then(function (result) {
+                    swrlUser = result.user;
+                    console.log("firebase user: " + swrlUser.displayName);
+                    handleLoginSuccess(firestore);
+                }).catch(function (error) {
+                    console.error("Login failed");
+                    console.error(error);
+                    if (!swrlUser) {
+                        loginAnonymously();
+                    }
+                });
+            })
 }
 
 /**
@@ -95,7 +112,9 @@ function handleLoginSuccess(firestore) {
 
     updateSwrlerDetails(firestore);
     setUpRecommendationsListener(firestore);
-    document.querySelector("#userPhoto").src = swrlUser.photoURL;
+    /** @type {HTMLImageElement} */
+    const userPhotoElement = document.querySelector("#userPhoto");
+    userPhotoElement.src = swrlUser.photoURL;
     document.querySelector("#userPhoto").classList.remove('hidden');
     document.querySelector("#inboxDisplay").classList.remove('hidden');
     document.querySelector("#logout").classList.remove('hidden');

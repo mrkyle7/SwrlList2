@@ -1,10 +1,11 @@
 import { Collection } from '../constants/Collection';
 import { swrlUser } from '../firebase/login';
+import { Recommendation } from '../model/recommendation';
 
+export let recommendationsCache = {};
 export default { setUpRecommendationsListener, cancelRecommendationsListener, recommendationsCache };
 
 let currentListener;
-export let recommendationsCache = {};
 const inboxCount = document.getElementById('inboxCount');
 let errorCount = 0;
 
@@ -14,25 +15,29 @@ let errorCount = 0;
 export function setUpRecommendationsListener(firestore) {
     currentListener = firestore.collection(Collection.RECOMMENDATIONS)
         .where("to", "array-contains", swrlUser.uid)
-        .onSnapshot(querySnapshot => {
+        .onSnapshot(async querySnapshot => {
             errorCount = 0; //reset the error count to avoid long term errors bubbling
+            /**  @type {Promise[]} */
+            const inboxUpdates = [];
             querySnapshot.docChanges().forEach(docChange => {
-                console.log(docChange.type, docChange.doc.id, docChange.doc.data());
-                let id = docChange.doc.id;
-                let data = docChange.doc.data();
-                data.id = id;
-                switch (docChange.type) {
-                    case 'added':
-                        recommendationsCache[id] = data;
-                        break;
-                    case 'modified':
-                        recommendationsCache[id] = data;
-                        break;
-                    case 'removed':
-                        delete recommendationsCache[id];
-                        break;
-                }
+                inboxUpdates.push(new Promise(async (resolve, reject) => {
+                    console.log(docChange.type, docChange.doc.id, docChange.doc.data());
+                    const recommendation = await Recommendation.fromFirestore(docChange.doc, firestore);
+                    switch (docChange.type) {
+                        case 'added':
+                            recommendationsCache[recommendation.id] = recommendation;
+                            break;
+                        case 'modified':
+                            recommendationsCache[recommendation.id] = recommendation;
+                            break;
+                        case 'removed':
+                            delete recommendationsCache[recommendation.id];
+                            break;
+                    }
+                    resolve();
+                }))
             });
+            await Promise.all(inboxUpdates);
             updateInboxCount();
         }, error => {
             errorCount++;
@@ -59,11 +64,11 @@ const updateInboxCount = () => {
     //Object.values isn't supported in cordova browser
     let recommendations = [];
     Object.keys(recommendationsCache).forEach(i => recommendations.push(recommendationsCache[i]));
-    
+
     let count =
         recommendations
             .filter(r => (!r.read || r.read.indexOf(swrlUser.uid) === -1)
                 && (!r.dismissed || r.dismissed.indexOf(swrlUser.uid) === -1))
             .length;
-    inboxCount.innerText = count;
+    inboxCount.innerText = count.toString();
 }

@@ -1,19 +1,32 @@
 export default { renderSwrl };
 
-import { Type } from '../constants/Type';
-import { View } from '../constants/View';
+import { DISCOVER, YOUR_LIST } from '../constants/View';
 import { swrlUser } from '../firebase/login';
-import { showRecommend } from '../views/recommend';
 import showRequireLoginScreen from '../components/requireLoginScreen';
 import markASwrlAsDone from '../actions/markASwrlAsDone';
 import deleteSwrl from '../actions/deleteSwrl';
 import { addStats } from './stats';
-import { addLoveButton, addAddButton} from './buttons';
+import { addLoveButton, addAddButton, addRecommendButton} from './buttons';
 import { showToasterMessage } from './toaster';
+import { Category } from '../constants/Category';
+import { Constant } from '../constants/Constant';
+import { Swrl } from '../model/swrl';
 
+/**
+ * 
+ * @param {Category} category 
+ * @param {Constant} view 
+ * @param {Swrl} swrl 
+ * @param {firebase.firestore.Firestore} firestore 
+ * @param {HTMLElement} swrlsContainer 
+ */
 export function renderSwrl(category, view, swrl, firestore, swrlsContainer) {
-    if (!(view === View.DISCOVER && (isOnList(swrl) || isDeleted(swrl)))) {
-        var swrlTemplate = document.querySelector('#swrl');
+    if (!(view === DISCOVER && (isOnList(swrl) || isDeleted(swrl)))) {
+        /** @type {HTMLTemplateElement} */
+        // @ts-ignore
+        var swrlTemplate = document.getElementById('swrl');
+        /** @type {HTMLElement} */
+        // @ts-ignore
         var swrlFragment = swrlTemplate.content.cloneNode(true);
         var swrlDiv = swrlFragment.querySelector('div');
         var $swrl = swrlFragment.querySelector.bind(swrlFragment);
@@ -22,14 +35,14 @@ export function renderSwrl(category, view, swrl, firestore, swrlsContainer) {
             : swrl.details.artist ? swrl.details.artist : undefined;
         var title = creator ? swrl.details.title + ' by ' + creator : swrl.details.title;
         $swrl('.swrlTitle').innerText = title;
-        $swrl('.swrlType').innerText = Type.properties[swrl.type].name;
+        $swrl('.swrlType').innerText = swrl.type.name;
 
         addStats($swrl, swrlDiv, swrl, view, firestore);
-        addAddButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer);
+        addAddButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer, null);
 
         addRecommendButton($swrl, swrl, category, view, firestore);
 
-        addLoveButton(view, swrl, $swrl, swrlDiv, firestore);
+        addLoveButton(view, swrl, $swrl, swrlDiv, firestore, null);
         addDoneButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer);
         addDeleteButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer);
 
@@ -37,21 +50,17 @@ export function renderSwrl(category, view, swrl, firestore, swrlsContainer) {
     }
 }
 
-function addRecommendButton($swrl, swrl, category, view, firestore) {
-    if (view !== View.RECOMMEND) {
-        $swrl('.swrlRecommend').classList.remove('hidden');
-        $swrl('.swrlRecommend').addEventListener('click', function () {
-            if (!swrlUser || swrlUser.isAnonymous) {
-                showRequireLoginScreen('to recommend a Swrl');
-            } else {
-                showRecommend(swrl, category, view, firestore);
-            }
-        });
-    }
-}
-
+/**
+ * 
+ * @param {Constant} view 
+ * @param {Function} $swrl 
+ * @param {HTMLElement} swrlDiv 
+ * @param {Swrl} swrl 
+ * @param {firebase.firestore.Firestore} firestore 
+ * @param {HTMLElement} swrlsContainer 
+ */
 function addDeleteButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer) {
-    if (view === View.YOUR_LIST || view === View.DISCOVER) {
+    if (view === YOUR_LIST || view === DISCOVER) {
         $swrl('.swrlDelete').classList.remove('hidden');
         $swrl('.swrlDelete').addEventListener('click', () => {
             if (!swrlUser || swrlUser.isAnonymous) {
@@ -75,8 +84,17 @@ function addDeleteButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer) 
     }
 }
 
+/**
+ * 
+ * @param {Constant} view 
+ * @param {Function} $swrl 
+ * @param {HTMLElement} swrlDiv 
+ * @param {Swrl} swrl 
+ * @param {firebase.firestore.Firestore} firestore 
+ * @param {HTMLElement} swrlsContainer 
+ */
 function addDoneButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer) {
-    if (view === View.YOUR_LIST) {
+    if (view === YOUR_LIST) {
         $swrl('.swrlDone').classList.remove('hidden');
         $swrl('.swrlDone').addEventListener('click', () => {
             if (!swrlUser || swrlUser.isAnonymous) {
@@ -100,10 +118,16 @@ function addDoneButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer) {
     }
 }
 
+/**
+ * @param {Swrl} swrl
+ */
 function isOnList(swrl) {
     return (swrl.later && swrl.later.indexOf(swrlUser.uid) !== -1) || (swrl.done && swrl.done.indexOf(swrlUser.uid) !== -1);
 }
 
+/**
+ * @param {Swrl} swrl
+ */
 function isDeleted(swrl) {
     return swrl.deleted && swrl.deleted.indexOf(swrlUser.uid) !== -1;
 }

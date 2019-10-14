@@ -2,17 +2,24 @@ export default { showSearch, destroySearch, initSearchBar };
 
 import 'abortcontroller-polyfill/dist/polyfill-patch-fetch'
 import { Category } from '../constants/Category';
-import { View } from '../constants/View';
+import { SEARCH } from '../constants/View';
 import { renderSwrl } from '../components/swrl';
+import { Swrl } from '../model/swrl';
 
-var currentCategory;
-var searchResultsContainer = document.querySelector('#searchResults');
-var searchBar = document.querySelector('#swrlSearch');
-var messageContainer = document.querySelector('#messageContainer');
-var message = document.querySelector('#message');
-var currentSearchID;
-var resultsShowing = false;
+/** @type {Category} */
+let currentCategory;
+const searchResultsContainer = document.getElementById('searchResults');
+/** @type {HTMLInputElement} */
+// @ts-ignore
+const searchBar = document.getElementById('swrlSearch');
+const messageContainer = document.getElementById('messageContainer');
+const message = document.getElementById('message');
+let currentSearchID;
+let resultsShowing = false;
 
+/**
+ * @param {Category} category
+ */
 export function showSearch(category) {
     currentCategory = category;
     searchResultsContainer.classList.remove('hidden');
@@ -20,9 +27,9 @@ export function showSearch(category) {
     searchBar.focus();
     if (!resultsShowing) {
         messageContainer.classList.remove('hidden');
-        message.innerText = Category.properties[category].searchMessage;
+        message.innerText = category.searchMessage;
     }
-    searchBar.placeholder = Category.properties[category].searchPlaceholder;
+    searchBar.placeholder = category.searchPlaceholder;
 }
 
 /**
@@ -54,7 +61,10 @@ export function initSearchBar(firestore) {
         }
     });
     searchBar.addEventListener('input', function (e) {
-        var searchText = e.target.value;
+        /** @type {HTMLInputElement} */
+        // @ts-ignore
+        const target = e.target;
+        var searchText = target.value;
         if (searchDelay) {
             clearTimeout(searchDelay);
         }
@@ -72,16 +82,17 @@ export function initSearchBar(firestore) {
                     message.innerText = 'Searching for ' + searchText + '...';
                 }
 
-                var searchFn = Category.properties[currentCategory].search;
-                searchFn(searchText, signal, currentSearchID)
-                    .then(function (result) {
-                        if (result.id === currentSearchID) {
-                            clearResults();
-                            processResults(result.results, firestore, searchText);
-                        } else {
-                            console.log('Not the current search, so ignoring the results');
-                        }
-                    })
+                const search = currentCategory.search;
+                search.run(searchText, signal, currentSearchID)
+                    .then(
+                        function (result) {
+                            if (result.id === currentSearchID) {
+                                clearResults();
+                                processResults(result.results, firestore, searchText);
+                            } else {
+                                console.log('Not the current search, so ignoring the results');
+                            }
+                        })
                     .catch(function (err) {
                         //TODO: add better view for errors?
                         console.error(err);
@@ -95,7 +106,7 @@ export function initSearchBar(firestore) {
             }
             clearResults();
             messageContainer.classList.remove('hidden');
-            message.innerText = Category.properties[currentCategory].searchMessage;
+            message.innerText = currentCategory.searchMessage;
         }
     })
 }
@@ -107,13 +118,19 @@ function clearResults() {
     resultsShowing = false;
 }
 
+/**
+ * 
+ * @param {Swrl[]} results 
+ * @param {firebase.firestore.Firestore} firestore 
+ * @param {string} searchText 
+ */
 function processResults(results, firestore, searchText) {
     if (results.length == 0) {
         message.innerText = 'No results found for ' + searchText;
     } else {
         messageContainer.classList.add('hidden');
         results.forEach((swrl) => {
-            renderSwrl(currentCategory, View.SEARCH, swrl, firestore, searchResultsContainer);
+            renderSwrl(currentCategory, SEARCH, swrl, firestore, searchResultsContainer);
         });
         resultsShowing = true;
     }

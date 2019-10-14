@@ -1,12 +1,12 @@
-export default { markRecommendationAsRead };
 const firebase = require("firebase/app");
 import { Collection } from '../constants/Collection';
 import { swrlUser } from '../firebase/login';
+import { Recommendation } from '../model/recommendation';
 
 /**
  * 
  * @param {HTMLElement} recommendationDiv 
- * @param {Object} recommendation 
+ * @param {Recommendation} recommendation 
  * @param {firebase.firestore.Firestore} firestore 
  */
 export const markRecommendationAsRead = (recommendationDiv, recommendation, firestore) => {

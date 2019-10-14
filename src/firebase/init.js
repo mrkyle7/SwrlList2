@@ -1,8 +1,11 @@
-var firebase = require("firebase/app");
+const firebase = require("firebase/app");
 require("firebase/auth");
 require("firebase/firestore");
 require("firebase/messaging");
 
+/**
+ *  @returns {firebase.app.App}
+ */
 export default function initialiseFirebase() {
     var config = {
         apiKey: "AIzaSyAWAhzSXf6M_dhxNS4SI830qWNy-zF51wk",
@@ -12,9 +15,9 @@ export default function initialiseFirebase() {
         storageBucket: "swrl-1118.appspot.com",
         messagingSenderId: "443237991407"
     };
-    firebase.initializeApp(config);
+    const myFirebase = firebase.initializeApp(config);
 
-    firebase.firestore().enablePersistence()
+    myFirebase.firestore().enablePersistence()
         .then(() => {
             console.log('Firestore Persistence enabled');
         })
@@ -26,5 +29,5 @@ export default function initialiseFirebase() {
                 console.error('browser not supported');
             }
         });
-    return firebase;
+    return myFirebase;
 }

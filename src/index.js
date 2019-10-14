@@ -17,13 +17,14 @@
  * under the License.
  */
 
+// @ts-ignore
 require("typeface-raleway");
 import bindMenuSwipeAction from './utils/swipeUtils';
 import initialiseFirebase from './firebase/init';
 import { setUpLogin } from './firebase/login';
 import bindHomeButtons from './views/homePage';
 
-var app = {
+const app = {
     // Application Constructor
     initialize: function () {
         document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
@@ -37,8 +38,8 @@ var app = {
         console.log('Received Event: onDeviceReady');
         try {
             bindMenuSwipeAction();
-            var firebase = initialiseFirebase();
-            var firestore = firebase.firestore();
+            const firebase = initialiseFirebase();
+            const firestore = firebase.firestore();
             setUpLogin(firebase, firestore);
             bindHomeButtons(firestore);
         } catch (error) {
