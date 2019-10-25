@@ -10,6 +10,8 @@ import { HomeScreen } from "../screens/homeScreen";
 import { ListScreen } from "../screens/listScreen";
 import { RecommendationsScreen } from "../screens/recommendationsScreen";
 import { RecommendScreen } from "../screens/recommendScreen";
+import { SwrlScreen } from "../screens/swrlScreen";
+import { SwrlFullPage } from "./swrlFullPage";
 
 export class StateController {
     /**
@@ -22,6 +24,7 @@ export class StateController {
         this.listScreen = new ListScreen(this);
         this.recommendationsScreen = new RecommendationsScreen(this);
         this.recommendScreen = new RecommendScreen(this);
+        this.swrlScreen = new SwrlScreen(this);
         //views
         this.homeView = new Home(this);
         this.inboxView = new InboxRecommendations(this);
@@ -30,6 +33,7 @@ export class StateController {
         this.discoverView = new DiscoverView(this);
         this.searchView = new SearchView(this);
         this.recommendView = new Recommend(this);
+        this.swrlView = new SwrlFullPage(this);
         //states
         /** @type {State[]} */
         this.previousStates = [];

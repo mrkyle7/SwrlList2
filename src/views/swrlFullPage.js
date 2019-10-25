@@ -1,45 +1,38 @@
-export default { showSwrlFullPage, destroySwrlFullPage };
-
-var firebase = require("firebase/app");
+const firebase = require("firebase/app");
 import { Constant } from '../constants/Constant';
+import { View } from './View';
+import { StateController } from './stateController';
+import { State } from '../model/state';
 
-var tabs = document.getElementById('tabs');
-var fade = document.getElementById('fade');
-var swrlFullPageView = document.getElementById('swrlFullPage');
+const swrlFullPageView = document.getElementById('swrlFullPage');
 
-var closeSectionButton;
-var backSectionButton;
-var defaultTitle;
-var swrlFullPageTitle;
+export class SwrlFullPage extends View {
+    /**
+     * @param {StateController} stateController
+     */
+    constructor(stateController) {
+        super(stateController, stateController.swrlScreen);
+    }
+
+    show() {
+        showSwrlFullPage(this.stateController.currentState);
+    }
+
+    destroy() {
+        destroySwrlFullPage();
+    }
+}
+
 
 /**
- * @param {Constant} view
- * @param {firebase.firestore.Firestore} firestore
+ * @param {State} state
  */
-export function showSwrlFullPage(swrl, category, view, firestore) {
-    closeSectionButton = document.querySelector('.section.' + category.name + ' .close');
-    backSectionButton = document.querySelector('.section.' + category.name + ' .back');
-    defaultTitle = document.querySelector('.section.' + category.name + ' .defaultTitle');
-    swrlFullPageTitle = document.querySelector('.section.' + category.name + ' .swrlFullPageTitle');
-
+function showSwrlFullPage(state) {
     swrlFullPageView.classList.remove('hidden');
-
-    tabs.classList.add('hidden');
-
-    closeSectionButton.classList.add('hidden');
-    backSectionButton.classList.remove('hidden');
-    defaultTitle.classList.add('hidden');
-    swrlFullPageTitle.classList.remove('hidden');
 
 }
 
 
-export function destroySwrlFullPage() {
+function destroySwrlFullPage() {
     swrlFullPageView.classList.add('hidden');
-
-    backSectionButton.classList.add('hidden');
-    defaultTitle.classList.remove('hidden');
-    swrlFullPageTitle.classList.add('hidden');
-
-    tabs.classList.remove('hidden');
 }

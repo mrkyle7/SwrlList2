@@ -1,0 +1,2 @@
+Enable back button navigation and clean up look and feel
+Fix recommend screen bug

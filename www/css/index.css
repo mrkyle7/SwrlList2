@@ -382,7 +382,7 @@ body {
     width: calc(100% - 8px);
     margin: 8px auto;
     position: relative;
-    z-index: 5;
+    z-index: 10;
 }
 
 #recommendTo {
@@ -394,7 +394,7 @@ body {
     padding-left: 36px;
     margin: auto;
     width: 100%;
-    z-index: 5;
+    z-index: 10;
     position: relative;
     background-color: white;
 }
@@ -403,7 +403,7 @@ body {
     position: absolute;
     border: 2px solid #222222;
     border-top: none;
-    z-index: 5;
+    z-index: 10;
     /*position the autocomplete items to be the same width as the container:*/
     top: 100%;
     left: 0;
@@ -473,7 +473,7 @@ body {
     position: absolute;
 }
 
-#swrlList, #searchResults, #searchView, #recommend, #recommendationList {
+#swrlList, #searchResults, #searchView, #recommend, #recommendationList, #swrlFullPage {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -497,7 +497,7 @@ body {
     display: contents;
 }
 
-#recommend {
+#recommend, #swrlFullPage {
     top: 60px;
     overflow: scroll;
 }
@@ -672,13 +672,13 @@ body {
     #searchResults, #searchView {
         top: 156px;
     }
-    #recommend {
+    #recommend, #swrlFullPage {
         top: 60px;
     }
     .main .section {
         padding-left: 0px;
     }
-    .main .section, #centre, .tabs, #swrlSearch, .swrlsContainer, #recommend, #loggingInView {
+    .main .section, #centre, .tabs, #swrlSearch, .swrlsContainer, #recommend, #swrlFullPage, #loggingInView {
         margin-left: auto;
         margin-right: auto;
         width: 640px;
