@@ -1,5 +1,5 @@
 import { Collection } from '../constants/Collection';
-import { swrlUser } from '../firebase/login';
+import { swrlUser, showLoginButtons } from '../firebase/login';
 import { Recommendation } from '../model/recommendation';
 
 export let recommendationsCache = {};
@@ -71,4 +71,5 @@ const updateInboxCount = () => {
                 && (!r.dismissed || r.dismissed.indexOf(swrlUser.uid) === -1))
             .length;
     inboxCount.innerText = count.toString();
+    showLoginButtons();
 }

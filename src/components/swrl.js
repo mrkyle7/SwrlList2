@@ -1,26 +1,26 @@
 export default { renderSwrl };
 
-import { DISCOVER, YOUR_LIST } from '../constants/View';
+import { DISCOVER, YOUR_LIST, RECOMMEND } from '../constants/View';
 import { swrlUser } from '../firebase/login';
 import showRequireLoginScreen from '../components/requireLoginScreen';
 import markASwrlAsDone from '../actions/markASwrlAsDone';
 import deleteSwrl from '../actions/deleteSwrl';
 import { addStats } from './stats';
-import { addLoveButton, addAddButton, addRecommendButton} from './buttons';
+import { addLoveButton, addAddButton, addRecommendButton } from './buttons';
 import { showToasterMessage } from './toaster';
-import { Category } from '../constants/Category';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
+import { StateController } from '../views/stateController';
 
 /**
  * 
- * @param {Category} category 
+ * @param {StateController} stateController 
  * @param {Constant} view 
  * @param {Swrl} swrl 
  * @param {firebase.firestore.Firestore} firestore 
  * @param {HTMLElement} swrlsContainer 
  */
-export function renderSwrl(category, view, swrl, firestore, swrlsContainer) {
+export function renderSwrl(stateController, view, swrl, firestore, swrlsContainer) {
     if (!(view === DISCOVER && (isOnList(swrl) || isDeleted(swrl)))) {
         /** @type {HTMLTemplateElement} */
         // @ts-ignore
@@ -39,8 +39,10 @@ export function renderSwrl(category, view, swrl, firestore, swrlsContainer) {
 
         addStats($swrl, swrlDiv, swrl, view, firestore);
         addAddButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer, null);
-
-        addRecommendButton($swrl, swrl, category, view, firestore);
+        //Already on the recommend screen, so would be weird to recommend again!
+        if (view !== RECOMMEND) {
+            addRecommendButton($swrl, swrl, stateController);
+        }
 
         addLoveButton(view, swrl, $swrl, swrlDiv, firestore, null);
         addDoneButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer);

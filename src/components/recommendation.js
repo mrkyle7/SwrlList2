@@ -9,18 +9,21 @@ import { showToasterMessage } from './toaster';
 import { Constant } from '../constants/Constant';
 import { Recommendation } from '../model/recommendation';
 import { currentRenderID } from '../views/recommendations';
+import { StateController } from '../views/stateController';
 
 const loadingSpinner = document.getElementById('loadingSpinner');
 
 /**
  * 
+ * @param {StateController} stateController
  * @param {Constant} view 
  * @param {Recommendation} recommendation 
  * @param {firebase.firestore.Firestore} firestore 
  * @param {HTMLElement} container 
  * @param {number} renderID
+ * @return {Promise<HTMLElement>}
  */
-export const renderRecommendation = async (view, recommendation, firestore, container, renderID) => {
+ export const renderRecommendation = async (stateController, view, recommendation, firestore, container, renderID) => {
     if (!recommendation.dismissed || recommendation.dismissed.indexOf(swrlUser.uid) === -1) {
         /** @type {HTMLTemplateElement} */
         // @ts-ignore
@@ -39,10 +42,9 @@ export const renderRecommendation = async (view, recommendation, firestore, cont
         $recommendation('.swrlType').innerText = recommendation.swrl.type.name;
 
         addStats($recommendation, recommendationDiv, recommendation.swrl, view, firestore);
-        // TODO: add this when deal with screen history better
-        // addRecommendButton($recommendation, recommendation.swrl, recommendation.swrl.category, view, firestore);
         addLoveButton(view, recommendation.swrl, $recommendation, recommendationDiv, firestore, recommendation);
         addAddButton(view, $recommendation, recommendationDiv, recommendation.swrl, firestore, null, recommendation);
+        addRecommendButton($recommendation, recommendation.swrl, stateController);
 
         if (view === INBOX) {
             let fromSwrler = await getSwrler(recommendation.from, firestore);
@@ -157,12 +159,13 @@ export const renderRecommendation = async (view, recommendation, firestore, cont
         }
         showRead(view, recommendation, recommendationDiv);
 
-        if (renderID === currentRenderID) {
-            loadingSpinner.classList.add('hidden');
-            container.appendChild(recommendationFragment);
-        } else {
-            console.log('Recommendation view changed when about to add element');
-        }
+        // if (renderID === currentRenderID) {
+        //     loadingSpinner.classList.add('hidden');
+        //     container.appendChild(recommendationFragment);
+        // } else {
+        //     console.log('Recommendation view changed when about to add element');
+        // }
+        return recommendationFragment;
     }
 }
 

@@ -8,11 +8,11 @@ import showRequireLoginScreen from '../components/requireLoginScreen';
 import { markRecommendationAsRead } from '../actions/markRecommendationAsRead';
 import { showToasterMessage } from './toaster';
 import { Constant } from '../constants/Constant';
-import { YOUR_LIST, DISCOVER, SEARCH, INBOX, SENT, RECOMMEND } from '../constants/View';
+import { YOUR_LIST, DISCOVER, SEARCH, INBOX, SENT } from '../constants/View';
 import { Swrl } from '../model/swrl';
 import { Recommendation } from '../model/recommendation';
-import { Category } from '../constants/Category';
-import { showRecommend } from '../views/recommend';
+import { StateController } from '../views/stateController';
+import { State } from '../model/state';
 
 /**
  * @param {Constant} view
@@ -116,22 +116,21 @@ function isLoved(swrl) {
 }
 
 /**
- * 
- * @param {Function} $swrl 
- * @param {Swrl} swrl 
- * @param {Category} category 
- * @param {Constant} view 
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {Function} $swrl
+ * @param {Swrl} swrl
+ * @param {StateController} stateController
  */
-export function addRecommendButton($swrl, swrl, category, view, firestore) {
-    if (view !== RECOMMEND) {
-        $swrl('.swrlRecommend').classList.remove('hidden');
-        $swrl('.swrlRecommend').addEventListener('click', function () {
-            if (!swrlUser || swrlUser.isAnonymous) {
-                showRequireLoginScreen('to recommend a Swrl');
-            } else {
-                showRecommend(swrl, category, view, firestore);
-            }
-        });
-    }
+export function addRecommendButton($swrl, swrl, stateController) {
+    $swrl('.swrlRecommend').classList.remove('hidden');
+    $swrl('.swrlRecommend').addEventListener('click', function () {
+        if (!swrlUser || swrlUser.isAnonymous) {
+            showRequireLoginScreen('to recommend a Swrl');
+        } else {
+            const recommend = new State(stateController.recommendView,
+                stateController.currentState.selectedCategory,
+                stateController.currentState.searchTerms,
+                swrl);
+            stateController.changeState(recommend);
+        }
+    });
 }

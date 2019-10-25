@@ -75,10 +75,10 @@ body {
 .title h1 {
     margin-top: auto;
     margin-bottom: auto;
-    font-size: 32px;
+    font-size: 24px;
 }
 
-#inboxDisplay {
+#inboxDisplay, #recommendSendContainer {
     margin: 12px;
     height: 32px;
     width: 32px;
@@ -88,7 +88,7 @@ body {
     cursor: pointer;
 }
 
-#inboxIcon {
+#inboxIcon, #recommendSendButton {
     width: 32px;
 }
 
@@ -131,7 +131,7 @@ body {
     bottom: 0;
     left: 0;
     width: 24px;
-    z-index: 1;
+    z-index: 99;
 }
 
 .main {
@@ -175,6 +175,22 @@ body {
     margin: auto;
     margin-top: 0px;
     margin-bottom: 0px;
+}
+
+.main .section.watch {
+    background: #3EB283;
+}
+
+.main .section.read {
+    background: #F6A900;
+}
+
+.main .section.listen {
+    background: #b042f4;
+}
+
+.main .section.play {
+    background: #71A8D6;
 }
 
 .main .title {
@@ -285,25 +301,6 @@ body {
     height: 36px;
 }
 
-.section .close {
-    position: absolute;
-}
-
-.section .close, .section .back, .section .recommendSend {
-    /* position: absolute;
-    top: 12px;
-    left: 8px;
-    height: 20px;
-    width: 20px; */
-    height: 24px;
-    width: 24px;
-    cursor: pointer;
-    z-index: 2;
-    margin-left: 8px;
-    margin-right: 8px;
-    margin-top: 5px;
-}
-
 .main .section-detail {
     display: flex;
     flex-direction: row;
@@ -313,42 +310,9 @@ body {
     font-size: 40px;
 }
 
-.selected .section-detail {
-    font-size: 20px;
-    margin-left: auto;
-    white-space: nowrap;
-    overflow: hidden;
-}
-
-.main .section.watch {
-    background: #3EB283;
-}
-
-.main .section.read {
-    background: #F6A900;
-}
-
-.main .section.listen {
-    background: #b042f4;
-}
-
-.main .section.play {
-    background: #71A8D6;
-}
-
-#recommendationsTitleBar {
-    background: #4990E2;
-    z-index: 6;
-}
-
 .main h1, .main h2 {
     margin: 0px;
     margin-left: 12px;
-}
-
-#recommendationsTitle {
-    margin-left: 0;
-    font-size: 24px;
 }
 
 .main h1 {
@@ -360,16 +324,11 @@ body {
     transition: all 0.2s;
 }
 
-.selected h2 {
-    transition: all 0.2s;
-    line-height: 36px;
-}
-
 .tabs {
     display: flex;
     flex-direction: row;
     position: absolute;
-    top: 100px;
+    top: 60px;
     left: 0;
     right: 0;
     z-index: 4;
@@ -400,7 +359,7 @@ body {
 #swrlSearch {
     z-index: 2;
     position: absolute;
-    top: 148px;
+    top: 112px;
     left: 0px;
     right: 0px;
     height: 36px;
@@ -514,7 +473,7 @@ body {
     position: absolute;
 }
 
-#swrlList, #searchResults, #recommend, #recommendationList {
+#swrlList, #searchResults, #searchView, #recommend, #recommendationList {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -522,7 +481,7 @@ body {
 }
 
 #swrlList, #recommendationList {
-    top: 139px;
+    top: 104px;
 }
 
 #recommendationList {
@@ -530,12 +489,16 @@ body {
     background-color: white
 }
 
-#searchResults {
-    top: 178px
+#searchResults, #searchView {
+    top: 156px
+}
+
+#searchView {
+    display: contents;
 }
 
 #recommend {
-    top: 100px;
+    top: 60px;
     overflow: scroll;
 }
 
@@ -698,19 +661,19 @@ body {
         top: 112px;
     }
     .tabs {
-        top: 112px;
+        top: 60px;
     }
     #swrlSearch {
-        top: 160px;
+        top: 112px;
     }
     #swrlList, #recommendationList {
-        top: 148px;
+        top: 104px;
     }
-    #searchResults {
-        top: 192px;
+    #searchResults, #searchView {
+        top: 156px;
     }
     #recommend {
-        top: 120px;
+        top: 60px;
     }
     .main .section {
         padding-left: 0px;
@@ -791,10 +754,6 @@ body {
     transform: translateX(0);
 }
 
-#openSidebarMenu:checked~* #fade {
-    display: block;
-}
-
 #fade {
     position: absolute;
     top: 0;
@@ -802,9 +761,8 @@ body {
     right: 0;
     bottom: 0;
     background: black;
-    z-index: 5;
+    z-index: 9;
     opacity: 0.5;
-    display: none;
 }
 
 #openSidebarMenu {
@@ -825,6 +783,21 @@ body {
     left: 12px;
     height: 24px;
     width: 24px;
+}
+
+#backButtonDiv {
+    margin: 12px;
+    height: 32px;
+    width: 32px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+    z-index: 99;
+}
+
+#backButton {
+    width: 32px;
 }
 
 .spinner {

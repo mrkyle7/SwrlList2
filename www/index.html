@@ -13,10 +13,10 @@
 </head>
 
 <body>
-  <div class="header">
+  <div id="header" class="header">
     <div class="title">
       <div class="title-details">
-        <h1>Swrl List 2</h1>
+        <h1 id="titleText">Swrl List 2</h1>
       </div>
     </div>
     <div class="hidden" id="inboxDisplay">
@@ -24,13 +24,19 @@
       <span class="badge" id="inboxCount">0</span>
     </div>
     <p id="login">LOG IN</p>
+    <div id="recommendSendContainer" class="hidden">
+      <img id="recommendSendButton" src="img/send.svg" />
+    </div>
   </div>
   <input type="checkbox" class="openSidebarMenu" id="openSidebarMenu">
-  <label for="openSidebarMenu" class="sidebarIconToggle">
+  <label id="menuButton" for="openSidebarMenu" class="sidebarIconToggle">
     <div class="spinner diagonal part-1"></div>
     <div class="spinner horizontal"></div>
     <div class="spinner diagonal part-2"></div>
   </label>
+  <div id="backButtonDiv" class="hidden">
+    <img id="backButton" src="img/arrow-back.svg" />
+  </div>
   <div id="sidebarMenu">
     <ul class="sidebarMenuInner">
       <li><img class="profile-photo hidden" id="userPhoto" src="" />
@@ -42,62 +48,34 @@
   <input id="swrlSearch" class="hidden" type="text" autofocus>
   <div id="menuSwipeable"></div>
   <div id='centre' class="main">
-    <div id="fade"></div>
-    <div class="sections">
-      <div id="recommendationsTitleBar" class="section selected hidden">
-        <img id="closeRecommendations" class="close" src="img/x.png" />
-        <div id="recommendationsDetail" class="section-detail">
-          <h2 id="recommendationsTitle" class="defaultTitle">Recommendations</h2>
-        </div>
-      </div>
-    </div>
-    <div class="sections">
+    <div id="fade" class="hidden"></div>
+    <div id="sections" class="sections">
       <div class="section watch">
-        <img class="close hidden" src="img/x.png" />
-        <img class="back hidden" src="img/arrow-back.svg" />
         <div class="section-detail">
           <img class="icon" src="img/movie-24px.svg" />
           <h2 class="defaultTitle">Watch</h2>
-          <h2 class="recommendTitle hidden">Recommend</h2>
-          <h2 class="swrlFullPageTitle hidden"></h2>
         </div>
-        <img class="recommendSend hidden" src="img/send.svg" />
       </div>
 
       <div class="section read">
-        <img class="close hidden" src="img/x.png" />
-        <img class="back hidden" src="img/arrow-back.svg" />
         <div class="section-detail">
           <img class="icon" src="img/menu_book-24px.svg" />
           <h2 class="defaultTitle">Read</h2>
-          <h2 class="recommendTitle hidden">Recommend</h2>
-          <h2 class="swrlFullPageTitle hidden"></h2>
         </div>
-        <img class="recommendSend hidden" src="img/send.svg" />
       </div>
 
       <div class="section listen">
-        <img class="close hidden" src="img/x.png" />
-        <img class="back hidden" src="img/arrow-back.svg" />
         <div class="section-detail">
           <img class="icon" src="img/headset-24px.svg" />
           <h2 class="defaultTitle">Listen</h2>
-          <h2 class="recommendTitle hidden">Recommend</h2>
-          <h2 class="swrlFullPageTitle hidden"></h2>
         </div>
-        <img class="recommendSend hidden" src="img/send.svg" />
       </div>
 
       <div class="section play">
-        <img class="close hidden" src="img/x.png" />
-        <img class="back hidden" src="img/arrow-back.svg" />
         <div class="section-detail">
           <img class="icon" src="img/videogame_asset-24px.svg" />
           <h2 class="defaultTitle">Play</h2>
-          <h2 class="recommendTitle hidden">Recommend</h2>
-          <h2 class="swrlFullPageTitle hidden"></h2>
         </div>
-        <img class="recommendSend hidden" src="img/send.svg" />
       </div>
     </div>
 
@@ -130,7 +108,14 @@
     </div>
     <div id="swrlList" class="hidden swrlsContainer"></div>
     <div id="recommendationList" class="hidden swrlsContainer"></div>
-    <div id="searchResults" class="hidden swrlsContainer"></div>
+    <div id="searchView" class="hidden">
+      <div id="searchResults" class="hidden swrlsContainer">
+      </div>
+      <div id="searching" class="hidden statusMessage">
+        <img class="swrlSpinnerListCount loadingSpinner" src="img/spinner.gif" />
+        <p id="searchingMessage">Searching...</p>
+      </div>
+    </div>
     <div id="recommend" class="hidden swrlsContainer">
       <div id="recommendedSwrl" class="swrlsContainer"></div>
       <div class="autocomplete">
@@ -145,11 +130,12 @@
     </div>
 
     <div id="messageContainer" class="hidden statusMessage">
+      <img class="swrlSpinnerListCount loadingSpinner hidden" src="img/spinner.gif" />
       <p id="message">No Swrls found for category!</p>
     </div>
 
     <div id="loadingSpinner" class="hidden statusMessage">
-      <img class="swrlSpinnerListCount loadingSpinner" src="img/spinner.gif" />      
+      <img class="swrlSpinnerListCount loadingSpinner" src="img/spinner.gif" />
     </div>
 
     <div id="toasterMessage">

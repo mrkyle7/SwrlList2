@@ -1,3 +1,8 @@
+/** @type {HTMLInputElement} */
+// @ts-ignore
+const openSidebarMenu = document.getElementById("openSidebarMenu");
+const fade = document.getElementById('fade');
+
 export default function bindMenuSwipeAction() {
     var mainBody = document.getElementById('menuSwipeable');
     swipedetect(mainBody, function (swipedir) {
@@ -6,12 +11,27 @@ export default function bindMenuSwipeAction() {
     var menu = document.getElementById('sidebarMenu');
     swipedetect(menu, function (swipedir) {
         openCloseMenu(swipedir);
+    });
+    fade.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openSidebarMenu.checked = false;
+        fade.classList.add('hidden');
+    });
+    openSidebarMenu.addEventListener('click', (e) => {
+        /** @type {HTMLInputElement} */
+        // @ts-ignore
+        const menuButton = e.target;
+        if (menuButton.checked) {
+            fade.classList.remove('hidden');
+        } else {
+            fade.classList.add('hidden');
+        }
     })
 }
 
 var debug = true;
 
-var swipedetect = function(el, callback) {
+var swipedetect = function (el, callback) {
     var touchsurface = el,
         swipedir,
         startX,
@@ -64,13 +84,13 @@ var swipedetect = function(el, callback) {
 function openCloseMenu(swipedir) {
     if (debug) console.log("direction: " + swipedir);
     //swipedir contains either "none", "left", "right", "top", or "down"
-    /** @type {HTMLInputElement} */
-    const openSidebarMenu = document.querySelector("#openSidebarMenu");
     if (swipedir == 'right') {
         openSidebarMenu.checked = true;
+        fade.classList.remove('hidden');
     }
     if (swipedir == 'left') {
         openSidebarMenu.checked = false;
+        fade.classList.add('hidden');
     }
 }
 // export default { bindMenuSwipeAction };

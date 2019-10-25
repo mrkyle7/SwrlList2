@@ -22,12 +22,21 @@ require("typeface-raleway");
 import bindMenuSwipeAction from './utils/swipeUtils';
 import initialiseFirebase from './firebase/init';
 import { setUpLogin } from './firebase/login';
-import bindHomeButtons from './views/homePage';
+import { StateController } from './views/stateController';
+import { State } from './model/state';
+
+/** @type {StateController} */
+let stateController;
 
 const app = {
     // Application Constructor
     initialize: function () {
         document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
+        document.addEventListener('backbutton', () => {
+            if (stateController !== undefined) {
+                stateController.showPreviousScreen();
+            }
+        })
     },
 
     // deviceready Event Handler
@@ -41,7 +50,10 @@ const app = {
             const firebase = initialiseFirebase();
             const firestore = firebase.firestore();
             setUpLogin(firebase, firestore);
-            bindHomeButtons(firestore);
+            stateController = new StateController(firestore);
+            stateController.initialiseAllViews();
+            const startState = new State(stateController.homeView, undefined, undefined, undefined);
+            stateController.changeState(startState);
         } catch (error) {
             console.error('Caught Error loading');
             console.error(error);

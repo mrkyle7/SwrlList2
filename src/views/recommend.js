@@ -3,20 +3,35 @@ export default { showRecommend, destroyRecommend };
 // @ts-ignore
 const firebase = require("firebase/app");
 // @ts-ignore
-import { RECOMMEND, SEARCH, INBOX, SENT } from '../constants/View';
+import { RECOMMEND } from '../constants/View';
 // @ts-ignore
-import { Category } from '../constants/Category';
 import { Collection } from '../constants/Collection';
-import { swrlUser } from '../firebase/login';
-import { showList, destroyList } from './swrlList';
-import { destroySearch, showSearch } from './searchResults';
+import { swrlUser, hideLoginButtons, showLoginButtons } from '../firebase/login';
 import { renderSwrl } from '../components/swrl';
 import { showToasterMessage } from '../components/toaster';
-import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
-import { showRecommendations } from './recommendations';
+import { View } from './View';
+import { StateController } from './stateController';
 
-const tabs = document.getElementById('tabs');
+export class Recommend extends View {
+   
+    /**
+     * @param {StateController} stateController
+     */
+    constructor(stateController) {
+        super(stateController, stateController.recommendScreen);
+    }
+
+    show() {
+        showRecommend(this.stateController);
+    }
+
+    destroy(){
+        destroyRecommend();
+    }
+}
+
+
 const fade = document.getElementById('fade');
 const recommendView = document.getElementById('recommend');
 const selectedSwrlersContainer = document.getElementById('selectedSwrlers');
@@ -28,45 +43,31 @@ const recommendToInput = document.getElementById('recommendTo');
 const recommendMessage = document.getElementById('recommendMessage');
 const recommendedSwrl = document.getElementById('recommendedSwrl');
 
-let closeSectionButton;
-let backSectionButton;
-let recommendSendButton;
-let defaultTitle;
-let recommendTitle;
+const recommendSendContainer = document.getElementById('recommendSendContainer');
+/** @type {HTMLImageElement} */
+// @ts-ignore
+let recommendSendButton = document.getElementById('recommendSendButton');
 
 let swrlers = [];
 let selectedSwrlers = [];
 let autocompleteInitialised = false;
 
 /**
- * @param {Constant} view
- * @param {firebase.firestore.Firestore} firestore
- * @param {Swrl} swrl
- * @param {Category} category
+ * @param {StateController} stateController
  */
-export function showRecommend(swrl, category, view, firestore) {
-    closeSectionButton = document.querySelector('.section.' + category.name + ' .close');
-    backSectionButton = document.querySelector('.section.' + category.name + ' .back');
-    recommendSendButton = document.querySelector('.section.' + category.name + ' .recommendSend');
-    defaultTitle = document.querySelector('.section.' + category.name + ' .defaultTitle');
-    recommendTitle = document.querySelector('.section.' + category.name + ' .recommendTitle');
+export function showRecommend(stateController) {
 
-    destroyList();
-    destroySearch(false);
+    const swrl = stateController.currentState.swrl;
+    const firestore = stateController.firestore;
+
     recommendView.classList.remove('hidden');
 
-    tabs.classList.add('hidden');
+    renderSwrl(stateController, RECOMMEND, swrl, firestore, recommendedSwrl);
 
-    renderSwrl(category, RECOMMEND, swrl, firestore, recommendedSwrl);
+    recommendSendContainer.classList.remove('hidden');
+    hideLoginButtons();
 
-    closeSectionButton.classList.add('hidden');
-    backSectionButton.classList.remove('hidden');
-    recommendSendButton.classList.remove('hidden');
-    defaultTitle.classList.add('hidden');
-    recommendTitle.classList.remove('hidden');
-
-    bindBackButton(category, view, firestore);
-    bindRecommendSendButton(category, view, swrl, firestore);
+    bindRecommendSendButton(stateController, swrl, firestore);
 
     firestore.collection(Collection.SWRLERS).get()
         .then(function (querySnapshot) {
@@ -81,48 +82,28 @@ export function showRecommend(swrl, category, view, firestore) {
                 sortSwrlers();
                 if (!autocompleteInitialised) setupAutocomplete(recommendToInput);
             } else {
-                recommendFailAndAbort(view, category, firestore);
+                recommendFailAndAbort(stateController, firestore);
             }
         })
         .catch(function (error) {
             console.error('Error gettings swrlers');
             console.error(error);
-            recommendFailAndAbort(view, category, firestore);
+            recommendFailAndAbort(stateController, firestore);
         })
 }
 
 /**
- * 
- * @param {Category} category 
- * @param {Constant} view 
- * @param {firebase.firestore.Firestore} firestore 
- */
-function bindBackButton(category, view, firestore) {
-    //remove the old event listeners by replacing the button
-    var newBackButton = backSectionButton.cloneNode(true);
-    backSectionButton.parentNode.replaceChild(newBackButton, backSectionButton);
-    backSectionButton = newBackButton;
-    //now add the new eventlistener for this view
-    backSectionButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        goBackToPreviousView(category, view, firestore);
-    });
-}
-
-/**
- * @param {firebase.firestore.Firestore} firestore
- * @param {Category} category
- * @param {Constant} view
+ * @param {StateController} stateController
  * @param {Swrl} swrl
+ * @param {firebase.firestore.Firestore} firestore
  */
-function bindRecommendSendButton(category, view, swrl, firestore) {
+function bindRecommendSendButton(stateController, swrl, firestore) {
     //remove the old event listeners by replacing the button
-    var newSendButton = recommendSendButton.cloneNode(true);
+    const newSendButton = recommendSendButton.cloneNode(true);
     recommendSendButton.parentNode.replaceChild(newSendButton, recommendSendButton);
-    recommendSendButton = newSendButton;
     //now add the new eventlistener for this swrl
-
+    // @ts-ignore
+    recommendSendButton = newSendButton;
     recommendSendButton.addEventListener('click',
         /**
          * @param {Event} e
@@ -157,7 +138,7 @@ function bindRecommendSendButton(category, view, swrl, firestore) {
                     })
                     .catch(e => console.error(e));
                 showToasterMessage('Recommendation sent!');
-                goBackToPreviousView(category, view, firestore);
+                stateController.showPreviousScreen();
             }
         });
 }
@@ -180,40 +161,11 @@ export function destroyRecommend() {
     recommendToInput.value = '';
     recommendMessage.value = '';
 
-    backSectionButton.classList.add('hidden');
-    recommendSendButton.classList.add('hidden');
-    defaultTitle.classList.remove('hidden');
-    recommendTitle.classList.add('hidden');
-
-    tabs.classList.remove('hidden');
+    recommendSendContainer.classList.add('hidden');
+    showLoginButtons();
 
     while (recommendedSwrl.firstChild) {
         recommendedSwrl.removeChild(recommendedSwrl.firstChild);
-    }
-}
-
-/**
- * 
- * @param {Category} category 
- * @param {Constant} view 
- * @param {firebase.firestore.Firestore} firestore 
- */
-function goBackToPreviousView(category, view, firestore) {
-    destroyRecommend();
-    closeSectionButton.classList.remove('hidden');
-    switch (view) {
-        case SEARCH:
-            showSearch(category);
-            break;
-        case INBOX:
-            showRecommendations(view, firestore);
-            break;
-        case SENT:
-            showRecommendations(view, firestore);
-            break;
-        default:
-            showList(category, view, firestore);
-            break;
     }
 }
 
@@ -226,13 +178,12 @@ function clearSelectedSwrlers() {
 
 /**
  * 
- * @param {Constant} view 
- * @param {Category} category 
+ * @param {StateController} stateController
  * @param {firebase.firestore.Firestore} firestore 
  */
-function recommendFailAndAbort(view, category, firestore) {
+function recommendFailAndAbort(stateController, firestore) {
     window.alert("You need to be online to use recommendations, sorry!");
-    goBackToPreviousView(category, view, firestore);
+    stateController.showPreviousScreen();
 }
 
 //taken and modified from https://www.w3schools.com/howto/howto_js_autocomplete.asp
@@ -259,7 +210,7 @@ function setupAutocomplete(toInput) {
         autocompleteContainer.setAttribute("class", "autocomplete-items");
         /*append the DIV element as a child of the autocomplete container:*/
         this.parentNode.appendChild(autocompleteContainer);
-        fade.style.display = 'block';
+        fade.classList.remove('hidden');
 
         var selectableSwrlers = swrlers.filter((s) => {
             return selectedSwrlers.indexOf(s) === -1;
@@ -360,7 +311,7 @@ function closeAllLists() {
         const container = autocompleteItemContainers[index];
         container.parentNode.removeChild(container);
     }
-    fade.style.display = 'none';
+    fade.classList.add('hidden');
 }
 
 /**

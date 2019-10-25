@@ -8,6 +8,50 @@ import { renderSwrl } from '../components/swrl';
 import showRequireLoginScreen from '../components/requireLoginScreen';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
+import { View } from './View';
+import { StateController } from './stateController';
+
+export class YourListView extends View {
+    /**
+     * @param {StateController} stateController
+     */
+    constructor(stateController) {
+        super(stateController, stateController.listScreen)
+    }
+
+    show() {
+        showList(this.stateController.currentState.selectedCategory, YOUR_LIST, this.firestore, this.stateController);
+    }
+
+    destroy() {
+        destroyList();
+    }
+}
+
+export class DiscoverView extends View {
+    /**
+     * @param {StateController} stateController
+     */
+    constructor(stateController) {
+        super(stateController, stateController.listScreen)
+    }
+
+    show() {
+        showList(this.stateController.currentState.selectedCategory, DISCOVER, this.firestore, this.stateController);
+    }
+
+    destroy() {
+        destroyList();
+    }
+}
+
+/** @type {HTMLDivElement} */
+// @ts-ignore
+const yourListTab = document.getElementById('yourListTab');
+
+/** @type {HTMLDivElement} */
+// @ts-ignore
+const discoverTab = document.getElementById('discoverTab');
 
 var swrlsContainer = document.getElementById('swrlList');
 var currentID;
@@ -16,20 +60,31 @@ var currentID;
  * @param {Category} category
  * @param {Constant} view
  * @param {firebase.firestore.Firestore} firestore
+ * @param {StateController} stateController
  */
-export function showList(category, view, firestore) {
+export function showList(category, view, firestore, stateController) {
+    const tabs = document.getElementById('tabs');
+    tabs.classList.remove('hidden');
+
     currentID = Math.random();
     var resultsID = currentID;
     clearList();
+    if (view === YOUR_LIST) {
+        yourListTab.classList.add('selected');
+    } else if (view === DISCOVER) {
+        discoverTab.classList.add('selected');
+    }
     document.getElementById('swrlList').classList.remove('hidden');
     document.getElementById('messageContainer').classList.remove('hidden');
     document.getElementById('message').innerText = 'Loading Swrls...';
+    document.querySelector('#messageContainer .loadingSpinner').classList.remove('hidden');
     var swrlsRef = firestore.collection(Collection.SWRLS);
     if (swrlsRef) {
         runQuery(swrlsRef, category, view)
             .then(function (querySnapshot) {
                 if (currentID === resultsID) {
                     document.getElementById('messageContainer').classList.add('hidden');
+                    document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
                     if (!querySnapshot.empty) {
                         querySnapshot.forEach(
                             /**
@@ -37,7 +92,7 @@ export function showList(category, view, firestore) {
                              */
                             function (docSnapshot) {
                                 const swrl = Swrl.fromFirestore(docSnapshot.data());
-                                renderSwrl(category, view, swrl, firestore, swrlsContainer);
+                                renderSwrl(stateController, view, swrl, firestore, swrlsContainer);
                             })
                         if (view === DISCOVER && swrlsContainer.querySelectorAll('div').length == 0) {
                             console.log('No Swrls to discover');
@@ -105,8 +160,13 @@ function clearList() {
 }
 
 export function destroyList() {
+    const tabs = document.getElementById('tabs');
+    tabs.classList.add('hidden');
     document.getElementById('swrlList').classList.add('hidden');
     document.getElementById('messageContainer').classList.add('hidden');
+    document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
+    yourListTab.classList.remove('selected');
+    discoverTab.classList.remove('selected');
     currentID = undefined;
     clearList();
 }
@@ -116,6 +176,7 @@ export function destroyList() {
  */
 function showNoSwrlsView(category) {
     document.getElementById('messageContainer').classList.remove('hidden');
+    document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
     document.getElementById('message').innerText = category.noSwrlsMessage;
 }
 
@@ -124,5 +185,6 @@ function showNoSwrlsView(category) {
  */
 function showNoSwrlsDiscoverView(category) {
     document.getElementById('messageContainer').classList.remove('hidden');
+    document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
     document.getElementById('message').innerText = category.noSwrlsDiscoverMessage;
 }
