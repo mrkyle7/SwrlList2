@@ -127,7 +127,10 @@
       <textarea id="recommendMessage" placeholder="Why are you recommending this?" rows="4" cols="50"></textarea>
     </div>
     <div id="swrlFullPage" class="hidden">
-      
+      <div id="swrlImageContainer">
+        <img id="swrlImageLarge" src="" />
+      </div>
+      <div id="swrlFullPageCards"></div>
     </div>
 
     <div id="messageContainer" class="hidden statusMessage">
@@ -178,6 +181,12 @@
         <img class="swrlDone swrlButton hidden" src="img/done.svg" />
         <img class="swrlAdd swrlButton hidden" src="img/addIcon.svg" />
       </div>
+    </div>
+  </template>
+  <template id="swrlPageCard">
+    <div class="card">
+      <p class="cardTitle"></p>
+      <div class="cardContent"></div>
     </div>
   </template>
   <template id="recommendation">

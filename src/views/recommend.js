@@ -324,6 +324,18 @@ function getSwrlerSmall(swrler, showDeleteButton) {
     var swrlerSmall = swrlerSmallTemplate.content.cloneNode(true);
     var $swrlerSmall = swrlerSmall.querySelector.bind(swrlerSmall);
     $swrlerSmall('.swrlerSmallImage').src = swrler.photoURL;
+    $swrlerSmall('.swrlerSmallImage').addEventListener('error',
+    /**
+     * @param {Event} e
+     */
+    (e) => {
+        /** @type {HTMLImageElement} */
+        // @ts-ignore
+        const image = e.target;
+        if (image) {
+            image.src = 'img/NoPoster.jpg' //todo: get blank user photo
+        }
+    });
     $swrlerSmall('.swrlerSmallText').innerText = swrler.displayName;
     if (showDeleteButton) {
         var deleteButton = $swrlerSmall('.swrlerSmallDelete');

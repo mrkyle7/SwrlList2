@@ -10,6 +10,7 @@ import { Constant } from '../constants/Constant';
 import { Recommendation } from '../model/recommendation';
 import { currentRenderID } from '../views/recommendations';
 import { StateController } from '../views/stateController';
+import { getSwrler } from '../firebase/swrler';
 
 const loadingSpinner = document.getElementById('loadingSpinner');
 
@@ -35,6 +36,18 @@ const loadingSpinner = document.getElementById('loadingSpinner');
         let recommendationDiv = $recommendation('div');
 
         $recommendation('.swrlImage').src = recommendation.swrl.details.imageUrl;
+        $recommendation('.swrlImage').addEventListener('error',
+        /**
+         * @param {Event} e
+         */
+        (e) => {
+            /** @type {HTMLImageElement} */
+            // @ts-ignore
+            const image = e.target;
+            if (image) {
+                image.src = 'img/NoPoster.jpg'
+            }
+        });
         let creator = recommendation.swrl.details.author ? recommendation.swrl.details.author
             : recommendation.swrl.details.artist ? recommendation.swrl.details.artist : undefined;
         let title = creator ? recommendation.swrl.details.title + ' by ' + creator : recommendation.swrl.details.title;
@@ -57,6 +70,18 @@ const loadingSpinner = document.getElementById('loadingSpinner');
                 let recommenderFragment = recommenderTemplate.content.cloneNode(true);
                 let $recommender = recommenderFragment.querySelector.bind(recommenderFragment);
                 $recommender('.swrlerSmallImage').src = fromSwrler.photoURL;
+                $recommender('.swrlerSmallImage').addEventListener('error',
+                /**
+                 * @param {Event} e
+                 */
+                (e) => {
+                    /** @type {HTMLImageElement} */
+                    // @ts-ignore
+                    const image = e.target;
+                    if (image) {
+                        image.src = 'img/NoPoster.jpg' //todo: get a person image for this
+                    }
+                });
                 $recommender('.recommenderName').innerText = fromSwrler.displayName;
                 recommendationDiv.appendChild(recommenderFragment);
             }
@@ -187,29 +212,4 @@ const showRead = (view, recommendation, recommendationDiv) => {
         recommendationDiv.querySelector('.markRead').classList.remove('hidden');
         recommendationDiv.querySelector('.markUnRead').classList.add('hidden');
     }
-}
-
-/**
- * 
- * @param {String} uid 
- * @param {firebase.firestore.Firestore} firestore 
- */
-const getSwrler = (uid, firestore) => {
-    return new Promise((resolve, reject) => {
-        firestore.collection(Collection.SWRLERS)
-            .doc(uid)
-            .get()
-            .then(docRef => {
-                if (docRef.exists) {
-                    resolve(docRef.data());
-                } else {
-                    resolve(undefined);
-                }
-            })
-            .catch(err => {
-                console.error('Error getting swrler');
-                console.error(err);
-                resolve(undefined);
-            })
-    });
 }

@@ -55,4 +55,10 @@ export class Details {
         ['id', 'title', 'imageUrl'].forEach(p => assertObjectHasDefinedProperty(json, p));
         return new Details(json.id, json.title, json.imageUrl, json.artist, json.author, json.releaseYear);
     }
+
+    /** @return {string} */
+    getFullTitle() {
+        return this.releaseYear !== undefined ?
+            `${this.title} (${this.releaseYear})` : this.title;
+    }
 }

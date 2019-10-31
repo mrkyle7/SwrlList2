@@ -25,38 +25,50 @@ import { State } from '../model/state';
 export function addLoveButton(view, swrl, selector, div, firestore, recommendation) {
     if (view === YOUR_LIST || view === DISCOVER
         || view === INBOX || view === SENT) {
-        selector('.swrlLoved').addEventListener('click', (e) => {
-            if (!swrlUser || swrlUser.isAnonymous) {
-                showRequireLoginScreen('to unlove a Swrl');
-            }
-            else {
-                unloveASwrl(swrl, firestore)
-                    .catch((error) => {
-                        console.error(error);
-                    });;
-                div.querySelector('.swrlLoved').classList.add('hidden');
-                div.querySelector('.swrlNotLoved').classList.remove('hidden');
-                if (view === INBOX) {
-                    markRecommendationAsRead(div, recommendation, firestore);
+        selector('.swrlLoved').addEventListener('click',
+            /**
+                 * @param {Event} e
+                 */
+            (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (!swrlUser || swrlUser.isAnonymous) {
+                    showRequireLoginScreen('to unlove a Swrl');
                 }
-            }
-        });
-        selector('.swrlNotLoved').addEventListener('click', (e) => {
-            if (!swrlUser || swrlUser.isAnonymous) {
-                showRequireLoginScreen('to love a Swrl');
-            }
-            else {
-                loveASwrl(swrl, firestore)
-                    .catch((error) => {
-                        console.error(error);
-                    });
-                div.querySelector('.swrlNotLoved').classList.add('hidden');
-                div.querySelector('.swrlLoved').classList.remove('hidden');
-                if (view === INBOX) {
-                    markRecommendationAsRead(div, recommendation, firestore);
+                else {
+                    unloveASwrl(swrl, firestore)
+                        .catch((error) => {
+                            console.error(error);
+                        });;
+                    div.querySelector('.swrlLoved').classList.add('hidden');
+                    div.querySelector('.swrlNotLoved').classList.remove('hidden');
+                    if (view === INBOX) {
+                        markRecommendationAsRead(div, recommendation, firestore);
+                    }
                 }
-            }
-        });
+            });
+        selector('.swrlNotLoved').addEventListener('click',
+            /**
+                 * @param {Event} e
+                 */
+            (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (!swrlUser || swrlUser.isAnonymous) {
+                    showRequireLoginScreen('to love a Swrl');
+                }
+                else {
+                    loveASwrl(swrl, firestore)
+                        .catch((error) => {
+                            console.error(error);
+                        });
+                    div.querySelector('.swrlNotLoved').classList.add('hidden');
+                    div.querySelector('.swrlLoved').classList.remove('hidden');
+                    if (view === INBOX) {
+                        markRecommendationAsRead(div, recommendation, firestore);
+                    }
+                }
+            });
         if (isLoved(swrl)) {
             selector('.swrlLoved').classList.remove('hidden');
         } else {
@@ -78,33 +90,39 @@ export function addAddButton(view, selector, div, swrl, firestore, swrlsContaine
     if (view === DISCOVER || view === SEARCH
         || view === INBOX || view === SENT) {
         selector('.swrlAdd').classList.remove('hidden');
-        selector('.swrlAdd').addEventListener('click', (e) => {
-            if (!swrlUser || swrlUser.isAnonymous) {
-                showRequireLoginScreen('to add a Swrl to your list');
-            }
-            else {
-                addSwrlToList(swrl, firestore)
-                    .catch(/**
+        selector('.swrlAdd').addEventListener('click',
+            /**
+             * @param {Event} e
+             */
+            (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (!swrlUser || swrlUser.isAnonymous) {
+                    showRequireLoginScreen('to add a Swrl to your list');
+                }
+                else {
+                    addSwrlToList(swrl, firestore)
+                        .catch(/**
                          * @param {any} error
                          */
-                        function (error) {
-                            console.error('Could not add to list');
-                            console.error(error);
-                            div.querySelector('.swrlAdd').classList.remove('hidden');
-                            div.querySelector('.swrlSpinner').classList.add('hidden');
-                        });
-                if (view === DISCOVER || view === SEARCH) {
-                    div.querySelector('.swrlAdded').classList.remove('hidden');
-                    setTimeout(function () {
-                        swrlsContainer.removeChild(div);
-                    }, 1000);
+                            function (error) {
+                                console.error('Could not add to list');
+                                console.error(error);
+                                div.querySelector('.swrlAdd').classList.remove('hidden');
+                                div.querySelector('.swrlSpinner').classList.add('hidden');
+                            });
+                    if (view === DISCOVER || view === SEARCH) {
+                        div.querySelector('.swrlAdded').classList.remove('hidden');
+                        setTimeout(function () {
+                            swrlsContainer.removeChild(div);
+                        }, 1000);
+                    }
+                    if (view === INBOX) {
+                        markRecommendationAsRead(div, recommendation, firestore);
+                    }
+                    showToasterMessage('Added ' + swrl.details.title + ' to your list');
                 }
-                if (view === INBOX) {
-                    markRecommendationAsRead(div, recommendation, firestore);
-                }
-                showToasterMessage('Added ' + swrl.details.title + ' to your list');
-            }
-        });
+            });
     }
 }
 
@@ -122,15 +140,21 @@ function isLoved(swrl) {
  */
 export function addRecommendButton($swrl, swrl, stateController) {
     $swrl('.swrlRecommend').classList.remove('hidden');
-    $swrl('.swrlRecommend').addEventListener('click', function () {
-        if (!swrlUser || swrlUser.isAnonymous) {
-            showRequireLoginScreen('to recommend a Swrl');
-        } else {
-            const recommend = new State(stateController.recommendView,
-                stateController.currentState.selectedCategory,
-                stateController.currentState.searchTerms,
-                swrl);
-            stateController.changeState(recommend);
-        }
-    });
+    $swrl('.swrlRecommend').addEventListener('click',
+        /**
+         * @param {Event} e
+         */
+        (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            if (!swrlUser || swrlUser.isAnonymous) {
+                showRequireLoginScreen('to recommend a Swrl');
+            } else {
+                const recommend = new State(stateController.recommendView,
+                    stateController.currentState.selectedCategory,
+                    stateController.currentState.searchTerms,
+                    swrl);
+                stateController.changeState(recommend);
+            }
+        });
 }

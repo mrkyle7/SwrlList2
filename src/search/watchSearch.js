@@ -42,7 +42,7 @@ export class WatchSearch extends Search {
      * @return {Promise<Swrl[]>}
      */
     _filmSearch(query, signal) {
-        return new Promise(async function (resolve, reject) {
+        return new Promise(async (resolve, reject) => {
             const url = 'https://api.themoviedb.org/3/search/movie?api_key=' + tmdbAPIKey + '&query=' + query;
             try {
                 const response = await fetch(url, { signal });
@@ -51,7 +51,7 @@ export class WatchSearch extends Search {
                  * @param {{ title: string; release_date: string; id: string; poster_path: string; }} result
                  * @return {Swrl}
                  */
-                    function (result) {
+                    (result) => {
                         return new Swrl(FILM, WATCH, 'TMDBMOVIE_' + result.id,
                             new Details(result.id,
                                 result.title || 'No Title',
@@ -73,7 +73,7 @@ export class WatchSearch extends Search {
      * @param {any} signal
      */
     _TVSearch(query, signal) {
-        return new Promise(async function (resolve, reject) {
+        return new Promise(async (resolve, reject) => {
             const url = 'https://api.themoviedb.org/3/search/tv?api_key=' + tmdbAPIKey + '&query=' + query;
             try {
                 const response = await fetch(url, { signal });
@@ -82,7 +82,7 @@ export class WatchSearch extends Search {
                  * @param {{ name: any; id: string; poster_path: string; }} result
                  * @return {Swrl}
                  */
-                    function (result) {
+                    (result) => {
                         return new Swrl(TV, WATCH, 'TMDBTV_' + result.id,
                             new Details(result.id,
                                 result.name || 'No Title',

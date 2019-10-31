@@ -64,6 +64,7 @@ body {
     margin-top: 0;
     margin-bottom: 0;
     height: 100%;
+    max-width: 70%;
 }
 
 .title img {
@@ -76,6 +77,9 @@ body {
     margin-top: auto;
     margin-bottom: auto;
     font-size: 24px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 #inboxDisplay, #recommendSendContainer {
@@ -127,10 +131,10 @@ body {
 
 #menuSwipeable {
     position: absolute;
-    top: 0;
+    top: 56px;
     bottom: 0;
     left: 0;
-    width: 24px;
+    width: 32px;
     z-index: 99;
 }
 
@@ -498,7 +502,7 @@ body {
 }
 
 #recommend, #swrlFullPage {
-    top: 60px;
+    top: 56px;
     overflow: scroll;
 }
 
@@ -515,13 +519,13 @@ body {
     margin: 12px 4px 12px 4px;
 }
 
-.recommendation {
+.recommendation, .card {
     border-radius: 2px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
     display: flex;
     flex-direction: column;
     position: relative;
-    margin: 12px 4px 12px 4px;
+    margin: 12px 4px 0px 4px;
 }
 
 .recommender {
@@ -604,7 +608,7 @@ body {
     overflow: hidden;
 }
 
-.swrlTitle {
+.swrlTitle, .cardTitle {
     font-size: 20px;
     font-weight: bold;
     margin: 4px;
@@ -673,7 +677,7 @@ body {
         top: 156px;
     }
     #recommend, #swrlFullPage {
-        top: 60px;
+        top: 56px;
     }
     .main .section {
         padding-left: 0px;
@@ -756,7 +760,7 @@ body {
 
 #fade {
     position: absolute;
-    top: 0;
+    top: 56px;
     left: 0;
     right: 0;
     bottom: 0;
@@ -850,4 +854,26 @@ body {
     box-sizing: border-box;
     transform: rotate(-135deg);
     margin-top: -12px;
+}
+
+/* Swrl full page */
+
+#swrlFullPage, #swrlFullPageCards {
+    display: flex;
+    flex-direction: column;
+}
+
+#swrlImageContainer {
+    display: flex;
+    max-height: 200px;
+    width: 100%
+}
+
+#swrlImageLarge {
+    max-width: 40%;
+    margin: 8px auto 8px auto;
+}
+
+.cardContent {
+    margin: 4px;
 }

@@ -134,6 +134,18 @@ function handleLoginSuccess(firestore) {
     /** @type {HTMLImageElement} */
     const userPhotoElement = document.querySelector("#userPhoto");
     userPhotoElement.src = swrlUser.photoURL;
+    userPhotoElement.addEventListener('error',
+    /**
+     * @param {Event} e
+     */
+    (e) => {
+        /** @type {HTMLImageElement} */
+        // @ts-ignore
+        const image = e.target;
+        if (image) {
+            image.src = 'img/NoPoster.jpg' //todo: use blank user image
+        }
+    });
     document.querySelector("#userPhoto").classList.remove('hidden');
     document.querySelector("#logout").classList.remove('hidden');
     document.querySelector("#login").classList.add('hidden');

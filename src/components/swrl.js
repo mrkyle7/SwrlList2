@@ -11,6 +11,7 @@ import { showToasterMessage } from './toaster';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
 import { StateController } from '../views/stateController';
+import { State } from '../model/state';
 
 /**
  * 
@@ -31,11 +32,33 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
         var swrlDiv = swrlFragment.querySelector('div');
         var $swrl = swrlFragment.querySelector.bind(swrlFragment);
         $swrl('.swrlImage').src = swrl.details.imageUrl;
+        $swrl('.swrlImage').addEventListener('error',
+            /**
+             * @param {Event} e
+             */
+            (e) => {
+                /** @type {HTMLImageElement} */
+                // @ts-ignore
+                const image = e.target;
+                if (image) {
+                    image.src = 'img/NoPoster.jpg'
+                }
+            });
         var creator = swrl.details.author ? swrl.details.author
             : swrl.details.artist ? swrl.details.artist : undefined;
         var title = creator ? swrl.details.title + ' by ' + creator : swrl.details.title;
         $swrl('.swrlTitle').innerText = title;
         $swrl('.swrlType').innerText = swrl.type.name;
+
+        // TODO: renable
+        // swrlDiv.addEventListener('click', (e) => {
+        //     e.stopPropagation();
+        //     e.preventDefault();
+        //     stateController.changeState(new State(stateController.swrlView,
+        //         stateController.currentState.selectedCategory,
+        //         stateController.currentState.searchTerms,
+        //         swrl));
+        // })
 
         addStats($swrl, swrlDiv, swrl, view, firestore);
         addAddButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer, null);

@@ -36,7 +36,7 @@ const app = {
             if (stateController !== undefined) {
                 stateController.showPreviousScreen();
             }
-        })
+        });
     },
 
     // deviceready Event Handler

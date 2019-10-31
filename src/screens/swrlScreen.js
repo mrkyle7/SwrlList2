@@ -17,6 +17,6 @@ export class SwrlScreen extends Screen {
         const titleText = document.getElementById('titleText');
         titleText.innerText = this.stateController.currentState.swrl.details.title;
         const header = document.getElementById('header');
-        header.style.backgroundColor = '#FF2E63';
+        header.style.backgroundColor = this.stateController.currentState.selectedCategory.colour;
     }
 }
