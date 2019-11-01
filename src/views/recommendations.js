@@ -81,6 +81,7 @@ const showRecommendations = (stateController, view, firestore) => {
 const destroyRecommendations = () => {
     recommendationTabs.classList.add('hidden');
     recommendationList.classList.add('hidden');
+    loadingSpinner.classList.add('hidden');
 }
 
 const clearList = () => {
