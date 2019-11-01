@@ -18,9 +18,7 @@ Swrl  - You Should Watch, Read or Listen!
 
 This app is written and built with [Cordova](https://cordova.apache.org/)
 
-It uses webpack to bundle the javascript files from src/index.js into www/bundle.js. 
-
-Be careful not to use any ES6 features as this won't be supported on some Android devices.
+It uses webpack and babel to bundle the javascript files from src/index.js into www/bundle.js. 
 
 To get started, follow the [Android](https://cordova.apache.org/docs/en/latest/guide/platforms/android/index.html) and [iOS](https://cordova.apache.org/docs/en/latest/guide/platforms/ios/index.html) guides.
 

@@ -540,13 +540,12 @@ body {
     margin: 4px;
 }
 
-.recommender .recommendationDetailsTitle {
+.recommender {
     margin-right: 4px;
 }
 
-.recommendationDetailsTitle {
-    margin-right: 8px;
-    font-size: 16px;
+.recommenderMessage.date {
+    font-size: 12px;
     color: gray;
 }
 

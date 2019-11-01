@@ -1,4 +1,3 @@
-
 import { INBOX, SENT } from '../constants/View';
 import { recommendationsCache } from '../listeners/recommendations';
 import { Collection } from '../constants/Collection';

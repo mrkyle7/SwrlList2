@@ -1,4 +1,4 @@
-import Collection from "../constants/Collection";
+import { Collection } from "../constants/Collection";
 
 /**
  * 

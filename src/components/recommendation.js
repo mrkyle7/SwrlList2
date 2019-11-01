@@ -110,7 +110,6 @@ const loadingSpinner = document.getElementById('loadingSpinner');
             // @ts-ignore
             let recommendationMessageFragment = recommendationMessageTemplate.content.cloneNode(true);
             let $recommendationMessage = recommendationMessageFragment.querySelector.bind(recommendationMessageFragment);
-            $recommendationMessage('.recommendationDetailsTitle').innerText = 'TO: ';
             $recommendationMessage('.recommenderMessage').innerText = toSwrlersText;
             recommendationDiv.appendChild(recommendationMessageFragment);
         }
@@ -130,8 +129,8 @@ const loadingSpinner = document.getElementById('loadingSpinner');
             // @ts-ignore
             const recommendationCreatedMessageFragment = recommendationMessageTemplate.content.cloneNode(true);
             const $recommendationCreatedMessage = recommendationCreatedMessageFragment.querySelector.bind(recommendationCreatedMessageFragment);
-            $recommendationCreatedMessage('.recommendationDetailsTitle').innerText = "SENT: ";
             $recommendationCreatedMessage('.recommenderMessage').innerText = recommendation.created.toUTCString();
+            $recommendationCreatedMessage('.recommenderMessage').classList.add('date');
             recommendationDiv.appendChild(recommendationCreatedMessageFragment);
         }
 
