@@ -53,8 +53,8 @@ const yourListTab = document.getElementById('yourListTab');
 // @ts-ignore
 const discoverTab = document.getElementById('discoverTab');
 
-var swrlsContainer = document.getElementById('swrlList');
-var currentID;
+const swrlsContainer = document.getElementById('swrlList');
+let currentID;
 
 /**
  * @param {Category} category
@@ -67,7 +67,7 @@ export function showList(category, view, firestore, stateController) {
     tabs.classList.remove('hidden');
 
     currentID = Math.random();
-    var resultsID = currentID;
+    const resultsID = currentID;
     clearList();
     if (view === YOUR_LIST) {
         yourListTab.classList.add('selected');
@@ -78,7 +78,7 @@ export function showList(category, view, firestore, stateController) {
     document.getElementById('messageContainer').classList.remove('hidden');
     document.getElementById('message').innerText = 'Loading Swrls...';
     document.querySelector('#messageContainer .loadingSpinner').classList.remove('hidden');
-    var swrlsRef = firestore.collection(Collection.SWRLS);
+    const swrlsRef = firestore.collection(Collection.SWRLS);
     if (swrlsRef) {
         runQuery(swrlsRef, category, view)
             .then(function (querySnapshot) {
@@ -90,9 +90,14 @@ export function showList(category, view, firestore, stateController) {
                             /**
                              * @param {firebase.firestore.QueryDocumentSnapshot} docSnapshot
                              */
-                            function (docSnapshot) {
-                                const swrl = Swrl.fromFirestore(docSnapshot.data());
-                                renderSwrl(stateController, view, swrl, firestore, swrlsContainer);
+                            (docSnapshot) => {
+                                try {
+                                    const swrl = Swrl.fromFirestore(docSnapshot.data());
+                                    renderSwrl(stateController, view, swrl, firestore, swrlsContainer);
+                                } catch (error) {
+                                    console.error(`Cannot render swrl ${docSnapshot.id}`);
+                                    console.error(error);
+                                }   
                             })
                         if (view === DISCOVER && swrlsContainer.querySelectorAll('div').length == 0) {
                             console.log('No Swrls to discover');
@@ -144,11 +149,11 @@ function runQuery(db, category, view) {
             }
         case DISCOVER:
             return db.where("category", "==", category.id)
-                .orderBy("added", "desc")
+                .orderBy("updated", "desc")
                 .get();
         default:
             return db.where("category", "==", category.id)
-                .orderBy("added", "desc")
+                .orderBy("updated", "desc")
                 .get();
     }
 }

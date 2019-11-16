@@ -124,7 +124,15 @@ const showSentFromFirestore = (stateController, view, firestore, renderID) => {
                 const recommendationGetters = [];
                 querySnapshot.forEach(doc => {
                     recommendationGetters.push(new Promise(async (resolve, reject) => {
-                        const recommendation = await Recommendation.fromFirestore(doc, firestore);
+                        let recommendation;
+                        try {
+                            recommendation = await Recommendation.fromFirestore(doc, firestore);
+                        } catch (error) {
+                            console.error("Couldn't process recommendation: ", doc.id, doc.data());
+                            console.error(error);
+                            resolve();
+                            return;
+                        }
                         recommendations.push(recommendation);
                         resolve();
                     }))

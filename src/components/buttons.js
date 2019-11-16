@@ -8,24 +8,23 @@ import showRequireLoginScreen from '../components/requireLoginScreen';
 import { markRecommendationAsRead } from '../actions/markRecommendationAsRead';
 import { showToasterMessage } from './toaster';
 import { Constant } from '../constants/Constant';
-import { YOUR_LIST, DISCOVER, SEARCH, INBOX, SENT } from '../constants/View';
+import { DISCOVER, SEARCH, INBOX, SENT, RECOMMEND, YOUR_LIST } from '../constants/View';
 import { Swrl } from '../model/swrl';
 import { Recommendation } from '../model/recommendation';
 import { StateController } from '../views/stateController';
 import { State } from '../model/state';
+import markASwrlAsDone from '../actions/markASwrlAsDone';
 
 /**
  * @param {Constant} view
  * @param {Swrl} swrl
- * @param {*} selector
  * @param {HTMLElement} div
  * @param {firebase.firestore.Firestore} firestore
  * @param {Recommendation} [recommendation]
  */
-export function addLoveButton(view, swrl, selector, div, firestore, recommendation) {
-    if (view === YOUR_LIST || view === DISCOVER
-        || view === INBOX || view === SENT) {
-        selector('.swrlLoved').addEventListener('click',
+export function addLoveButton(view, swrl, div, firestore, recommendation) {
+    if (div) {
+        div.querySelector('.swrlLoved').addEventListener('click',
             /**
                  * @param {Event} e
                  */
@@ -47,7 +46,7 @@ export function addLoveButton(view, swrl, selector, div, firestore, recommendati
                     }
                 }
             });
-        selector('.swrlNotLoved').addEventListener('click',
+        div.querySelector('.swrlNotLoved').addEventListener('click',
             /**
                  * @param {Event} e
                  */
@@ -70,9 +69,9 @@ export function addLoveButton(view, swrl, selector, div, firestore, recommendati
                 }
             });
         if (isLoved(swrl)) {
-            selector('.swrlLoved').classList.remove('hidden');
+            div.querySelector('.swrlLoved').classList.remove('hidden');
         } else {
-            selector('.swrlNotLoved').classList.remove('hidden');
+            div.querySelector('.swrlNotLoved').classList.remove('hidden');
         }
     }
 }
@@ -88,7 +87,7 @@ export function addLoveButton(view, swrl, selector, div, firestore, recommendati
  */
 export function addAddButton(view, selector, div, swrl, firestore, swrlsContainer, recommendation) {
     if (view === DISCOVER || view === SEARCH
-        || view === INBOX || view === SENT) {
+        || view === INBOX || view === SENT || view === RECOMMEND) {
         selector('.swrlAdd').classList.remove('hidden');
         selector('.swrlAdd').addEventListener('click',
             /**
@@ -157,4 +156,40 @@ export function addRecommendButton($swrl, swrl, stateController) {
                 stateController.changeState(recommend);
             }
         });
+}
+
+/**
+ * 
+ * @param {HTMLElement} swrlDiv 
+ * @param {Swrl} swrl 
+ * @param {firebase.firestore.Firestore} firestore 
+ * @param {HTMLElement} swrlsContainer 
+ * @param {Constant} view
+ * 
+ */
+export function addDoneButton(swrlDiv, swrl, firestore, swrlsContainer, view) {
+    if (swrlDiv) {
+        swrlDiv.querySelector('.swrlDone').classList.remove('hidden');
+        swrlDiv.querySelector('.swrlDone').addEventListener('click', () => {
+            if (!swrlUser || swrlUser.isAnonymous) {
+                showRequireLoginScreen('to mark a Swrl as done');
+            }
+            else {
+                markASwrlAsDone(swrl, firestore)
+                    .catch(function (error) {
+                        console.error('Could not add to list');
+                        console.error(error);
+                    });
+                if (view === DISCOVER || view === SEARCH || view === YOUR_LIST) {
+                    swrlDiv.querySelector('.swrlMarkedAsDone').classList.remove('hidden');
+                    setTimeout(function () {
+                        if (swrlDiv && swrlsContainer) {
+                            swrlsContainer.removeChild(swrlDiv);
+                        }
+                    }, 1000);
+                }
+                showToasterMessage('Marked ' + swrl.details.title + ' as done');
+            }
+        });
+    }
 }

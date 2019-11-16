@@ -9,7 +9,6 @@ import { Swrl } from '../model/swrl';
  */
 export default function unloveASwrl(swrl, firestore) {
    const fireStoreData = swrl.toPartialFireStoreData();
-   fireStoreData.updated = firebase.firestore.FieldValue.serverTimestamp();
    fireStoreData.loved = firebase.firestore.FieldValue.arrayRemove(swrlUser.uid);
    return firestore.collection(Collection.SWRLS).doc(fireStoreData.swrlID).set(fireStoreData, { merge: true });
 }

@@ -14,7 +14,7 @@ import { View } from './View';
 import { StateController } from './stateController';
 
 export class Recommend extends View {
-   
+
     /**
      * @param {StateController} stateController
      */
@@ -26,7 +26,7 @@ export class Recommend extends View {
         showRecommend(this.stateController);
     }
 
-    destroy(){
+    destroy() {
         destroyRecommend();
     }
 }
@@ -126,12 +126,13 @@ function bindRecommendSendButton(stateController, swrl, firestore) {
                     created: firebase.firestore.FieldValue.serverTimestamp()
                 })
                     .then(function (docRef) {
-                        let id = docRef.id;
+                        const id = docRef.id;
                         console.log("Recommendation written with ID: ", id);
-                        const updateRecommendations = {
-                            recommendations: firebase.firestore.FieldValue.arrayUnion(id),
-                            isRecommended: firebase.firestore.FieldValue.arrayUnion.apply(this, toSwrlers)
-                        }
+                        const updateRecommendations = swrl.toPartialFireStoreData();
+                        updateRecommendations.updated = firebase.firestore.FieldValue.serverTimestamp();
+                        updateRecommendations.recommendations = firebase.firestore.FieldValue.arrayUnion(id);
+                        updateRecommendations.isRecommended = firebase.firestore.FieldValue.arrayUnion.apply(this, toSwrlers)
+
                         firestore.collection(Collection.SWRLS).doc(swrlID).set(updateRecommendations,
                             { merge: true })
                             .catch(e => console.error(e));
@@ -325,17 +326,17 @@ function getSwrlerSmall(swrler, showDeleteButton) {
     var $swrlerSmall = swrlerSmall.querySelector.bind(swrlerSmall);
     $swrlerSmall('.swrlerSmallImage').src = swrler.photoURL;
     $swrlerSmall('.swrlerSmallImage').addEventListener('error',
-    /**
-     * @param {Event} e
-     */
-    (e) => {
-        /** @type {HTMLImageElement} */
-        // @ts-ignore
-        const image = e.target;
-        if (image) {
-            image.src = 'img/NoPoster.jpg' //todo: get blank user photo
-        }
-    });
+        /**
+         * @param {Event} e
+         */
+        (e) => {
+            /** @type {HTMLImageElement} */
+            // @ts-ignore
+            const image = e.target;
+            if (image) {
+                image.src = 'img/NoPoster.jpg' //todo: get blank user photo
+            }
+        });
     $swrlerSmall('.swrlerSmallText').innerText = swrler.displayName;
     if (showDeleteButton) {
         var deleteButton = $swrlerSmall('.swrlerSmallDelete');

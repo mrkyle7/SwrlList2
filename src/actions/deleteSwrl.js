@@ -9,7 +9,6 @@ import { Swrl } from '../model/swrl';
  */
 export default function deleteSwrl(swrl, firestore) {
    const firestoreData = swrl.toPartialFireStoreData();
-   firestoreData.updated = firebase.firestore.FieldValue.serverTimestamp();
    firestoreData.later = firebase.firestore.FieldValue.arrayRemove(swrlUser.uid);
    firestoreData.done = firebase.firestore.FieldValue.arrayRemove(swrlUser.uid);
    firestoreData.deleted = firebase.firestore.FieldValue.arrayUnion(swrlUser.uid);

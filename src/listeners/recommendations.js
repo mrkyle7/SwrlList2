@@ -22,7 +22,15 @@ export function setUpRecommendationsListener(firestore) {
             querySnapshot.docChanges().forEach(docChange => {
                 inboxUpdates.push(new Promise(async (resolve, reject) => {
                     console.log(docChange.type, docChange.doc.id, docChange.doc.data());
-                    const recommendation = await Recommendation.fromFirestore(docChange.doc, firestore);
+                    let recommendation;
+                    try {
+                        recommendation = await Recommendation.fromFirestore(docChange.doc, firestore);
+                    } catch (error) {
+                        console.error("Couldn't process recommendation from inbox listener: ", docChange.doc.id, docChange.doc.data());
+                        console.error(error);
+                        resolve();
+                        return;
+                    }
                     switch (docChange.type) {
                         case 'added':
                             recommendationsCache[recommendation.id] = recommendation;

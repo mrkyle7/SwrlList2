@@ -1,17 +1,16 @@
 export default { renderSwrl };
 
-import { DISCOVER, YOUR_LIST, RECOMMEND } from '../constants/View';
+import { DISCOVER, YOUR_LIST, RECOMMEND, SEARCH } from '../constants/View';
 import { swrlUser } from '../firebase/login';
 import showRequireLoginScreen from '../components/requireLoginScreen';
-import markASwrlAsDone from '../actions/markASwrlAsDone';
 import deleteSwrl from '../actions/deleteSwrl';
 import { addStats } from './stats';
-import { addLoveButton, addAddButton, addRecommendButton } from './buttons';
+import { addLoveButton, addAddButton, addRecommendButton, addDoneButton } from './buttons';
 import { showToasterMessage } from './toaster';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
 import { StateController } from '../views/stateController';
-import { State } from '../model/state';
+import { Collection } from '../constants/Collection';
 
 /**
  * 
@@ -60,15 +59,44 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
         //         swrl));
         // })
 
-        addStats($swrl, swrlDiv, swrl, view, firestore);
+        $swrl('.swrlListCount').classList.add('hidden');
+        $swrl('.swrlSpinnerListCount').classList.remove('hidden');
+        $swrl('.swrlRecommendedCount').classList.add('hidden');
+        $swrl('.swrlSpinnerRecommendedCount').classList.remove('hidden');
+        $swrl('.swrlLoveCount').classList.add('hidden');
+        $swrl('.swrlSpinnerLoveCount').classList.remove('hidden');
+
+        if (view === SEARCH || view === RECOMMEND) {
+            //for these let's try get the latest swrl details for the buttons
+            const docRef = firestore.collection(Collection.SWRLS).doc(swrl.swrlID);
+            docRef.get()
+                .then(doc => {
+                    let latestSwrl = swrl;
+                    if (doc.exists) {
+                        try {
+                            latestSwrl = Swrl.fromFirestore(doc.data());
+                        } catch (error) {
+                            console.error(`Error getting details for ${doc.id}`);
+                            console.error(error);
+                        }
+                    }
+                    addStats(swrlDiv, latestSwrl);
+                    addLoveButton(view, latestSwrl, swrlDiv, firestore, null);
+                    addDoneButton(swrlDiv, latestSwrl, firestore, swrlsContainer, view);
+                })
+        } else {
+            addStats(swrlDiv, swrl);
+            addLoveButton(view, swrl, swrlDiv, firestore, null);
+            addDoneButton(swrlDiv, swrl, firestore, swrlsContainer, view);
+        }
+
         addAddButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer, null);
+
         //Already on the recommend screen, so would be weird to recommend again!
         if (view !== RECOMMEND) {
             addRecommendButton($swrl, swrl, stateController);
         }
 
-        addLoveButton(view, swrl, $swrl, swrlDiv, firestore, null);
-        addDoneButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer);
         addDeleteButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer);
 
         swrlsContainer.appendChild(swrlFragment);
@@ -110,44 +138,11 @@ function addDeleteButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer) 
 }
 
 /**
- * 
- * @param {Constant} view 
- * @param {Function} $swrl 
- * @param {HTMLElement} swrlDiv 
- * @param {Swrl} swrl 
- * @param {firebase.firestore.Firestore} firestore 
- * @param {HTMLElement} swrlsContainer 
- */
-function addDoneButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer) {
-    if (view === YOUR_LIST) {
-        $swrl('.swrlDone').classList.remove('hidden');
-        $swrl('.swrlDone').addEventListener('click', () => {
-            if (!swrlUser || swrlUser.isAnonymous) {
-                showRequireLoginScreen('to mark a Swrl as done');
-            }
-            else {
-                markASwrlAsDone(swrl, firestore)
-                    .catch(function (error) {
-                        console.error('Could not add to list');
-                        console.error(error);
-                    });
-                swrlDiv.querySelector('.swrlMarkedAsDone').classList.remove('hidden');
-                setTimeout(function () {
-                    if (swrlDiv && swrlsContainer) {
-                        swrlsContainer.removeChild(swrlDiv);
-                    }
-                }, 1000);
-                showToasterMessage('Marked ' + swrl.details.title + ' as done');
-            }
-        });
-    }
-}
-
-/**
  * @param {Swrl} swrl
  */
 function isOnList(swrl) {
-    return (swrl.later && swrl.later.indexOf(swrlUser.uid) !== -1) || (swrl.done && swrl.done.indexOf(swrlUser.uid) !== -1);
+    return (swrl.later && swrl.later.indexOf(swrlUser.uid) !== -1)
+        || (swrl.done && swrl.done.indexOf(swrlUser.uid) !== -1);
 }
 
 /**

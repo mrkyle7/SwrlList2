@@ -2,7 +2,7 @@ const firebase = require("firebase/app");
 import { YOUR_LIST, DISCOVER, SEARCH, INBOX, SENT } from '../constants/View';
 import { swrlUser } from '../firebase/login';
 import { addStats } from './stats';
-import { addLoveButton, addAddButton, addRecommendButton } from './buttons';
+import { addLoveButton, addAddButton, addRecommendButton, addDoneButton } from './buttons';
 import { Collection } from '../constants/Collection';
 import { markRecommendationAsRead } from '../actions/markRecommendationAsRead';
 import { showToasterMessage } from './toaster';
@@ -11,8 +11,6 @@ import { Recommendation } from '../model/recommendation';
 import { currentRenderID } from '../views/recommendations';
 import { StateController } from '../views/stateController';
 import { getSwrler } from '../firebase/swrler';
-
-const loadingSpinner = document.getElementById('loadingSpinner');
 
 /**
  * 
@@ -24,7 +22,7 @@ const loadingSpinner = document.getElementById('loadingSpinner');
  * @param {number} renderID
  * @return {Promise<HTMLElement>}
  */
- export const renderRecommendation = async (stateController, view, recommendation, firestore, container, renderID) => {
+export const renderRecommendation = async (stateController, view, recommendation, firestore, container, renderID) => {
     if (!recommendation.dismissed || recommendation.dismissed.indexOf(swrlUser.uid) === -1) {
         /** @type {HTMLTemplateElement} */
         // @ts-ignore
@@ -37,27 +35,28 @@ const loadingSpinner = document.getElementById('loadingSpinner');
 
         $recommendation('.swrlImage').src = recommendation.swrl.details.imageUrl;
         $recommendation('.swrlImage').addEventListener('error',
-        /**
-         * @param {Event} e
-         */
-        (e) => {
-            /** @type {HTMLImageElement} */
-            // @ts-ignore
-            const image = e.target;
-            if (image) {
-                image.src = 'img/NoPoster.jpg'
-            }
-        });
+            /**
+             * @param {Event} e
+             */
+            (e) => {
+                /** @type {HTMLImageElement} */
+                // @ts-ignore
+                const image = e.target;
+                if (image) {
+                    image.src = 'img/NoPoster.jpg'
+                }
+            });
         let creator = recommendation.swrl.details.author ? recommendation.swrl.details.author
             : recommendation.swrl.details.artist ? recommendation.swrl.details.artist : undefined;
         let title = creator ? recommendation.swrl.details.title + ' by ' + creator : recommendation.swrl.details.title;
         $recommendation('.swrlTitle').innerText = title;
         $recommendation('.swrlType').innerText = recommendation.swrl.type.name;
 
-        addStats($recommendation, recommendationDiv, recommendation.swrl, view, firestore);
-        addLoveButton(view, recommendation.swrl, $recommendation, recommendationDiv, firestore, recommendation);
+        addStats(recommendationDiv, recommendation.swrl);
+        addLoveButton(view, recommendation.swrl, recommendationDiv, firestore, recommendation);
         addAddButton(view, $recommendation, recommendationDiv, recommendation.swrl, firestore, null, recommendation);
         addRecommendButton($recommendation, recommendation.swrl, stateController);
+        addDoneButton(recommendationDiv, recommendation.swrl, firestore, null, view);
 
         if (view === INBOX) {
             let fromSwrler = await getSwrler(recommendation.from, firestore);
@@ -71,17 +70,17 @@ const loadingSpinner = document.getElementById('loadingSpinner');
                 let $recommender = recommenderFragment.querySelector.bind(recommenderFragment);
                 $recommender('.swrlerSmallImage').src = fromSwrler.photoURL;
                 $recommender('.swrlerSmallImage').addEventListener('error',
-                /**
-                 * @param {Event} e
-                 */
-                (e) => {
-                    /** @type {HTMLImageElement} */
-                    // @ts-ignore
-                    const image = e.target;
-                    if (image) {
-                        image.src = 'img/NoPoster.jpg' //todo: get a person image for this
-                    }
-                });
+                    /**
+                     * @param {Event} e
+                     */
+                    (e) => {
+                        /** @type {HTMLImageElement} */
+                        // @ts-ignore
+                        const image = e.target;
+                        if (image) {
+                            image.src = 'img/NoPoster.jpg' //todo: get a person image for this
+                        }
+                    });
                 $recommender('.recommenderName').innerText = fromSwrler.displayName;
                 recommendationDiv.appendChild(recommenderFragment);
             }
