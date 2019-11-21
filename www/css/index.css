@@ -870,12 +870,12 @@ body {
 
 #swrlImageContainer {
     display: flex;
-    max-height: 200px;
     width: 100%
 }
 
 #swrlImageLarge {
     max-width: 40%;
+    max-height: 200px;
     margin: 8px auto 8px auto;
 }
 
