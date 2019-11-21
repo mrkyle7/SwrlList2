@@ -616,6 +616,12 @@ body {
     text-overflow: ellipsis;
 }
 
+.cardSubTitle {
+    font-size: 16px;
+    margin: 4px;
+    color: grey;
+}
+
 .swrlStats {
     font-size: 12px;
     padding-left: 4px;

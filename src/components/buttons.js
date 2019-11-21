@@ -170,7 +170,9 @@ export function addRecommendButton($swrl, swrl, stateController) {
 export function addDoneButton(swrlDiv, swrl, firestore, swrlsContainer, view) {
     if (swrlDiv) {
         swrlDiv.querySelector('.swrlDone').classList.remove('hidden');
-        swrlDiv.querySelector('.swrlDone').addEventListener('click', () => {
+        swrlDiv.querySelector('.swrlDone').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             if (!swrlUser || swrlUser.isAnonymous) {
                 showRequireLoginScreen('to mark a Swrl as done');
             }

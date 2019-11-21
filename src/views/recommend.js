@@ -334,7 +334,7 @@ function getSwrlerSmall(swrler, showDeleteButton) {
             // @ts-ignore
             const image = e.target;
             if (image) {
-                image.src = 'img/NoPoster.jpg' //todo: get blank user photo
+                image.src = 'img/NoPoster.jpg' //TODO: get blank user photo
             }
         });
     $swrlerSmall('.swrlerSmallText').innerText = swrler.displayName;

@@ -1,5 +1,5 @@
 const firebase = require("firebase/app");
-import { YOUR_LIST, DISCOVER, SEARCH, INBOX, SENT } from '../constants/View';
+import { INBOX, SENT } from '../constants/View';
 import { swrlUser } from '../firebase/login';
 import { addStats } from './stats';
 import { addLoveButton, addAddButton, addRecommendButton, addDoneButton } from './buttons';
@@ -8,7 +8,6 @@ import { markRecommendationAsRead } from '../actions/markRecommendationAsRead';
 import { showToasterMessage } from './toaster';
 import { Constant } from '../constants/Constant';
 import { Recommendation } from '../model/recommendation';
-import { currentRenderID } from '../views/recommendations';
 import { StateController } from '../views/stateController';
 import { getSwrler } from '../firebase/swrler';
 
@@ -19,10 +18,9 @@ import { getSwrler } from '../firebase/swrler';
  * @param {Recommendation} recommendation 
  * @param {firebase.firestore.Firestore} firestore 
  * @param {HTMLElement} container 
- * @param {number} renderID
  * @return {Promise<HTMLElement>}
  */
-export const renderRecommendation = async (stateController, view, recommendation, firestore, container, renderID) => {
+export const renderRecommendation = async (stateController, view, recommendation, firestore, container) => {
     if (!recommendation.dismissed || recommendation.dismissed.indexOf(swrlUser.uid) === -1) {
         /** @type {HTMLTemplateElement} */
         // @ts-ignore
@@ -59,7 +57,7 @@ export const renderRecommendation = async (stateController, view, recommendation
         addDoneButton(recommendationDiv, recommendation.swrl, firestore, null, view);
 
         if (view === INBOX) {
-            let fromSwrler = await getSwrler(recommendation.from, firestore);
+            const fromSwrler = await getSwrler(recommendation.from, firestore);
             if (fromSwrler) {
                 /** @type {HTMLTemplateElement} */
                 // @ts-ignore
@@ -78,7 +76,7 @@ export const renderRecommendation = async (stateController, view, recommendation
                         // @ts-ignore
                         const image = e.target;
                         if (image) {
-                            image.src = 'img/NoPoster.jpg' //todo: get a person image for this
+                            image.src = 'img/NoPoster.jpg' //TODO: get a person image for this
                         }
                     });
                 $recommender('.recommenderName').innerText = fromSwrler.displayName;
@@ -181,13 +179,6 @@ export const renderRecommendation = async (stateController, view, recommendation
 
         }
         showRead(view, recommendation, recommendationDiv);
-
-        // if (renderID === currentRenderID) {
-        //     loadingSpinner.classList.add('hidden');
-        //     container.appendChild(recommendationFragment);
-        // } else {
-        //     console.log('Recommendation view changed when about to add element');
-        // }
         return recommendationFragment;
     }
 }

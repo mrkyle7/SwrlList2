@@ -143,7 +143,7 @@ function handleLoginSuccess(firestore) {
         // @ts-ignore
         const image = e.target;
         if (image) {
-            image.src = 'img/NoPoster.jpg' //todo: use blank user image
+            image.src = 'img/NoPoster.jpg' //TODO: use blank user image
         }
     });
     document.querySelector("#userPhoto").classList.remove('hidden');

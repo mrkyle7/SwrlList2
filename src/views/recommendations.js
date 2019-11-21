@@ -7,7 +7,6 @@ import { Constant } from '../constants/Constant';
 import { Recommendation } from '../model/recommendation';
 import { View } from './View';
 import { StateController } from './stateController';
-import { RecommendationsScreen } from '../screens/recommendationsScreen';
 
 export class InboxRecommendations extends View {
     /**
@@ -99,7 +98,7 @@ const clearList = () => {
  */
 const showInboxFromCache = (stateController, view, firestore, renderID) => {
     //Object.values isn't supported in cordova browser
-    let recommendations = [];
+    const recommendations = [];
     Object.keys(recommendationsCache).forEach(i => recommendations.push(recommendationsCache[i]));
 
     renderRecommendations(stateController, recommendations, view, firestore, renderID);
@@ -167,7 +166,7 @@ const renderRecommendations = async (stateController, recommendations, view, fir
             return 0;
         })
         .forEach(r => {
-            elements.push(renderRecommendation(stateController, view, r, firestore, recommendationList, renderID))
+            elements.push(renderRecommendation(stateController, view, r, firestore, recommendationList))
         });
     Promise.all(elements).then((element) => {
         if (renderID === currentRenderID) {

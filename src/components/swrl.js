@@ -11,6 +11,7 @@ import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
 import { StateController } from '../views/stateController';
 import { Collection } from '../constants/Collection';
+import { State } from '../model/state';
 
 /**
  * 
@@ -49,16 +50,6 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
         $swrl('.swrlTitle').innerText = title;
         $swrl('.swrlType').innerText = swrl.type.name;
 
-        // TODO: renable
-        // swrlDiv.addEventListener('click', (e) => {
-        //     e.stopPropagation();
-        //     e.preventDefault();
-        //     stateController.changeState(new State(stateController.swrlView,
-        //         stateController.currentState.selectedCategory,
-        //         stateController.currentState.searchTerms,
-        //         swrl));
-        // })
-
         $swrl('.swrlListCount').classList.add('hidden');
         $swrl('.swrlSpinnerListCount').classList.remove('hidden');
         $swrl('.swrlRecommendedCount').classList.add('hidden');
@@ -82,14 +73,29 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
                     }
                     addStats(swrlDiv, latestSwrl);
                     addLoveButton(view, latestSwrl, swrlDiv, firestore, null);
-                    addDoneButton(swrlDiv, latestSwrl, firestore, swrlsContainer, view);
+                    swrlDiv.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        stateController.changeState(new State(stateController.swrlView,
+                            stateController.currentState.selectedCategory,
+                            stateController.currentState.searchTerms,
+                            latestSwrl));
+                    })
                 })
         } else {
             addStats(swrlDiv, swrl);
             addLoveButton(view, swrl, swrlDiv, firestore, null);
-            addDoneButton(swrlDiv, swrl, firestore, swrlsContainer, view);
+            swrlDiv.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                stateController.changeState(new State(stateController.swrlView,
+                    stateController.currentState.selectedCategory,
+                    stateController.currentState.searchTerms,
+                    swrl));
+            })
         }
 
+        addDoneButton(swrlDiv, swrl, firestore, swrlsContainer, view);
         addAddButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer, null);
 
         //Already on the recommend screen, so would be weird to recommend again!
@@ -115,7 +121,9 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
 function addDeleteButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer) {
     if (view === YOUR_LIST || view === DISCOVER) {
         $swrl('.swrlDelete').classList.remove('hidden');
-        $swrl('.swrlDelete').addEventListener('click', () => {
+        $swrl('.swrlDelete').addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
             if (!swrlUser || swrlUser.isAnonymous) {
                 showRequireLoginScreen('to delete a Swrl');
             }

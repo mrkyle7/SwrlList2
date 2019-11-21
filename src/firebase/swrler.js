@@ -4,6 +4,7 @@ import { Collection } from "../constants/Collection";
  * 
  * @param {String} uid 
  * @param {firebase.firestore.Firestore} firestore 
+ * @return {Promise<firebase.User>}
  */
 export const getSwrler = (uid, firestore) => {
     return new Promise((resolve, reject) => {
@@ -12,6 +13,7 @@ export const getSwrler = (uid, firestore) => {
             .get()
             .then(docRef => {
                 if (docRef.exists) {
+                    // @ts-ignore
                     resolve(docRef.data());
                 } else {
                     resolve(undefined);
