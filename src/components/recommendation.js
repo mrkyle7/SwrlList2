@@ -10,6 +10,7 @@ import { Constant } from '../constants/Constant';
 import { Recommendation } from '../model/recommendation';
 import { StateController } from '../views/stateController';
 import { getSwrler } from '../firebase/swrler';
+import { State } from '../model/state';
 
 /**
  * 
@@ -55,6 +56,15 @@ export const renderRecommendation = async (stateController, view, recommendation
         addAddButton(view, $recommendation, recommendationDiv, recommendation.swrl, firestore, null, recommendation);
         addRecommendButton($recommendation, recommendation.swrl, stateController);
         addDoneButton(recommendationDiv, recommendation.swrl, firestore, null, view);
+
+        $recommendation('.recommendationSwrl').addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            stateController.changeState(new State(stateController.swrlView,
+                recommendation.swrl.category,
+                stateController.currentState.searchTerms,
+                recommendation.swrl));
+        })
 
         if (view === INBOX) {
             const fromSwrler = await getSwrler(recommendation.from, firestore);
