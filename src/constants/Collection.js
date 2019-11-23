@@ -2,6 +2,6 @@ export const Collection = {
     SWRLS: 'swrls',
     SWRLERS: 'swrlers',
     RECOMMENDATIONS: 'recommendations',
-    BROWSERMESSAGINGTOKENS: 'browsermessagingtokens'
+    MESSAGINGTOKENS: 'messagingtokens'
 }
 Object.freeze(Collection);

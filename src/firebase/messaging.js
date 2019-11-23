@@ -1,5 +1,8 @@
+import { Collection } from "../constants/Collection";
+import { swrlUser } from "./login";
+
 /** @type {string} */
-export let userBrowserMessagingToken;
+export let deviceToken;
 
 /**
  * @param {firebase.app.App} myfirebase
@@ -10,7 +13,7 @@ export const initMessaging = (myfirebase, firestore) => {
     console.log('initialising messaging');
     // @ts-ignore
     console.log(`platform: ${device.platform}`);
-    // @ts-ignore 
+    // @ts-ignore
     if (device.platform === 'browser') {
         const messaging = myfirebase.messaging();
         messaging.usePublicVapidKey('BCbFUNHtZXs8mHOyZkkBL8rtiLIf0E4ND4WtZMp5eMxj-KFTS2D16bfjEj45ARiwt5hVecwtxGNQNAWs0U8rq2c');
@@ -21,8 +24,8 @@ export const initMessaging = (myfirebase, firestore) => {
                     if (currentToken) {
                         console.log('Token:');
                         console.log(currentToken);
-                        userBrowserMessagingToken = currentToken;
-                        updateUserBrowserToken(firestore);
+                        deviceToken = currentToken;
+                        updateDeviceToken(firestore);
                     } else {
                         // Show permission request.
                         console.log('No Instance ID token available. Request permission to generate one.');
@@ -37,7 +40,23 @@ export const initMessaging = (myfirebase, firestore) => {
         messaging.onMessage((payload) => {
             console.log('Message received (service worker). ', payload);
             // ...  
-          });
+        });
+        messaging.onTokenRefresh(() => {
+            messaging.getToken()
+                .then((currentToken) => {
+                    if (currentToken) {
+                        console.log('Token:');
+                        console.log(currentToken);
+                        deviceToken = currentToken;
+                        updateDeviceToken(firestore);
+                    } else {
+                        // Show permission request.
+                        console.log('No Instance ID token available. Request permission to generate one.');
+                    }
+                }).catch((err) => {
+                    console.log('An error occurred while retrieving token. ', err);
+                })
+        })
     }
 }
 
@@ -45,6 +64,11 @@ export const initMessaging = (myfirebase, firestore) => {
  * 
  * @param {firebase.firestore.Firestore} firestore
  */
-export const updateUserBrowserToken = (firestore) => {
-    //TODO: update into firestore collection the user token for browser messaging.
+export const updateDeviceToken = (firestore) => {
+    if (swrlUser !== undefined && !swrlUser.isAnonymous && deviceToken !== undefined) {
+        firestore.collection(Collection.MESSAGINGTOKENS).doc(deviceToken).set({
+            uid: swrlUser.uid,
+            token: deviceToken
+        })
+    }
 }

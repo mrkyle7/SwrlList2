@@ -5,6 +5,7 @@ export default { swrlUser, setUpLogin };
 import { Collection } from '../constants/Collection';
 import { setUpRecommendationsListener, cancelRecommendationsListener } from '../listeners/recommendations';
 import swrl from '../components/swrl';
+import { updateDeviceToken } from './messaging';
 const firebase = require('firebase/app');
 
 /** @type {firebase.app.App} */
@@ -131,6 +132,7 @@ function handleLoginSuccess(firestore) {
 
     updateSwrlerDetails(firestore);
     setUpRecommendationsListener(firestore);
+    updateDeviceToken(firestore);
     /** @type {HTMLImageElement} */
     const userPhotoElement = document.querySelector("#userPhoto");
     userPhotoElement.src = swrlUser.photoURL;

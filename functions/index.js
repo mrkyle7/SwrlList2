@@ -48,21 +48,40 @@ exports.recommendationNotification = functions.firestore
             const message = {
                 notification: {
                     title: 'New Swrl Recommendation',
-                    body: body
+                    body: body,
+                    icon: 'https://swrl-list.herokuapp.com/img/logo.png'
                 }
             };
             const options = {
                 priority: "high",
                 timeToLive: 60 * 60 * 24
             };
-            admin.messaging().sendToDevice('fgNM9PVaj9I:APA91bGZIResUsQMJGgMEtsXF1KIOaLpUYnyzxgOCEX4NgIy2aR1jaqA_E5Fl0skKbbB0agVxTYfNnk2kuEFCORYUBB1ybWJYoE4zP4nK3s7GB2Q4abB5f3RtvMJ9phryiLnVDzHP7kk',
-                message, options)
-                .then((response) => {
-                    // Response is a message ID string.
-                    console.log('Successfully sent message:', response);
-                })
-                .catch((error) => {
-                    console.log('Error sending message:', error);
-                });;
+            const tokens = [];
+            await recommendation.to.forEach(async to => {
+                try {
+                    const toTokensRef = await db.collection('messagingtokens').where('uid', '==', to).get();
+                    if (toTokensRef.size > 0) {
+                        toTokensRef.forEach(doc => {
+                            const data = doc.data();
+                            tokens.push(data.token);
+                        })
+                    }
+                } catch(err) {
+                    console.error(err);
+                }
+            });
+            if (tokens.length > 0) {
+                admin.messaging().sendToDevice(tokens,
+                    message, options)
+                    .then((response) => {
+                        // Response is a message ID string.
+                        console.log('Successfully sent message:', response);
+                    })
+                    .catch((error) => {
+                        console.log('Error sending message:', error);
+                    });
+            } else {
+                return false;
+            }
         }
     })
