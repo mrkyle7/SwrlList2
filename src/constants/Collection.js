@@ -1,8 +1,7 @@
-export default { Collection };
-
-export var Collection = {
+export const Collection = {
     SWRLS: 'swrls',
     SWRLERS: 'swrlers',
-    RECOMMENDATIONS: 'recommendations'
+    RECOMMENDATIONS: 'recommendations',
+    BROWSERMESSAGINGTOKENS: 'browsermessagingtokens'
 }
 Object.freeze(Collection);

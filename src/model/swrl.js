@@ -66,7 +66,7 @@ export class Swrl {
         const category = categoryFromId(json.category);
         const details = Details.fromJSON(json.details);
         const added = json.added !== undefined && json.added != null ? json.added.toDate() : undefined;
-        const updated = json.updated !== undefined && json.added != null  ? json.updated.toDate() : undefined;
+        const updated = json.updated !== undefined && json.updated != null  ? json.updated.toDate() : undefined;
         return new Swrl(type, category, json.swrlID, details, added,
             json.later || [], json.done || [], json.deleted || [], json.loved || [], updated,
             json.isRecommended || [], json.recommendations || []);

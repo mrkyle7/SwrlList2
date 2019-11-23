@@ -24,6 +24,7 @@ import initialiseFirebase from './firebase/init';
 import { setUpLogin } from './firebase/login';
 import { StateController } from './views/stateController';
 import { State } from './model/state';
+import { initMessaging } from './firebase/messaging';
 
 /** @type {StateController} */
 let stateController;
@@ -50,6 +51,7 @@ const app = {
             const firebase = initialiseFirebase();
             const firestore = firebase.firestore();
             setUpLogin(firebase, firestore);
+            initMessaging(firebase, firestore);
             stateController = new StateController(firestore);
             stateController.initialiseAllViews();
             const startState = new State(stateController.homeView, undefined, undefined, undefined);

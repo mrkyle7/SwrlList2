@@ -86,7 +86,7 @@ export const renderRecommendation = async (stateController, view, recommendation
                         // @ts-ignore
                         const image = e.target;
                         if (image) {
-                            image.src = 'img/NoPoster.jpg' //TODO: get a person image for this
+                            image.src = 'img/emoji_people-24px.svg' 
                         }
                     });
                 $recommender('.recommenderName').innerText = fromSwrler.displayName;

@@ -180,7 +180,6 @@ export class StateController {
      * @param {Category} category
      */
     _bindSectionClick(section, category) {
-        console.log(`Added click for ${section} ${category}`);
         section.addEventListener('click', () => {
 
             console.log('Clicked section ' + category);

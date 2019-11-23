@@ -21,7 +21,7 @@ export function setUpRecommendationsListener(firestore) {
             const inboxUpdates = [];
             querySnapshot.docChanges().forEach(docChange => {
                 inboxUpdates.push(new Promise(async (resolve, reject) => {
-                    console.log(docChange.type, docChange.doc.id, docChange.doc.data());
+                    // console.log(docChange.type, docChange.doc.id, docChange.doc.data());
                     let recommendation;
                     try {
                         recommendation = await Recommendation.fromFirestore(docChange.doc, firestore);

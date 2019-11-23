@@ -334,7 +334,7 @@ function getSwrlerSmall(swrler, showDeleteButton) {
             // @ts-ignore
             const image = e.target;
             if (image) {
-                image.src = 'img/NoPoster.jpg' //TODO: get blank user photo
+                image.src = 'img/emoji_people-24px.svg'
             }
         });
     $swrlerSmall('.swrlerSmallText').innerText = swrler.displayName;

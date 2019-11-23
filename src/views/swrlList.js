@@ -96,6 +96,7 @@ export function showList(category, view, firestore, stateController) {
                                     renderSwrl(stateController, view, swrl, firestore, swrlsContainer);
                                 } catch (error) {
                                     console.error(`Cannot render swrl ${docSnapshot.id}`);
+                                    console.error(docSnapshot.data());
                                     console.error(error);
                                 }   
                             })

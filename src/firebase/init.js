@@ -13,7 +13,8 @@ export default function initialiseFirebase() {
         databaseURL: "https://swrl-1118.firebaseio.com",
         projectId: "swrl-1118",
         storageBucket: "swrl-1118.appspot.com",
-        messagingSenderId: "443237991407"
+        messagingSenderId: "443237991407",
+        appId: "1:443237991407:web:6d2fabfd1673e2e541ac1a"
     };
     const myFirebase = firebase.initializeApp(config);
 
