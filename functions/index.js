@@ -39,42 +39,45 @@ exports.recommendationNotification = functions.firestore
     .document('recommendations/{recommendationID}')
     .onCreate(async (snapshot) => {
         const recommendation = snapshot.data();
-        const swrlRef = await db.collection('swrls').doc(recommendation.swrlID).get();
-        const recommenderRef = await db.collection('swrlers').doc(recommendation.from).get();
-        if (swrlRef.exists && recommenderRef.exists) {
-            const swrl = swrlRef.data();
-            const recommender = recommenderRef.data();
-            const body = `${recommender.displayName} recommended ${swrl.details.title} to you!`;
-            const message = {
-                notification: {
-                    title: 'New Swrl Recommendation',
-                    body: body,
-                    icon: 'https://swrl-list.herokuapp.com/img/logo.png',
-                    click_action: 'https://swrl-list.herokuapp.com/'
+        const tokens = [];
+        /** @type {String[]} */
+        const receivers = recommendation.to;
+
+        while (receivers.length > 0) {
+            try {
+                const toTokensRef = await db.collection('messagingtokens').where('uid', '==', receivers.pop()).get();
+                if (toTokensRef.size > 0) {
+                    toTokensRef.forEach(doc => {
+                        const data = doc.data();
+                        console.log(`token to send to: ${data.token}`);
+                        tokens.push(data.token);
+                    })
                 }
-            };
-            const options = {
-                priority: "high",
-                timeToLive: 60 * 60 * 24
-            };
-            const tokens = [];
-            /** @type {String[]} */
-            const receivers = recommendation.to;
-            while (receivers.length > 0) {
-                try {
-                    const toTokensRef = await db.collection('messagingtokens').where('uid', '==', receivers.pop()).get();
-                    if (toTokensRef.size > 0) {
-                        toTokensRef.forEach(doc => {
-                            const data = doc.data();
-                            console.log(`token to send to: ${data.token}`);
-                            tokens.push(data.token);
-                        })
-                    }
-                } catch (err) {
-                    console.error(err);
-                }
+            } catch (err) {
+                console.error(err);
             }
-            if (tokens.length > 0) {
+        }
+
+        if (tokens.length > 0) {
+            const swrlRef = await db.collection('swrls').doc(recommendation.swrlID).get();
+            const recommenderRef = await db.collection('swrlers').doc(recommendation.from).get();
+            if (swrlRef.exists && recommenderRef.exists) {
+                const swrl = swrlRef.data();
+                const recommender = recommenderRef.data();
+                const body = `${recommender.displayName} recommended ${swrl.details.title} to you!`;
+                const message = {
+                    notification: {
+                        title: 'New Swrl Recommendation',
+                        body: body,
+                        icon: 'https://swrl-list.herokuapp.com/img/logo.png',
+                        click_action: 'https://swrl-list.herokuapp.com/'
+                    }
+                };
+                const options = {
+                    priority: "high",
+                    timeToLive: 60 * 60 * 24
+                };
+
                 console.log(`sending to all tokens: ${tokens}`);
                 admin.messaging().sendToDevice(tokens,
                     message, options)
@@ -86,8 +89,11 @@ exports.recommendationNotification = functions.firestore
                         console.log('Error sending message:', error);
                     });
             } else {
-                console.log('no tokens to send to');
+                console.log('no details for message');
                 return false;
             }
+        } else {
+            console.log('no tokens to send to');
+            return false;
         }
     })
