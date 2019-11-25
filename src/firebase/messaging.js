@@ -1,5 +1,6 @@
 import { Collection } from "../constants/Collection";
 import { swrlUser } from "./login";
+const firebase = require('firebase');
 
 /** @type {string} */
 export let deviceToken;
@@ -14,7 +15,7 @@ export const initMessaging = (myfirebase, firestore) => {
     // @ts-ignore
     console.log(`platform: ${device.platform}`);
     // @ts-ignore
-    if (device.platform === 'browser') {
+    if (device.platform === 'browser' && firebase.messaging.isSupported()) {
         const messaging = myfirebase.messaging();
         messaging.usePublicVapidKey('BCbFUNHtZXs8mHOyZkkBL8rtiLIf0E4ND4WtZMp5eMxj-KFTS2D16bfjEj45ARiwt5hVecwtxGNQNAWs0U8rq2c');
         Notification.requestPermission().then((permission) => {

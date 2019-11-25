@@ -18,7 +18,7 @@ export default function initialiseFirebase() {
     };
     const myFirebase = firebase.initializeApp(config);
 
-    myFirebase.firestore().enablePersistence()
+    myFirebase.firestore().enablePersistence({ experimentalTabSynchronization: true })
         .then(() => {
             console.log('Firestore Persistence enabled');
         })
@@ -30,5 +30,6 @@ export default function initialiseFirebase() {
                 console.error('browser not supported');
             }
         });
+
     return myFirebase;
 }
