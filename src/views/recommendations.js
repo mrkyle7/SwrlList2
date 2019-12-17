@@ -1,5 +1,5 @@
 import { INBOX, SENT } from '../constants/View';
-import { recommendationsCache } from '../listeners/recommendations';
+import { recommendationsInboxCache, recommendationsSentCache } from '../listeners/recommendations';
 import { Collection } from '../constants/Collection';
 import { renderRecommendation } from '../components/recommendation';
 import { swrlUser } from '../firebase/login';
@@ -73,7 +73,7 @@ const showRecommendations = (stateController, view, firestore) => {
     } else {
         inboxTab.classList.remove('selected');
         sentTab.classList.add('selected');
-        showSentFromFirestore(stateController, view, firestore, currentRenderID);
+        showSentFromCache(stateController, view, firestore, currentRenderID);
     }
 }
 
@@ -99,7 +99,7 @@ const clearList = () => {
 const showInboxFromCache = (stateController, view, firestore, renderID) => {
     //Object.values isn't supported in cordova browser
     const recommendations = [];
-    Object.keys(recommendationsCache).forEach(i => recommendations.push(recommendationsCache[i]));
+    Object.keys(recommendationsInboxCache).forEach(i => recommendations.push(recommendationsInboxCache[i]));
 
     renderRecommendations(stateController, recommendations, view, firestore, renderID);
 }
@@ -111,39 +111,12 @@ const showInboxFromCache = (stateController, view, firestore, renderID) => {
  * @param {firebase.firestore.Firestore} firestore 
  * @param {number} renderID
  */
-const showSentFromFirestore = (stateController, view, firestore, renderID) => {
-    firestore.collection(Collection.RECOMMENDATIONS)
-        .where('from', '==', swrlUser.uid)
-        .get()
-        .then(async querySnapshot => {
-            if (!querySnapshot.empty) {
-                /**  @type {Recommendation[]} */
-                const recommendations = [];
-                /**  @type {Promise[]} */
-                const recommendationGetters = [];
-                querySnapshot.forEach(doc => {
-                    recommendationGetters.push(new Promise(async (resolve, reject) => {
-                        let recommendation;
-                        try {
-                            recommendation = await Recommendation.fromFirestore(doc, firestore);
-                        } catch (error) {
-                            console.error("Couldn't process recommendation: ", doc.id, doc.data());
-                            console.error(error);
-                            resolve();
-                            return;
-                        }
-                        recommendations.push(recommendation);
-                        resolve();
-                    }))
-                });
-                await Promise.all(recommendationGetters);
-                renderRecommendations(stateController, recommendations, view, firestore, renderID);
-            }
-        })
-        .catch(err => {
-            console.error('Error getting sent recommendations');
-            console.error(err);
-        });
+const showSentFromCache = (stateController, view, firestore, renderID) => {
+     //Object.values isn't supported in cordova browser
+     const recommendations = [];
+     Object.keys(recommendationsSentCache).forEach(i => recommendations.push(recommendationsSentCache[i]));
+     renderRecommendations(stateController, recommendations, view, firestore, renderID);
+ 
 }
 
 /**
@@ -165,8 +138,8 @@ const renderRecommendations = async (stateController, recommendations, view, fir
             if (b.created > a.created) return 1;
             return 0;
         })
-        .forEach(r => {
-            elements.push(renderRecommendation(stateController, view, r, firestore, recommendationList))
+        .forEach(recommendation => {
+            elements.push(renderRecommendation(stateController, view, recommendation, firestore, recommendationList))
         });
     Promise.all(elements).then((element) => {
         if (renderID === currentRenderID) {

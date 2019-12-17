@@ -636,6 +636,11 @@ body {
     height: 48px;
 }
 
+.loadingSpinnerSmall {
+    height: 32px;
+    width: 32px;
+}
+
 .swrlButtons {
     display: flex;
     position: absolute;
@@ -880,5 +885,7 @@ body {
 }
 
 .cardContent {
+    display: flex;
+    flex-direction: column;
     margin: 4px;
 }
