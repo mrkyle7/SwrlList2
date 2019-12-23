@@ -23,7 +23,7 @@ platform :android do
       key_password: ENV["KEYPASSWORD"],
       keystore_password: ENV["STOREPASSWORD"],
     ) # Cordova Fastlane Plugin
-    upload_to_play_store(
+    supply(
       apk: ENV["CORDOVA_ANDROID_RELEASE_BUILD_PATH"],
       track: "beta",
       package_name: "co.swrl.List2"
