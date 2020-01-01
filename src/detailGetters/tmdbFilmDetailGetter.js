@@ -49,9 +49,9 @@ export class TmdbFilmDetailGetter extends DetailGetter {
                 let ratings = [];
 
                 const logos = {
-                    "Internet Movie Database": '/img/imdb-logo.png',
-                    "Rotten Tomatoes": '/img/rottentomatoes_logo_40.png',
-                    "Metacritic": '/img/metacritic.png'
+                    "Internet Movie Database": 'img/imdb-logo.png',
+                    "Rotten Tomatoes": 'img/rottentomatoes_logo_40.png',
+                    "Metacritic": 'img/metacritic.png'
                 };
 
                 if (omdbData !== undefined && omdbData.Ratings !== undefined && omdbData.Ratings !== null) {
@@ -70,10 +70,10 @@ export class TmdbFilmDetailGetter extends DetailGetter {
                     director = omdbData.Director;
                 }
 
-                const tmdbLink = new Link(data.homepage, 'The Movie DB', '/img/tmdb_logo.png')
+                const tmdbLink = new Link(data.homepage, 'The Movie DB', 'img/tmdb_logo.png')
                 const links = [tmdbLink];
                 if (data.imdb_id) {
-                    const imdbLink = new Link(`https://www.imdb.com/title/${data.imdb_id}/`, 'IMDb', '/img/imdb-logo.png');
+                    const imdbLink = new Link(`https://www.imdb.com/title/${data.imdb_id}/`, 'IMDb', 'img/imdb-logo.png');
                     links.push(imdbLink);
                 }
                 resolve(
@@ -81,7 +81,7 @@ export class TmdbFilmDetailGetter extends DetailGetter {
                         id: searchId,
                         details: new Details(id,
                             data.title,
-                            data.poster_path ? imageUrlPrefix + data.poster_path : '/img/NoPoster.jpg',
+                            data.poster_path ? imageUrlPrefix + data.poster_path : 'img/NoPoster.jpg',
                             undefined,
                             undefined,
                             releaseYear(data.release_date),

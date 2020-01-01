@@ -36,7 +36,7 @@ export class ReadSearch extends Search {
                     var title = result.title.replace(/'\r\n/g, ' ').replace(/\s\s*/g, ' ');
                     results.push(
                         new Swrl(BOOK, READ, 'OPENLIBRARY-ISBN_' + isbn,
-                            new Details(isbn, title || 'No title', imageUrl || '/img/NoPoster.jpg',
+                            new Details(isbn, title || 'No title', imageUrl || 'img/NoPoster.jpg',
                                 undefined, result.author_name ? result.author_name[0] : 'Unknown',
                                 undefined,
                                 [],
