@@ -54,7 +54,15 @@ export class ListenSearch extends Search {
                                 result.collectionName || 'No title',
                                 getLargeImage(result) || '/img/NoPoster.jpg',
                                 result.artistName || 'Unknown',
-                                undefined, undefined));
+                                undefined, undefined,
+                                [],
+                                [],
+                                undefined,
+                                undefined,
+                                [],
+                                undefined,
+                                [],
+                                undefined));
                     }));
             } catch (error) {
                 console.log('Fetch failed for Album search: ' + JSON.stringify(error));
@@ -84,7 +92,16 @@ export class ListenSearch extends Search {
                             new Details(result.collectionId,
                                 result.trackName || 'No title',
                                 getLargeImage(result) || '/img/NoPoster.jpg',
-                                undefined, undefined, undefined));
+                                undefined, undefined, undefined,
+                                [],
+                                [],
+                                undefined,
+                                undefined,
+                                [],
+                                undefined,
+                                [],
+                                undefined),
+                            undefined);
                     }));
             } catch (error) {
                 console.log('Fetch failed for Podcast search: ' + JSON.stringify(error));

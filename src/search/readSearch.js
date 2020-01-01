@@ -38,6 +38,14 @@ export class ReadSearch extends Search {
                         new Swrl(BOOK, READ, 'OPENLIBRARY-ISBN_' + isbn,
                             new Details(isbn, title || 'No title', imageUrl || '/img/NoPoster.jpg',
                                 undefined, result.author_name ? result.author_name[0] : 'Unknown',
+                                undefined,
+                                [],
+                                [],
+                                undefined,
+                                undefined,
+                                [],
+                                undefined,
+                                [],
                                 undefined))
                     );
                 }

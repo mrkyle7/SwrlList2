@@ -27,12 +27,14 @@ export class SearchView extends View {
 let currentCategory;
 const searchView = document.getElementById('searchView');
 const searchResultsContainer = document.getElementById('searchResults');
+const searchResulList = document.getElementById('resultList');
 /** @type {HTMLInputElement} */
 // @ts-ignore
 const searchBar = document.getElementById('swrlSearch');
 const messageContainer = document.getElementById('messageContainer');
 const message = document.getElementById('message');
 const searching = document.getElementById('searching');
+const loadingbar = searchResultsContainer.querySelector('.loadingbar');
 const searchingMessage = document.getElementById('searchingMessage');
 const searchTab = document.getElementById('searchTab');
 let currentSearchID;
@@ -71,6 +73,7 @@ function destroySearch() {
     messageContainer.classList.add('hidden');
     message.innerText = '';
     searching.classList.add('hidden');
+    loadingbar.classList.add('hidden');
     searchingMessage.innerText = '';
     searchTab.classList.remove('selected');
 }
@@ -110,6 +113,8 @@ export function initSearchBar(firestore, stateController) {
                     messageContainer.classList.add('hidden');
                     searching.classList.remove('hidden');
                     searchingMessage.innerText = 'Searching for ' + searchText + '...';
+                } else {
+                    loadingbar.classList.remove('hidden');
                 }
 
                 const search = currentCategory.search;
@@ -145,8 +150,8 @@ export function initSearchBar(firestore, stateController) {
 }
 
 function clearResults() {
-    while (searchResultsContainer.firstChild) {
-        searchResultsContainer.removeChild(searchResultsContainer.firstChild);
+    while (searchResulList.firstChild) {
+        searchResulList.removeChild(searchResulList.firstChild);
     }
     resultsShowing = false;
 }
@@ -159,6 +164,7 @@ function clearResults() {
  */
 function processResults(results, firestore, searchText, stateController) {
     searching.classList.add('hidden');
+    loadingbar.classList.add('hidden');
     if (results.length == 0) {
         messageContainer.classList.remove('hidden');
         message.innerText = 'No results found for ' + searchText;
@@ -166,7 +172,7 @@ function processResults(results, firestore, searchText, stateController) {
         resultsShowing = true;
         messageContainer.classList.add('hidden');
         results.forEach((swrl) => {
-            renderSwrl(stateController, SEARCH, swrl, firestore, searchResultsContainer);
+            renderSwrl(stateController, SEARCH, swrl, firestore, searchResulList);
         });
     }
 }

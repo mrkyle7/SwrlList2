@@ -110,6 +110,8 @@
     <div id="recommendationList" class="hidden swrlsContainer"></div>
     <div id="searchView" class="hidden">
       <div id="searchResults" class="hidden swrlsContainer">
+        <img class="loadingbar hidden" src="img/loadingbar.svg" />
+        <div id="resultList"></div>
       </div>
       <div id="searching" class="hidden statusMessage">
         <img class="swrlSpinnerListCount loadingSpinner" src="img/spinner.gif" />
@@ -128,9 +130,11 @@
     </div>
     <div id="swrlFullPage" class="hidden">
       <div id="swrlImageContainer">
+        <img class="loadingbar hidden" src="img/loadingbar.svg" />
         <img id="swrlImageLarge" src="" />
       </div>
-      <div id="swrlFullPageCards"></div>
+      <div id="swrlFullPageCards" class="cardsContainer"></div>
+      <div id="swrlFullPageSocialCards" class="cardsContainer"></div>
     </div>
 
     <div id="messageContainer" class="hidden statusMessage">
@@ -198,6 +202,9 @@
         <img class="loadingSpinnerSmall" src="img/spinner.gif" />
       </div>
     </div>
+  </template>
+  <template id="rating">
+    <div class="rating"><img class="smallLink"/> <span class="ratingText"></span></div>
   </template>
   <template id="recommendation">
     <div class="recommendation unread">

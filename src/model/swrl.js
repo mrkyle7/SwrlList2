@@ -34,17 +34,6 @@ export class Swrl {
     }
 
     /**
-     * @param {Swrl} other
-     * @return {boolean}
-     */
-    equals(other) {
-        if (!(other instanceof Swrl)) return false;
-        return this.type.id === other.type.id
-            && this.category.id === other.category.id
-            && this.swrlID === other.swrlID
-    }
-
-    /**
      * @return {Object}
      */
     toPartialFireStoreData() {

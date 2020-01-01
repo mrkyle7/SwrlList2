@@ -57,7 +57,15 @@ export class WatchSearch extends Search {
                                 result.title || 'No Title',
                                 result.poster_path ? imageUrlPrefix + result.poster_path : '/img/NoPoster.jpg',
                                 undefined, undefined,
-                                this._releaseYear(result.release_date) || 'unknown'
+                                this._releaseYear(result.release_date) || 'unknown',
+                                [],
+                                [],
+                                undefined,
+                                undefined,
+                                [],
+                                undefined,
+                                [],
+                                undefined
                             ));
                     }));
             } catch (error) {
@@ -87,7 +95,15 @@ export class WatchSearch extends Search {
                             new Details(result.id,
                                 result.name || 'No Title',
                                 result.poster_path ? imageUrlPrefix + result.poster_path : '/img/NoPoster.jpg',
-                                undefined, undefined, undefined
+                                undefined, undefined, undefined,
+                                [],
+                                [],
+                                undefined,
+                                undefined,
+                                [],
+                                undefined,
+                                [],
+                                undefined
                             ));
                     }));
             } catch (error) {

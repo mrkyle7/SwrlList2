@@ -6,32 +6,60 @@ import { FILM, TV, ALBUM, BOOK } from '../../../src/constants/Type';
 import { WATCH, LISTEN, READ } from '../../../src/constants/Category';
 import { Details } from '../../../src/model/details';
 import firebase from 'firebase';
+import { Link } from '../../../src/model/link';
+import { Rating } from '../../../src/model/rating';
 
 describe('Can parse JSON to Swrl', function () {
     context('swrl.js', function () {
         it('can compare swrl classes', function () {
             const aDate = new Date();
             const swrl1 = new Swrl(FILM, WATCH, 'abc123',
-                new Details('film-123', 'A Film', 'http://img', undefined, undefined, '2019'),
+                new Details('film-123', 'A Film', 'http://img', undefined, undefined, '2019',
+                    [], [], undefined, undefined, [], undefined, [], undefined),
                 aDate, ['user1'], [], [], [], undefined, [], []);
             const swrl2 = new Swrl(FILM, WATCH, 'abc123',
-                new Details('film-123', 'A Film', 'http://img', undefined, undefined, '2019'),
+                new Details('film-123', 'A Film', 'http://img', undefined, undefined, '2019',
+                    [], [], undefined, undefined, [], undefined, [], undefined),
                 aDate, ['user1'], [], [], [], undefined, [], []);
             const swrl3 = new Swrl(TV, WATCH, 'abc1234',
-                new Details('tv-123', 'A TV Show', 'http://img', undefined, undefined, undefined),
+                new Details('tv-123', 'A TV Show', 'http://img', undefined, undefined, undefined,
+                    [], [], undefined, undefined, [], undefined, [], undefined),
                 aDate, [], [], [], [], undefined, [], []);
-            expect(swrl1.equals(swrl2)).to.be.true;
             expect(swrl1).to.deep.equal(swrl2);
-            expect(swrl1.equals(swrl3)).to.be.false;
+            expect(swrl1).to.not.deep.equal(swrl3);
         })
 
         it('can parse FireStore Data to Swrl', function () {
             const data = {
                 details: {
                     title: 'No title',
-                    artist: 'Unknown',
-                    id: 'ABC123',
-                    imageUrl: '/img/NoPoster.jpg'
+                    author: 'Unknown',
+                    id: 'isbn123',
+                    imageUrl: '/img/NoPoster.jpg',
+                    tagline: 'cool film',
+                    overview: 'something happens',
+                    director: 'mr director',
+                    genres: ['action', 'comedy'],
+                    links: [{
+                        url: 'http://',
+                        name: 'link',
+                        logo: 'http://img'
+                    },
+                    {
+                        url: 'http://',
+                        name: 'no logo'
+                    }],
+                    actors: ['Sean Connery'],
+                    ratings: [{
+                        source: 'imdb',
+                        rating: '10/10'
+                    },
+                    {
+                        source: 'rotten tomatoes',
+                        rating: '95%',
+                        logo: 'http://rotten'
+                    }],
+                    runtime: '120 mins'
                 },
                 later: [],
                 done: [],
@@ -43,11 +71,14 @@ describe('Can parse JSON to Swrl', function () {
                 swrlID: 'ITUNESALBUM_ABC123'
             }
             const expected = new Swrl(ALBUM, LISTEN, 'ITUNESALBUM_ABC123',
-                new Details('ABC123', 'No title', '/img/NoPoster.jpg', 'Unknown', undefined, undefined),
+                new Details('isbn123', 'No title', '/img/NoPoster.jpg', undefined, 'Unknown', undefined,
+                    ['action', 'comedy'], [new Link('http://', 'link', 'http://img'), new Link('http://', 'no logo', undefined)], 'cool film', 'something happens',
+                    ['Sean Connery'], 'mr director', [new Rating('imdb', '10/10', undefined), new Rating('rotten tomatoes', '95%', 'http://rotten')],
+                    '120 mins'),
                 new Date(1568452504000), [], [], ['user1'], [], undefined, [], []);
             expect(Swrl.fromFirestore(data)).to.deep.equal(expected);
         })
-        
+
         it('can parse FireStore Data to Swrl with no added date', function () {
             const data = {
                 details: {
@@ -66,27 +97,74 @@ describe('Can parse JSON to Swrl', function () {
                 swrlID: 'ITUNESALBUM_ABC123'
             }
             const expected = new Swrl(ALBUM, LISTEN, 'ITUNESALBUM_ABC123',
-                new Details('ABC123', 'No title', '/img/NoPoster.jpg', 'Unknown', undefined, undefined),
+                new Details('ABC123', 'No title', '/img/NoPoster.jpg', 'Unknown', undefined, undefined,
+                    [], [], undefined, undefined, [], undefined, [], undefined),
                 undefined, [], [], ['user1'], [], undefined, [], []);
             expect(Swrl.fromFirestore(data)).to.deep.equal(expected);
         })
 
-        it('can create JSON from Swrl', function () {
+        it('can create JSON from Swrl with empty arrays', function () {
             const expectedJson = {
                 details: {
                     title: 'No title',
                     author: 'Unknown',
                     id: 'isbn123',
-                    imageUrl: '/img/NoPoster.jpg'
+                    imageUrl: '/img/NoPoster.jpg',
+                    genres: [],
+                    links: [],
+                    actors: [],
+                    ratings: []
                 },
                 type: 3, //BOOK
                 category: 2, //READ
                 swrlID: 'OPENLIBRARY-ISBN_123'
             };
             const swrl = new Swrl(BOOK, READ, 'OPENLIBRARY-ISBN_123',
-                new Details('isbn123', 'No title', '/img/NoPoster.jpg', undefined, 'Unknown', undefined),
+                new Details('isbn123', 'No title', '/img/NoPoster.jpg', null, 'Unknown', undefined,
+                    [], [], undefined, undefined, [], undefined, [], undefined),
                 new Date(), ['user1'], [], [], [], undefined, [], []);
             expect(swrl.toPartialFireStoreData()).to.deep.equal(expectedJson);
+        })
+
+        it('can translate to JSON from Swrl with full details', function () {
+            const json = {
+                details: {
+                    title: 'No title',
+                    author: 'Unknown',
+                    id: 'isbn123',
+                    imageUrl: '/img/NoPoster.jpg',
+                    genres: ['action', 'comedy'],
+                    links: [{
+                        url: 'http://',
+                        name: 'link',
+                        logo: 'http://img'
+                    },
+                    {
+                        url: 'http://',
+                        name: 'no logo'
+                    }],
+                    actors: ['Sean Connery'],
+                    ratings: [{
+                        source: 'imdb',
+                        rating: '10/10'
+                    },
+                    {
+                        source: 'rotten tomatoes',
+                        rating: '95%',
+                        logo: 'http://rotten'
+                    }]
+                },
+                type: 3, //BOOK
+                category: 2, //READ
+                swrlID: 'OPENLIBRARY-ISBN_123'
+            };
+            const swrl = new Swrl(BOOK, READ, 'OPENLIBRARY-ISBN_123',
+                new Details('isbn123', 'No title', '/img/NoPoster.jpg', undefined, 'Unknown', undefined,
+                    ['action', 'comedy'], [new Link('http://', 'link', 'http://img'), new Link('http://', 'no logo', undefined)], undefined, undefined,
+                    ['Sean Connery'], undefined, [new Rating('imdb', '10/10', undefined), new Rating('rotten tomatoes', '95%', 'http://rotten')],
+                    undefined),
+                new Date(), ['user1'], [], [], [], undefined, [], []);
+            expect(swrl.toPartialFireStoreData()).to.deep.equal(json);
         })
     })
 })

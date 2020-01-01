@@ -78,7 +78,15 @@ function geekSearch(type, query, signal) {
             results.push(
                 new Swrl(type, PLAY, 'GEEK' + type.geekType + '_' + id,
                     new Details(id, title, imageUrl || '/img/NoPoster.jpg',
-                        undefined, undefined, undefined))
+                        undefined, undefined, undefined,
+                        [],
+                        [],
+                        undefined,
+                        undefined,
+                        [],
+                        undefined,
+                        [],
+                        undefined))
             )
         }
         resolve(results);
