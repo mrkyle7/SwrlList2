@@ -1,6 +1,7 @@
 import { Constant } from "./Constant";
 import { DetailGetter } from "../detailGetters/detailGetter";
 import { TmdbFilmDetailGetter } from "../detailGetters/tmdbFilmDetailGetter";
+import { TmdbTVDetailGetter } from "../detailGetters/tmdbTVDetailGetter";
 
 export class Type extends Constant {
     /**
@@ -28,35 +29,31 @@ export const TV = new Type(
     2,
     'TV',
     null,
-    new DetailGetter()
+    new TmdbTVDetailGetter()
 )
 export const BOOK = new Type(
     3,
     'BOOK',
     null,
     new DetailGetter()
-
 )
 export const PODCAST = new Type(
     4,
     'PODCAST',
     null,
     new DetailGetter()
-
 )
 export const ALBUM = new Type(
     5,
     'ALBUM',
     null,
     new DetailGetter()
-
 )
 export const BOARDGAME = new Type(
     6,
     'BOARDGAME',
     'boardgame',
     new DetailGetter()
-
 )
 export const VIDEOGAME = new Type(
     7,

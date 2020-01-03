@@ -46,7 +46,11 @@ export class ReadSearch extends Search {
                                 [],
                                 undefined,
                                 [],
-                                undefined))
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                []))
                     );
                 }
             }

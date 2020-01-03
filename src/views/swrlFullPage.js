@@ -351,20 +351,28 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl) 
     addTextDetails('Title', swrl.details.getFullTitle());
     addTextDetails('Artist', swrl.details.artist);
     addTextDetails('Author', swrl.details.author);
-    addTextDetails('Genres', swrl.details.genres.length > 0 ?
+    addTextDetails('Genres', swrl.details.genres !== undefined && swrl.details.genres !== null
+        && swrl.details.genres.length > 0 ?
         swrl.details.genres.join(', ') :
         undefined);
     addTextDetails('Tagline', swrl.details.tagline);
     addTextDetails('Overview', swrl.details.overview);
-    addTextDetails('Actors', swrl.details.actors.length > 0 ?
+    addTextDetails('Actors', swrl.details.actors !== undefined && swrl.details.actors !== null &&
+        swrl.details.actors.length > 0 ?
         swrl.details.actors.join(', ') :
         undefined);
     addTextDetails('Director', swrl.details.director);
     addTextDetails('Runtime', swrl.details.runtime);
+    addTextDetails('Average Episode Length', swrl.details.averageEpisodeLength);
+    addTextDetails('Number of Seasons', swrl.details.numberOfSeasons !== undefined ?
+        swrl.details.numberOfSeasons.toString() : undefined);
+    addTextDetails('Last Air Date', swrl.details.lastAirDate);
+
+
     swrlFullPageCards.appendChild(detailsCard);
 
 
-    if (swrl.details.links.length > 0) {
+    if (swrl.details.links !== undefined && swrl.details.links !== null && swrl.details.links.length > 0) {
         /** @type {HTMLElement} */
         // @ts-ignore
         const linksCard = swrlPageCardTemplate.content.cloneNode(true);
@@ -381,6 +389,7 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl) 
             image.classList.add('smallLink');
             image.src = link.logo;
             image.alt = link.name;
+            image.title = link.name;
             linkElement.appendChild(image);
             $linksCard('.cardContent').appendChild(linkElement);
         })
@@ -388,7 +397,30 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl) 
         swrlFullPageCards.appendChild(linksCard);
     }
 
-    if (swrl.details.ratings.length > 0) {
+    if (swrl.details.networks !== undefined && swrl.details.networks !== null && swrl.details.networks.length > 0) {
+        /** @type {HTMLElement} */
+        // @ts-ignore
+        const networksCard = swrlPageCardTemplate.content.cloneNode(true);
+        const $networksCard = networksCard.querySelector.bind(networksCard);
+        $networksCard('.cardContent').querySelector('.loadingSpinnerSmall').classList.add('hidden');
+
+        $networksCard('.cardTitle').innerText = 'Networks';
+
+        swrl.details.networks.forEach(link => {
+            const span = document.createElement('span');
+            const image = document.createElement('img');
+            image.classList.add('smallLink');
+            image.src = link.logo;
+            image.alt = link.name;
+            image.title = link.name;
+            span.appendChild(image);
+            $networksCard('.cardContent').appendChild(span);
+        })
+
+        swrlFullPageCards.appendChild(networksCard);
+    }
+
+    if (swrl.details.ratings !== undefined && swrl.details.ratings !== null && swrl.details.ratings.length > 0) {
         /** @type {HTMLElement} */
         // @ts-ignore
         const ratingsCard = swrlPageCardTemplate.content.cloneNode(true);
@@ -401,7 +433,7 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl) 
         // @ts-ignore
         const ratingTemplate = document.getElementById('rating');
         swrl.details.ratings.forEach(rating => {
-            
+
             /** @type {HTMLElement} */
             // @ts-ignore
             const ratingElement = ratingTemplate.content.cloneNode(true);
@@ -409,6 +441,7 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl) 
             if (rating.logo) {
                 ratingElement.querySelector('img').src = rating.logo;
                 ratingElement.querySelector('img').alt = rating.source;
+                ratingElement.querySelector('img').title = rating.source;
                 ratingElement.querySelector('span').innerText = rating.rating;
             } else {
                 ratingElement.querySelector('img').classList.add('hidden');

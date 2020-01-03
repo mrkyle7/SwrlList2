@@ -114,7 +114,7 @@ describe('Can translate Firestore data to a recommendation', function () {
                 new Details('isbn123', 'No title', '/img/NoPoster.jpg', undefined, 'Unknown', undefined,
                     ['action', 'comedy'], [new Link('http://', 'link', 'http://img'), new Link('http://', 'no logo', undefined)], 'cool film', 'something happens',
                     ['Sean Connery'], 'mr director', [new Rating('imdb', '10/10', undefined), new Rating('rotten tomatoes', '95%', 'http://rotten')],
-                    '120 mins'),
+                    '120 mins', undefined, undefined, undefined, []),
                 new Date(1568452504000), [], [], ['user1'], [], undefined, [], []);
             const expectedRecommendation = new Recommendation('1234s', 'user1', ['user2', 'user3'], 'is great', 'ITUNESALBUM_ABC123',
                 new Date(1568452504000), swrl, [], []);
@@ -217,7 +217,7 @@ describe('Can translate Firestore data to a recommendation', function () {
                 new Details('isbn123', 'No title', '/img/NoPoster.jpg', undefined, 'Unknown', undefined,
                     ['action', 'comedy'], [new Link('http://', 'link', 'http://img'), new Link('http://', 'no logo', undefined)], 'cool film', 'something happens',
                     ['Sean Connery'], 'mr director', [new Rating('imdb', '10/10', undefined), new Rating('rotten tomatoes', '95%', 'http://rotten')],
-                    '120 mins'),
+                    '120 mins', undefined, undefined, undefined, []),
                 new Date(1568452504000), [], [], ['user1'], [], undefined, [], []);
             const expectedRecommendation = new Recommendation('1234s', 'user1', ['user2', 'user3'], 'is great', 'ITUNESALBUM_ABC123',
                 new Date(1568452504000), swrl, ['user2'], ['user3']);

@@ -92,7 +92,11 @@ export class TmdbFilmDetailGetter extends DetailGetter {
                             actors,
                             director,
                             ratings,
-                            data.runtime + ' mins'
+                            data.runtime + ' mins',
+                            undefined,
+                            undefined,
+                            undefined,
+                            []
                         )
                     }
                 )

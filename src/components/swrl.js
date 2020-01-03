@@ -46,7 +46,7 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
             });
         var creator = swrl.details.author ? swrl.details.author
             : swrl.details.artist ? swrl.details.artist : undefined;
-        var title = creator ? swrl.details.title + ' by ' + creator : swrl.details.title;
+        var title = creator ? swrl.details.getFullTitle() + ' by ' + creator : swrl.details.getFullTitle();
         $swrl('.swrlTitle').innerText = title;
         $swrl('.swrlType').innerText = swrl.type.name;
 

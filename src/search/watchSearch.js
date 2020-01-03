@@ -65,7 +65,11 @@ export class WatchSearch extends Search {
                                 [],
                                 undefined,
                                 [],
-                                undefined
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                []
                             ));
                     }));
             } catch (error) {
@@ -87,7 +91,7 @@ export class WatchSearch extends Search {
                 const response = await fetch(url, { signal });
                 const data = await response.json();
                 resolve(data.results.map(/**
-                 * @param {{ name: any; id: string; poster_path: string; }} result
+                 * @param {{ name: any; id: string; poster_path: string; first_air_date: string}} result
                  * @return {Swrl}
                  */
                     (result) => {
@@ -95,7 +99,7 @@ export class WatchSearch extends Search {
                             new Details(result.id,
                                 result.name || 'No Title',
                                 result.poster_path ? imageUrlPrefix + result.poster_path : 'img/NoPoster.jpg',
-                                undefined, undefined, undefined,
+                                undefined, undefined, this._releaseYear(result.first_air_date) || 'unknown',
                                 [],
                                 [],
                                 undefined,
@@ -103,7 +107,11 @@ export class WatchSearch extends Search {
                                 [],
                                 undefined,
                                 [],
-                                undefined
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                []
                             ));
                     }));
             } catch (error) {

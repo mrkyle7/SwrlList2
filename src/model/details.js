@@ -1,6 +1,7 @@
 import { assertObjectHasDefinedProperty } from "../utils/propertyChecker";
 import { Link } from "./link";
 import { Rating } from "./rating";
+import { Network } from "./network";
 
 export class Details {
     /**
@@ -18,10 +19,14 @@ export class Details {
      * @param {string} director
      * @param {Rating[]} ratings
      * @param {string} runtime
-     * 
+     * @param {number} numberOfSeasons
+     * @param {string} averageEpisodeLength
+     * @param {string} lastAirDate
+     * @param {Network[]} networks
      */
     constructor(id, title, imageUrl, artist, author, releaseYear,
-        genres, links, tagline, overview, actors, director, ratings, runtime) {
+        genres, links, tagline, overview, actors, director, ratings, runtime,
+        numberOfSeasons, averageEpisodeLength, lastAirDate, networks) {
         this.id = id;
         this.title = title;
         this.imageUrl = imageUrl;
@@ -36,6 +41,10 @@ export class Details {
         this.director = director;
         this.ratings = ratings;
         this.runtime = runtime;
+        this.numberOfSeasons = numberOfSeasons;
+        this.averageEpisodeLength = averageEpisodeLength;
+        this.lastAirDate = lastAirDate;
+        this.networks = networks;
     }
 
     /**
@@ -44,7 +53,7 @@ export class Details {
     toJSON() {
         const json = {};
         Object.keys(this).forEach(key => {
-            if (key === 'links' || key === 'ratings') {
+            if (key === 'links' || key === 'ratings' || key === 'networks') {
                 const specialArray = [];
                 this[key].forEach(obj => {
                     const special = {};
@@ -95,10 +104,22 @@ export class Details {
                 }
             )
         }
+        const networks = [];
+        if (json.networks !== undefined) {
+            json.networks.forEach(
+                /**
+                  * @param {{ name: string; logo: string; }} network
+                */
+                network => {
+                    networks.push(new Network(network.name, network.logo))
+                }
+            )
+        }
         return new Details(json.id, json.title, json.imageUrl, json.artist, json.author, json.releaseYear,
             json.genres || [],
             links, json.tagline, json.overview,
-            json.actors || [], json.director, ratings, json.runtime);
+            json.actors || [], json.director, ratings, json.runtime,
+            json.numberOfSeasons, json.averageEpisodeLength, json.lastAirDate, networks);
     }
 
     /** @return {string} */

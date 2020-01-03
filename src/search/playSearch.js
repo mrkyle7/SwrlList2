@@ -86,7 +86,11 @@ function geekSearch(type, query, signal) {
                         [],
                         undefined,
                         [],
-                        undefined))
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        []))
             )
         }
         resolve(results);
