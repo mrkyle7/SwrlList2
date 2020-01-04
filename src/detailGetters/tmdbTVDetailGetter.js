@@ -26,8 +26,10 @@ export class TmdbTVDetailGetter extends DetailGetter {
                 const response = await fetch(url, { signal });
                 const data = await response.json();
 
-                const tmdbLink = new Link(data.homepage, 'The Movie DB', 'img/tmdb_logo.png')
-                const links = [tmdbLink];
+                const links = [
+                    new Link(`https://www.themoviedb.org/tv/${data.id}`, 'The Movie Database', 'img/tmdb_logo.png'),
+                    new Link(data.homepage, 'TV Home Page', undefined)
+                ];
 
                 /** @type number[] */
                 const episodeRunTimes = data.episode_run_time;
@@ -46,13 +48,15 @@ export class TmdbTVDetailGetter extends DetailGetter {
                      * @param {{ name: string; logo_path: string; }} network
                      */
                     network => {
-                        networks.push(new Network(network.name, imageUrlPrefix + network.logo_path))
+                        const logo = network.logo_path !== undefined && network.logo_path !== null ?
+                            imageUrlPrefix + network.logo_path : undefined;
+                        networks.push(new Network(network.name, logo))
                     })
 
                 resolve(
                     {
                         id: searchId,
-                        details: new Details(id ,
+                        details: new Details(id,
                             data.name,
                             data.poster_path ? imageUrlPrefix + data.poster_path : 'img/NoPoster.jpg',
                             undefined,

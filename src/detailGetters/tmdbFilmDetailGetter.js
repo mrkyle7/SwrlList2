@@ -70,8 +70,11 @@ export class TmdbFilmDetailGetter extends DetailGetter {
                     director = omdbData.Director;
                 }
 
-                const tmdbLink = new Link(data.homepage, 'The Movie DB', 'img/tmdb_logo.png')
-                const links = [tmdbLink];
+                const links = [
+                    new Link(`https://www.themoviedb.org/movie/${data.id}`, 'The Movie Database', 'img/tmdb_logo.png'),
+                    new Link(data.homepage, 'Film Home Page', undefined)
+                ];
+
                 if (data.imdb_id) {
                     const imdbLink = new Link(`https://www.imdb.com/title/${data.imdb_id}/`, 'IMDb', 'img/imdb-logo.png');
                     links.push(imdbLink);
@@ -92,7 +95,7 @@ export class TmdbFilmDetailGetter extends DetailGetter {
                             actors,
                             director,
                             ratings,
-                            data.runtime + ' mins',
+                            data.runtime ? data.runtime + ' mins' : undefined,
                             undefined,
                             undefined,
                             undefined,

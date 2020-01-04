@@ -385,12 +385,17 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl) 
             const linkElement = document.createElement('a');
             linkElement.href = link.url;
             linkElement.target = '_blank';
-            const image = document.createElement('img');
-            image.classList.add('smallLink');
-            image.src = link.logo;
-            image.alt = link.name;
-            image.title = link.name;
-            linkElement.appendChild(image);
+            if (link.logo !== undefined && link.logo !== null) {
+                const image = document.createElement('img');
+                image.classList.add('smallLink');
+                image.src = link.logo;
+                image.alt = link.name;
+                image.title = link.name;
+                linkElement.appendChild(image);
+            } else {
+                linkElement.innerText = link.name;
+                linkElement.classList.add('smallLink');
+            }
             $linksCard('.cardContent').appendChild(linkElement);
         })
 
@@ -406,14 +411,18 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl) 
 
         $networksCard('.cardTitle').innerText = 'Networks';
 
-        swrl.details.networks.forEach(link => {
+        swrl.details.networks.forEach(network => {
             const span = document.createElement('span');
-            const image = document.createElement('img');
-            image.classList.add('smallLink');
-            image.src = link.logo;
-            image.alt = link.name;
-            image.title = link.name;
-            span.appendChild(image);
+            if (network.logo !== undefined) {
+                const image = document.createElement('img');
+                image.classList.add('smallLink');
+                image.src = network.logo;
+                image.alt = network.name;
+                image.title = network.name;
+                span.appendChild(image);
+            } else {
+                span.innerText = network.name;
+            }
             $networksCard('.cardContent').appendChild(span);
         })
 
