@@ -2,6 +2,7 @@ import { Constant } from "./Constant";
 import { DetailGetter } from "../detailGetters/detailGetter";
 import { TmdbFilmDetailGetter } from "../detailGetters/tmdbFilmDetailGetter";
 import { TmdbTVDetailGetter } from "../detailGetters/tmdbTVDetailGetter";
+import { OpenLibraryBookDetailGetter } from "../detailGetters/openLibraryBookDetailGetter";
 
 export class Type extends Constant {
     /**
@@ -35,7 +36,7 @@ export const BOOK = new Type(
     3,
     'BOOK',
     null,
-    new DetailGetter()
+    new OpenLibraryBookDetailGetter()
 )
 export const PODCAST = new Type(
     4,

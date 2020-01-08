@@ -3,6 +3,7 @@ import { READ } from '../constants/Category';
 import { Search } from './search';
 import { Swrl } from '../model/swrl';
 import { Details } from '../model/details';
+import { Link } from '../model/link';
 
 export class ReadSearch extends Search {
 
@@ -18,30 +19,44 @@ export class ReadSearch extends Search {
      */
     run(query, signal, id) {
         return new Promise(async function (resolve, reject) {
-            var encodedQuery = encodeURIComponent(query);
-            var url = "https://openlibrary.org/search.json?q=" + encodedQuery;
-            var response = await fetch(url, { signal });
-            var data = await response.json();
-            var results = [];
-            var apiResults = data.docs;
+            const encodedQuery = encodeURIComponent(query);
+            const url = "https://openlibrary.org/search.json?q=" + encodedQuery;
+            const response = await fetch(url, { signal });
+            const data = await response.json();
+            const results = [];
+            const apiResults = data.docs;
             if (apiResults) {
-                var maxResults = apiResults.length < 20 ? apiResults.length : 20;
-                for (var index = 0; index < maxResults; index++) {
-                    var result = apiResults[index];
+                const maxResults = apiResults.length < 20 ? apiResults.length : 20;
+                for (let index = 0; index < maxResults; index++) {
+                    const result = apiResults[index];
                     if (!result.isbn) {
                         continue;
                     }
-                    var isbn = result.isbn[0];
-                    var imageUrl = await getImageUrl(isbn, signal);
-                    var title = result.title.replace(/'\r\n/g, ' ').replace(/\s\s*/g, ' ');
+                    const isbn = result.isbn[0];
+                    const url = "https://openlibrary.org/api/books?format=json&jscmd=data&bibkeys=ISBN:" + isbn;
+                    const response = await fetch(url, { signal });
+                    const json = await response.json();
+                    const data = json['ISBN:' + isbn];
+                    const imageUrl = getImageUrl(data);
+                    const title = result.title.replace(/'\r\n/g, ' ').replace(/\s\s*/g, ' ');
+                    const links = [
+                        new Link(data.url, 'Open Library', 'img/openlibrary-logo.svg')
+                    ];
+    
+                    if (data.links !== undefined && data.links !== null) {
+                        data.links.forEach(link => {
+                            links.push(new Link(link.url, link.title, undefined));
+                        })
+                    }
                     results.push(
                         new Swrl(BOOK, READ, 'OPENLIBRARY-ISBN_' + isbn,
-                            new Details(isbn, title || 'No title', imageUrl || 'img/NoPoster.jpg',
+                            new Details(isbn, title || 'No title',
+                                imageUrl || 'img/NoPoster.jpg',
                                 undefined, result.author_name ? result.author_name[0] : 'Unknown',
-                                undefined,
-                                [],
-                                [],
-                                undefined,
+                                releaseYear(data.first_air_date),
+                                data.subjects ? data.subjects.map(s => s.name) : [],
+                                links,
+                                data.subtitle,
                                 undefined,
                                 [],
                                 undefined,
@@ -59,15 +74,24 @@ export class ReadSearch extends Search {
     }
 }
 
+
 /**
- * @param {string} isbn
- * @param {AbortSignal} signal
+* @param {string} releaseDate
+*/
+const releaseYear = (releaseDate) => {
+    if (releaseDate !== undefined && releaseDate !== null && releaseDate.length > 4) {
+        return releaseDate.substring(releaseDate.length - 4, releaseDate.length);
+    } else {
+        return releaseDate;
+    }
+}
+
+/**
+ * @param {any} data
+ * @return {string}
  */
-async function getImageUrl(isbn, signal) {
-    var url = "https://openlibrary.org/api/books?format=json&jscmd=data&bibkeys=ISBN:" + isbn;
-    var response = await fetch(url, { signal });
-    var data = await response.json();
-    var covers = data['ISBN:' + isbn].cover;
+function getImageUrl(data) {
+    const covers = data.cover;
     if (covers) {
         return covers.large;
     } else {

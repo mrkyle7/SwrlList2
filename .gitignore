@@ -8,3 +8,4 @@ fastlane/.env
 www/bundle.js
 www/bundlepretty.js
 www/fonts
+cypress/**/*.js.mp4
