@@ -27,7 +27,7 @@ export class OpenLibraryBookDetailGetter extends DetailGetter {
                     new Link(data.url, 'Open Library', 'img/openlibrary-logo.svg')
                 ];
 
-                if (data.links !== undefined && data.links !== null) {
+                if (data.links) {
                     data.links.forEach(link => {
                         links.push(new Link(link.url, link.title, undefined));
                     })
@@ -40,22 +40,28 @@ export class OpenLibraryBookDetailGetter extends DetailGetter {
                         id: searchId,
                         details: new Details(id,
                             title || 'No title',
-                            data.covers ? data.covers.large : 'img/NoPoster.jpg',
+                            data.cover ? data.cover.large : 'img/NoPoster.jpg',
                             undefined,
-                            undefined,
-                            releaseYear(data.first_air_date),
+                            data.authors ? data.authors[0].name : 'Unknown',
+                            releaseYear(data.publish_date), 
                             data.subjects ? data.subjects.map(s => s.name) : [],
                             links,
                             data.subtitle,
                             undefined,
-                            undefined,
+                            [],
                             undefined,
                             [],
                             undefined,
                             undefined,
                             undefined,
                             undefined,
-                            []
+                            [],
+                            [],
+                            [],
+                            [],
+                            undefined,
+                            undefined,
+                            undefined
                         )
                     }
                 )

@@ -4,6 +4,8 @@ import { PLAY } from '../constants/Category';
 import { Search } from './search';
 import { Swrl } from '../model/swrl';
 import { Details } from '../model/details';
+import { Link } from '../model/link';
+import { GeekDetailGetter } from '../detailGetters/geekDetailGetter';
 
 export class PlaySearch extends Search {
 
@@ -20,9 +22,9 @@ export class PlaySearch extends Search {
     run(query, signal, id) {
         return new Promise(function (resolve, reject) {
 
-            var encodedQuery = encodeURIComponent(query);
+            const encodedQuery = encodeURIComponent(query);
 
-            var searches = [boardgameSearch(encodedQuery, signal), videoGameSearch(encodedQuery, signal)];
+            const searches = [boardgameSearch(encodedQuery, signal), videoGameSearch(encodedQuery, signal)];
             Promise.all(searches)
                 .then(function ([boardGameResults, videoGameResults]) {
                     resolve({ id: id, results: zip(boardGameResults, videoGameResults) });
@@ -62,61 +64,25 @@ function videoGameSearch(query, signal) {
  */
 function geekSearch(type, query, signal) {
     return new Promise(async function (resolve, reject) {
-        var url = "https://api.geekdo.com/xmlapi2/search?type=" + type.geekType + "&query=" + query;
-        var response = await fetch(url, { signal });
-        var xmlData = await response.text();
-        var parser = new DOMParser();
-        var xmlResults = parser.parseFromString(xmlData, 'application/xml');
-        var items = xmlResults.getElementsByTagName('item');
-        var maxResults = items.length < 20 ? items.length : 20;
-        var results = [];
-        for (var index = 0; index < maxResults; index++) {
-            var item = items[index];
-            var title = item.getElementsByTagName('name')[0].getAttribute('value');
-            var id = item.getAttribute('id');
-            var imageUrl = await getImageUrl(id, signal);
+        const url = "https://api.geekdo.com/xmlapi2/search?type=" + type.geekType + "&query=" + query;
+        const response = await fetch(url, { signal });
+        const xmlData = await response.text();
+        const parser = new DOMParser();
+        const xmlResults = parser.parseFromString(xmlData, 'application/xml');
+        const items = xmlResults.getElementsByTagName('item');
+        const maxResults = items.length < 20 ? items.length : 20;
+        const results = [];
+        const detailGetter = new GeekDetailGetter(type.geekType);
+        for (let index = 0; index < maxResults; index++) {
+            const item = items[index];
+            const id = item.getAttribute('id');
+            const getterResponse = await detailGetter.get(id, signal, 0);
+            const details = getterResponse.details;
+            
             results.push(
-                new Swrl(type, PLAY, 'GEEK' + type.geekType + '_' + id,
-                    new Details(id, title, imageUrl || 'img/NoPoster.jpg',
-                        undefined, undefined, undefined,
-                        [],
-                        [],
-                        undefined,
-                        undefined,
-                        [],
-                        undefined,
-                        [],
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        []))
+                new Swrl(type, PLAY, 'GEEK' + type.geekType + '_' + id, details)
             )
         }
         resolve(results);
     });
-}
-
-/**
- * @param {string} id
- * @param {AbortSignal} signal
- */
-async function getImageUrl(id, signal) {
-    var url = 'https://api.geekdo.com/xmlapi2/thing?id=' + id;
-    var response = await fetch(url, { signal });
-    var xmlData = await response.text();
-    var parser = new DOMParser();
-    var xmlResult = parser.parseFromString(xmlData, 'application/xml');
-    var items = xmlResult.getElementsByTagName('item');
-    if (!items || items.length == 0) {
-        console.log('ID from geek returned no items!');
-        return undefined;
-    }
-    var images = items[0].getElementsByTagName('image');
-    if (images && images.length > 0) {
-        return images[0].textContent;
-    } else {
-        console.log('No images for ' + id);
-        return undefined;
-    }
 }

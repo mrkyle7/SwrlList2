@@ -3,6 +3,7 @@ import { DetailGetter } from "../detailGetters/detailGetter";
 import { TmdbFilmDetailGetter } from "../detailGetters/tmdbFilmDetailGetter";
 import { TmdbTVDetailGetter } from "../detailGetters/tmdbTVDetailGetter";
 import { OpenLibraryBookDetailGetter } from "../detailGetters/openLibraryBookDetailGetter";
+import { GeekDetailGetter } from "../detailGetters/geekDetailGetter";
 
 export class Type extends Constant {
     /**
@@ -54,13 +55,13 @@ export const BOARDGAME = new Type(
     6,
     'BOARDGAME',
     'boardgame',
-    new DetailGetter()
+    new GeekDetailGetter('boardgame')
 )
 export const VIDEOGAME = new Type(
     7,
     'VIDEO GAME',
     'videogame',
-    new DetailGetter()
+    new GeekDetailGetter('videogame')
 )
 
 export const types = Object.freeze([FILM, TV, BOOK, PODCAST, ALBUM, BOARDGAME, VIDEOGAME])

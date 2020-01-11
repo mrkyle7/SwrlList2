@@ -51,6 +51,7 @@ async function showSwrlFullPage(stateController) {
          * @param {Event} e
          */
         (e) => {
+            console.error('could not load image');
             /** @type {HTMLImageElement} */
             // @ts-ignore
             const image = e.target;
@@ -77,6 +78,7 @@ async function showSwrlFullPage(stateController) {
                 if (result && result.details && result.id === searchId) {
                     const updatedSwrl = swrl;
                     updatedSwrl.details = result.details;
+                    swrlImageLarge.src = updatedSwrl.details.imageUrl;
                     const firestoreData = updatedSwrl.toPartialFireStoreData();
                     firestoreData.updated = firebase.firestore.FieldValue.serverTimestamp();
                     firestore.collection(Collection.SWRLS).doc(updatedSwrl.swrlID).set(firestoreData,
@@ -351,19 +353,24 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl) 
     addTextDetails('Title', swrl.details.getFullTitle());
     addTextDetails('Artist', swrl.details.artist);
     addTextDetails('Author', swrl.details.author);
-    addTextDetails('Genres', swrl.details.genres !== undefined && swrl.details.genres !== null
-        && swrl.details.genres.length > 0 ?
-        swrl.details.genres.join(', ') :
-        undefined);
+    addTextDetails('Designers', swrl.details.designers && swrl.details.designers.length > 0 ?
+        swrl.details.designers.join(', ') : undefined);
+    addTextDetails('Platforms', swrl.details.platforms && swrl.details.platforms.length > 0 ?
+        swrl.details.platforms.join(', ') : undefined);
+    addTextDetails('Publishers', swrl.details.publishers && swrl.details.publishers.length > 0 ?
+        swrl.details.publishers.join(', ') : undefined);
+    addTextDetails('Genres', swrl.details.genres && swrl.details.genres.length > 0 ?
+        swrl.details.genres.join(', ') : undefined);
     addTextDetails('Tagline', swrl.details.tagline);
     addTextDetails('Overview', swrl.details.overview);
-    addTextDetails('Actors', swrl.details.actors !== undefined && swrl.details.actors !== null &&
-        swrl.details.actors.length > 0 ?
-        swrl.details.actors.join(', ') :
-        undefined);
+    addTextDetails('Actors', swrl.details.actors && swrl.details.actors.length > 0 ?
+        swrl.details.actors.join(', ') : undefined);
     addTextDetails('Director', swrl.details.director);
     addTextDetails('Runtime', swrl.details.runtime);
     addTextDetails('Average Episode Length', swrl.details.averageEpisodeLength);
+    addTextDetails('Player Count', swrl.details.playerCount);
+    addTextDetails('2 Player Recommendation', swrl.details.twoPlayerRecommendation);
+    addTextDetails('Playing Time', swrl.details.playingTime);
     addTextDetails('Number of Seasons', swrl.details.numberOfSeasons !== undefined ?
         swrl.details.numberOfSeasons.toString() : undefined);
     addTextDetails('Last Air Date', swrl.details.lastAirDate);

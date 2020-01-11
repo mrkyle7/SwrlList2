@@ -73,7 +73,13 @@ export class TmdbTVDetailGetter extends DetailGetter {
                             data.number_of_seasons,
                             averageEpisodeLength,
                             data.last_air_date,
-                            networks
+                            networks,
+                            [],
+                            [],
+                            [],
+                            undefined,
+                            undefined,
+                            undefined
                         )
                     }
                 )

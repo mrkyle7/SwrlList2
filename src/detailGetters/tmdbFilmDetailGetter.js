@@ -99,7 +99,13 @@ export class TmdbFilmDetailGetter extends DetailGetter {
                             undefined,
                             undefined,
                             undefined,
-                            []
+                            [],
+                            [],
+                            [],
+                            [],
+                            undefined,
+                            undefined,
+                            undefined
                         )
                     }
                 )

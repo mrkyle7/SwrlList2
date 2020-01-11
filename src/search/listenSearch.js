@@ -66,7 +66,13 @@ export class ListenSearch extends Search {
                                 undefined,
                                 undefined,
                                 undefined,
-                                []));
+                                [],
+                                [],
+                                [],
+                                [],
+                                undefined,
+                                undefined,
+                                undefined));
                     }));
             } catch (error) {
                 console.log('Fetch failed for Album search: ' + JSON.stringify(error));
@@ -108,7 +114,13 @@ export class ListenSearch extends Search {
                                 undefined,
                                 undefined,
                                 undefined,
-                                []),
+                                [],
+                                [],
+                                [],
+                                [],
+                                undefined,
+                                undefined,
+                                undefined),
                             undefined);
                     }));
             } catch (error) {

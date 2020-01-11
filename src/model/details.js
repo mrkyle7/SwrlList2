@@ -23,10 +23,18 @@ export class Details {
      * @param {string} averageEpisodeLength
      * @param {string} lastAirDate
      * @param {Network[]} networks
+     * @param {string[]} designers
+     * @param {string[]} platforms
+     * @param {string[]} publishers
+     * @param {string} playerCount
+     * @param {string} twoPlayerRecommendation
+     * @param {string} playingTime
+     * 
      */
     constructor(id, title, imageUrl, artist, author, releaseYear,
         genres, links, tagline, overview, actors, director, ratings, runtime,
-        numberOfSeasons, averageEpisodeLength, lastAirDate, networks) {
+        numberOfSeasons, averageEpisodeLength, lastAirDate, networks,
+        designers, platforms, publishers, playerCount, twoPlayerRecommendation, playingTime) {
         this.id = id;
         this.title = title;
         this.imageUrl = imageUrl;
@@ -45,6 +53,12 @@ export class Details {
         this.averageEpisodeLength = averageEpisodeLength;
         this.lastAirDate = lastAirDate;
         this.networks = networks;
+        this.designers = designers;
+        this.platforms = platforms;
+        this.publishers = publishers;
+        this.playerCount = playerCount;
+        this.twoPlayerRecommendation = twoPlayerRecommendation;
+        this.playingTime = playingTime;
     }
 
     /**
@@ -119,7 +133,9 @@ export class Details {
             json.genres || [],
             links, json.tagline, json.overview,
             json.actors || [], json.director, ratings, json.runtime,
-            json.numberOfSeasons, json.averageEpisodeLength, json.lastAirDate, networks);
+            json.numberOfSeasons, json.averageEpisodeLength, json.lastAirDate, networks,
+            json.designers|| [], json.platforms || [], json.publishers || [],
+            json.playerCount, json.twoPlayerRecommendation, json.playingTime);
     }
 
     /** @return {string} */

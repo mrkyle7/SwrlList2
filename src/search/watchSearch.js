@@ -69,7 +69,13 @@ export class WatchSearch extends Search {
                                 undefined,
                                 undefined,
                                 undefined,
-                                []
+                                [],
+                                [],
+                                [],
+                                [],
+                                undefined,
+                                undefined,
+                                undefined
                             ));
                     }));
             } catch (error) {
@@ -111,7 +117,13 @@ export class WatchSearch extends Search {
                                 undefined,
                                 undefined,
                                 undefined,
-                                []
+                                [],
+                                [],
+                                [],
+                                [],
+                                undefined,
+                                undefined,
+                                undefined
                             ));
                     }));
             } catch (error) {
