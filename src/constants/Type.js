@@ -5,6 +5,7 @@ import { TmdbTVDetailGetter } from "../detailGetters/tmdbTVDetailGetter";
 import { OpenLibraryBookDetailGetter } from "../detailGetters/openLibraryBookDetailGetter";
 import { GeekDetailGetter } from "../detailGetters/geekDetailGetter";
 import { ItunesAlbumGetter } from "../detailGetters/itunesAlbumGetter";
+import { ItunesPodcastGetter } from "../detailGetters/itunesPodcastGetter";
 
 export class Type extends Constant {
     /**
@@ -44,7 +45,7 @@ export const PODCAST = new Type(
     4,
     'PODCAST',
     null,
-    new DetailGetter()
+    new ItunesPodcastGetter()
 )
 export const ALBUM = new Type(
     5,

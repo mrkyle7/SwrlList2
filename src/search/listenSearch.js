@@ -97,7 +97,7 @@ export class ListenSearch extends Search {
                 const response = await fetch(url, { signal });
                 const data = await response.json();
                 resolve(data.results.map(/**
-                 * @param {{ artworkUrl100: string; trackName?: any; collectionId?: any; }} result
+                 * @param {any} result
                  * @return {Swrl}
                  */
                     function (result) {
@@ -105,9 +105,12 @@ export class ListenSearch extends Search {
                             new Details(result.collectionId,
                                 result.trackName || 'No title',
                                 getLargeImage(result) || 'img/NoPoster.jpg',
-                                undefined, undefined, undefined,
-                                [],
-                                [],
+                                undefined,
+                                result.artistName,
+                                result.releaseDate ? result.releaseDate.substring(0, 4) : undefined,
+                                result.genres,
+                                [new Link(`https://podcasts.apple.com/gb/podcast/${result.collectionId}`,
+                                    'iTunes', 'img/itunes.svg')],
                                 undefined,
                                 undefined,
                                 [],
