@@ -4,6 +4,7 @@ import { TmdbFilmDetailGetter } from "../detailGetters/tmdbFilmDetailGetter";
 import { TmdbTVDetailGetter } from "../detailGetters/tmdbTVDetailGetter";
 import { OpenLibraryBookDetailGetter } from "../detailGetters/openLibraryBookDetailGetter";
 import { GeekDetailGetter } from "../detailGetters/geekDetailGetter";
+import { ItunesAlbumGetter } from "../detailGetters/itunesAlbumGetter";
 
 export class Type extends Constant {
     /**
@@ -49,7 +50,7 @@ export const ALBUM = new Type(
     5,
     'ALBUM',
     null,
-    new DetailGetter()
+    new ItunesAlbumGetter()
 )
 export const BOARDGAME = new Type(
     6,

@@ -4,6 +4,7 @@ import { LISTEN } from '../constants/Category';
 import { Swrl } from '../model/swrl';
 import { Details } from '../model/details';
 import { Search } from './search';
+import { Link } from '../model/link';
 
 export class ListenSearch extends Search {
 
@@ -45,18 +46,20 @@ export class ListenSearch extends Search {
                 const response = await fetch(url, { signal });
                 const data = await response.json();
                 resolve(data.results.map(/**
-                 * @param {{ artworkUrl100: string; collectionName?: any; artistName?: any; collectionId?: any; }} result
+                 * @param {{releaseDate: string; primaryGenreName: string; artworkUrl100: string; collectionName?: any; artistName?: any; collectionId?: any; }} result
                  * @return {Swrl}
                  */
-                    function (result) {
+                    result => {
                         return new Swrl(ALBUM, LISTEN, 'ITUNESALBUM_' + result.collectionId,
                             new Details(result.collectionId,
                                 result.collectionName || 'No title',
                                 getLargeImage(result) || 'img/NoPoster.jpg',
                                 result.artistName || 'Unknown',
-                                undefined, undefined,
-                                [],
-                                [],
+                                undefined,
+                                result.releaseDate ? result.releaseDate.substring(0, 4) : undefined,
+                                [result.primaryGenreName],
+                                [new Link(`https://music.apple.com/gb/album/${result.collectionId}`,
+                                    'iTunes', 'img/itunes.svg')],
                                 undefined,
                                 undefined,
                                 [],
