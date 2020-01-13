@@ -8,10 +8,10 @@ import { renderSwrl } from '../components/swrl';
 import showRequireLoginScreen from '../components/requireLoginScreen';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
-import { View } from './View';
+import { UIView } from './UIView';
 import { StateController } from './stateController';
 
-export class YourListView extends View {
+export class YourListView extends UIView {
     /**
      * @param {StateController} stateController
      */
@@ -28,7 +28,7 @@ export class YourListView extends View {
     }
 }
 
-export class DiscoverView extends View {
+export class DiscoverView extends UIView {
     /**
      * @param {StateController} stateController
      */

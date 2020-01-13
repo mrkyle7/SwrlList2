@@ -1,5 +1,5 @@
 const firebase = require("firebase/app");
-import { View } from './View';
+import { UIView } from './UIView';
 import { StateController } from './stateController';
 import { State } from '../model/state';
 import { getSwrler } from '../firebase/swrler';
@@ -8,6 +8,8 @@ import { Collection } from '../constants/Collection';
 import { recommendationsInboxCache, recommendationsSentCache } from '../listeners/recommendations';
 import { Recommendation } from '../model/recommendation';
 import { Swrl } from '../model/swrl';
+import { addAddButton, addLoveButton, addRecommendButton, addDoneButton } from '../components/buttons';
+import { FULL_PAGE } from '../constants/View';
 
 const swrlFullPageView = document.getElementById('swrlFullPage');
 const swrlFullPageCards = document.getElementById('swrlFullPageCards');
@@ -17,7 +19,7 @@ const loadingbar = document.querySelector('#swrlImageContainer .loadingbar')
 let detailController = undefined;
 let searchId = undefined;
 
-export class SwrlFullPage extends View {
+export class SwrlFullPage extends UIView {
     /**
      * @param {StateController} stateController
      */
@@ -59,6 +61,12 @@ async function showSwrlFullPage(stateController) {
                 image.src = 'img/NoPoster.jpg';
             }
         });
+
+    
+    addAddButton(FULL_PAGE, swrlFullPageView, swrl, firestore, null, null);
+    addLoveButton(FULL_PAGE, swrl, swrlFullPageView, firestore, null);
+    addRecommendButton(swrlFullPageView, swrl, stateController);
+    addDoneButton(swrlFullPageView, swrl, firestore, null, FULL_PAGE);
 
     /** @type {HTMLTemplateElement} */
     // @ts-ignore
@@ -495,6 +503,11 @@ function destroySwrlFullPage() {
     if (detailController) {
         detailController.abort();
     }
+    swrlFullPageView.querySelector('.swrlLoved').classList.add('hidden');
+    swrlFullPageView.querySelector('.swrlNotLoved').classList.add('hidden');
+    swrlFullPageView.querySelector('.swrlDone').classList.add('hidden');
+    swrlFullPageView.querySelector('.swrlRecommend').classList.add('hidden');
+    swrlFullPageView.querySelector('.swrlAdd').classList.add('hidden');
     destroyDetailCards();
     while (swrlFullPageSocialCards.firstChild) {
         swrlFullPageSocialCards.removeChild(swrlFullPageSocialCards.firstChild);

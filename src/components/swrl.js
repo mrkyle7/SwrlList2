@@ -96,11 +96,11 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
         }
 
         addDoneButton(swrlDiv, swrl, firestore, swrlsContainer, view);
-        addAddButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer, null);
+        addAddButton(view, swrlDiv, swrl, firestore, swrlsContainer, null);
 
         //Already on the recommend screen, so would be weird to recommend again!
         if (view !== RECOMMEND) {
-            addRecommendButton($swrl, swrl, stateController);
+            addRecommendButton(swrlDiv, swrl, stateController);
         }
 
         addDeleteButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer);

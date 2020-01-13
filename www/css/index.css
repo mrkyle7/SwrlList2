@@ -886,6 +886,10 @@ body {
     flex-direction: column;
 }
 
+.pageButtons {
+    margin: auto;
+}
+
 #swrlImageContainer {
     display: flex;
     flex-direction: column;

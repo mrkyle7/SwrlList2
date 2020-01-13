@@ -5,10 +5,10 @@ import { renderRecommendation } from '../components/recommendation';
 import { swrlUser } from '../firebase/login';
 import { Constant } from '../constants/Constant';
 import { Recommendation } from '../model/recommendation';
-import { View } from './View';
+import { UIView } from './UIView';
 import { StateController } from './stateController';
 
-export class InboxRecommendations extends View {
+export class InboxRecommendations extends UIView {
     /**
      * @param {StateController} stateController
      */
@@ -26,7 +26,7 @@ export class InboxRecommendations extends View {
 
 }
 
-export class SentRecommendations extends View {
+export class SentRecommendations extends UIView {
     /**
      * @param {StateController} stateController
      */

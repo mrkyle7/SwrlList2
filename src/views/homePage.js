@@ -1,7 +1,7 @@
-import { View } from './View';
+import { UIView } from './UIView';
 import { StateController } from './stateController';
 
-export class Home extends View {
+export class Home extends UIView {
     /**
     * @param {StateController} stateController
     */

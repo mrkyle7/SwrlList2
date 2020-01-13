@@ -10,10 +10,10 @@ import { swrlUser, hideLoginButtons, showLoginButtons } from '../firebase/login'
 import { renderSwrl } from '../components/swrl';
 import { showToasterMessage } from '../components/toaster';
 import { Swrl } from '../model/swrl';
-import { View } from './View';
+import { UIView } from './UIView';
 import { StateController } from './stateController';
 
-export class Recommend extends View {
+export class Recommend extends UIView {
 
     /**
      * @param {StateController} stateController

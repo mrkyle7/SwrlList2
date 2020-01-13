@@ -1,7 +1,7 @@
 import { StateController } from "./stateController";
 import { Screen } from "../screens/Screen";
 
-export class View {
+export class UIView {
     /**
      * @param {StateController} stateController
      * @param {Screen} screen

@@ -1,10 +1,10 @@
 import { Category } from "../constants/Category";
-import { View } from "../views/View";
+import { UIView } from "../views/UIView";
 import { Swrl } from "./swrl";
 
 export class State {
     /**
-     * @param {View} view
+     * @param {UIView} view
      * @param {Category} selectedCategory
      * @param {string} searchTerms
      * @param {Swrl} swrl

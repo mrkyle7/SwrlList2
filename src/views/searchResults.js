@@ -3,10 +3,10 @@ import { Category } from '../constants/Category';
 import { SEARCH } from '../constants/View';
 import { renderSwrl } from '../components/swrl';
 import { Swrl } from '../model/swrl';
-import { View } from './View';
+import { UIView } from './UIView';
 import { StateController } from './stateController';
 
-export class SearchView extends View {
+export class SearchView extends UIView {
     /**
      * @param {StateController} stateController
      */

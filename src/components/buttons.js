@@ -8,7 +8,7 @@ import showRequireLoginScreen from '../components/requireLoginScreen';
 import { markRecommendationAsRead } from '../actions/markRecommendationAsRead';
 import { showToasterMessage } from './toaster';
 import { Constant } from '../constants/Constant';
-import { DISCOVER, SEARCH, INBOX, SENT, RECOMMEND, YOUR_LIST } from '../constants/View';
+import { DISCOVER, SEARCH, INBOX, YOUR_LIST } from '../constants/View';
 import { Swrl } from '../model/swrl';
 import { Recommendation } from '../model/recommendation';
 import { StateController } from '../views/stateController';
@@ -78,18 +78,16 @@ export function addLoveButton(view, swrl, div, firestore, recommendation) {
 
 /**
  * @param {Constant} view
- * @param {*} selector
  * @param {HTMLElement} div
  * @param {Swrl} swrl
  * @param {firebase.firestore.Firestore} firestore
  * @param {HTMLElement} swrlsContainer
  * @param {Recommendation} [recommendation]
  */
-export function addAddButton(view, selector, div, swrl, firestore, swrlsContainer, recommendation) {
-    if (view === DISCOVER || view === SEARCH
-        || view === INBOX || view === SENT || view === RECOMMEND) {
-        selector('.swrlAdd').classList.remove('hidden');
-        selector('.swrlAdd').addEventListener('click',
+export function addAddButton(view, div, swrl, firestore, swrlsContainer, recommendation) {
+    if (view !== YOUR_LIST) {
+        div.querySelector('.swrlAdd').classList.remove('hidden');
+        div.querySelector('.swrlAdd').addEventListener('click',
             /**
              * @param {Event} e
              */
@@ -133,13 +131,13 @@ function isLoved(swrl) {
 }
 
 /**
- * @param {Function} $swrl
+ * @param {HTMLElement} div
  * @param {Swrl} swrl
  * @param {StateController} stateController
  */
-export function addRecommendButton($swrl, swrl, stateController) {
-    $swrl('.swrlRecommend').classList.remove('hidden');
-    $swrl('.swrlRecommend').addEventListener('click',
+export function addRecommendButton(div, swrl, stateController) {
+    div.querySelector('.swrlRecommend').classList.remove('hidden');
+    div.querySelector('.swrlRecommend').addEventListener('click',
         /**
          * @param {Event} e
          */

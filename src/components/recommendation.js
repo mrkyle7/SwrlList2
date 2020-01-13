@@ -53,8 +53,8 @@ export const renderRecommendation = async (stateController, view, recommendation
 
         addStats(recommendationDiv, recommendation.swrl);
         addLoveButton(view, recommendation.swrl, recommendationDiv, firestore, recommendation);
-        addAddButton(view, $recommendation, recommendationDiv, recommendation.swrl, firestore, null, recommendation);
-        addRecommendButton($recommendation, recommendation.swrl, stateController);
+        addAddButton(view, recommendationDiv, recommendation.swrl, firestore, null, recommendation);
+        addRecommendButton(recommendationDiv, recommendation.swrl, stateController);
         addDoneButton(recommendationDiv, recommendation.swrl, firestore, null, view);
 
         $recommendation('.recommendationSwrl').addEventListener('click', (e) => {
