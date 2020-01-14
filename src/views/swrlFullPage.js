@@ -12,6 +12,11 @@ import { addAddButton, addLoveButton, addRecommendButton, addDoneButton } from '
 import { FULL_PAGE } from '../constants/View';
 
 const swrlFullPageView = document.getElementById('swrlFullPage');
+
+const pageButtons = swrlFullPageView.querySelector('.pageButtons');
+/** @type {HTMLTemplateElement} */
+// @ts-ignore
+const swrlButtonsTemplate = document.getElementById('swrlButtons');
 const swrlFullPageCards = document.getElementById('swrlFullPageCards');
 const swrlFullPageSocialCards = document.getElementById('swrlFullPageSocialCards');
 const loadingbar = document.querySelector('#swrlImageContainer .loadingbar')
@@ -62,7 +67,10 @@ async function showSwrlFullPage(stateController) {
             }
         });
 
-    
+    const buttons = swrlButtonsTemplate.content.cloneNode(true);
+
+    pageButtons.appendChild(buttons);
+
     addAddButton(FULL_PAGE, swrlFullPageView, swrl, firestore, null, null);
     addLoveButton(FULL_PAGE, swrl, swrlFullPageView, firestore, null);
     addRecommendButton(swrlFullPageView, swrl, stateController);
@@ -503,11 +511,11 @@ function destroySwrlFullPage() {
     if (detailController) {
         detailController.abort();
     }
-    swrlFullPageView.querySelector('.swrlLoved').classList.add('hidden');
-    swrlFullPageView.querySelector('.swrlNotLoved').classList.add('hidden');
-    swrlFullPageView.querySelector('.swrlDone').classList.add('hidden');
-    swrlFullPageView.querySelector('.swrlRecommend').classList.add('hidden');
-    swrlFullPageView.querySelector('.swrlAdd').classList.add('hidden');
+
+    while(pageButtons.firstChild) {
+        pageButtons.removeChild(pageButtons.firstChild);
+    }
+    
     destroyDetailCards();
     while (swrlFullPageSocialCards.firstChild) {
         swrlFullPageSocialCards.removeChild(swrlFullPageSocialCards.firstChild);

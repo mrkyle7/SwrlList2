@@ -1,0 +1,8 @@
+14/1/2020
+- Bug fix on page buttons
+
+13/1/2020
+- Swrl buttons on the full page view
+
+11/1/2020
+- Now you can see lots more details!
