@@ -157,7 +157,7 @@
   </div>
   <template id="swrl">
     <div class="swrl">
-      <div class="swrlBanner swrlAdded hidden">Added to your list</div>
+      <div class="swrlBanner swrlAddedConfirm hidden">Added to your list</div>
       <div class="swrlBanner swrlMarkedAsDone hidden">Marked as Done</div>
       <div class="swrlBanner swrlDeleted hidden">Swrl Deleted</div>
       <div class="swrlInfo">
@@ -182,12 +182,7 @@
         </div>
       </div>
       <div class="swrlButtons">
-        <img class="swrlDelete swrlButton hidden" src="img/delete.svg" />
-        <img class="swrlLoved swrlButton hidden" src="img/loved.svg" />
-        <img class="swrlNotLoved swrlButton hidden" src="img/notLoved.svg" />
-        <img class="swrlRecommend swrlButton hidden" src="img/logo_transparent.svg" />
-        <img class="swrlDone swrlButton hidden" src="img/done.svg" />
-        <img class="swrlAdd swrlButton hidden" src="img/addIcon.svg" />
+
       </div>
     </div>
   </template>
@@ -235,21 +230,20 @@
           </div>
         </div>
         <div class="swrlButtons">
-          <img class="swrlLoved swrlButton hidden" src="img/loved.svg" />
-          <img class="swrlNotLoved swrlButton hidden" src="img/notLoved.svg" />
-          <img class="swrlRecommend swrlButton hidden" src="img/logo_transparent.svg" />
-          <img class="swrlDone swrlButton hidden" src="img/done.svg" />
-          <img class="swrlAdd swrlButton hidden" src="img/addIcon.svg" />
         </div>
       </div>
     </div>
   </template>
   <template id="swrlButtons">
+    <img class="swrlButtonSpinner swrlButton hidden" src="img/spinner.gif" />
+    <img class="swrlDelete swrlButton hidden" src="img/delete.svg" />
     <img class="swrlLoved swrlButton hidden" src="img/loved.svg" />
     <img class="swrlNotLoved swrlButton hidden" src="img/notLoved.svg" />
     <img class="swrlRecommend swrlButton hidden" src="img/logo_transparent.svg" />
-    <img class="swrlDone swrlButton hidden" src="img/done.svg" />
-    <img class="swrlAdd swrlButton hidden" src="img/addIcon.svg" />
+    <img class="swrlDone swrlButton hidden" src="img/check_circle-24px.svg" />
+    <img class="swrlNotDone swrlButton hidden" src="img/check_circle_outline-24px.svg" />
+    <img class="swrlAdded swrlButton hidden" src="img/playlist_add_check-24px.svg" />
+    <img class="swrlNotAdded swrlButton hidden" src="img/playlist_add-24px.svg" />
   </template>
   <template id="recommender">
     <div class="recommender">

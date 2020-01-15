@@ -14,6 +14,8 @@ import { Recommendation } from '../model/recommendation';
 import { StateController } from '../views/stateController';
 import { State } from '../model/state';
 import markASwrlAsDone from '../actions/markASwrlAsDone';
+import removeSwrlFromList from '../actions/removeSwrlFromList';
+import unmarkASwrlAsDone from '../actions/unmarkASwrlAsDone';
 
 /**
  * @param {Constant} view
@@ -85,9 +87,8 @@ export function addLoveButton(view, swrl, div, firestore, recommendation) {
  * @param {Recommendation} [recommendation]
  */
 export function addAddButton(view, div, swrl, firestore, swrlsContainer, recommendation) {
-    if (view !== YOUR_LIST) {
-        div.querySelector('.swrlAdd').classList.remove('hidden');
-        div.querySelector('.swrlAdd').addEventListener('click',
+    if (div) {
+        div.querySelector('.swrlNotAdded').addEventListener('click',
             /**
              * @param {Event} e
              */
@@ -105,22 +106,57 @@ export function addAddButton(view, div, swrl, firestore, swrlsContainer, recomme
                             function (error) {
                                 console.error('Could not add to list');
                                 console.error(error);
-                                div.querySelector('.swrlAdd').classList.remove('hidden');
-                                div.querySelector('.swrlSpinner').classList.add('hidden');
                             });
-                    if (view === DISCOVER || view === SEARCH) {
-                        div.querySelector('.swrlAdded').classList.remove('hidden');
-                        setTimeout(function () {
-                            swrlsContainer.removeChild(div);
-                        }, 1000);
-                    }
+
+                    div.querySelector('.swrlNotAdded').classList.add('hidden');
+                    div.querySelector('.swrlAdded').classList.remove('hidden');
+                    div.querySelector('.swrlDone').classList.add('hidden');
+                    div.querySelector('.swrlNotDone').classList.remove('hidden');
                     if (view === INBOX) {
                         markRecommendationAsRead(div, recommendation, firestore);
                     }
                     showToasterMessage('Added ' + swrl.details.title + ' to your list');
                 }
             });
+        div.querySelector('.swrlAdded').addEventListener('click',
+            /**
+             * @param {Event} e
+             */
+            (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (!swrlUser || swrlUser.isAnonymous) {
+                    showRequireLoginScreen('to remove a Swrl from your list');
+                }
+                else {
+                    removeSwrlFromList(swrl, firestore)
+                        .catch(/**
+                         * @param {any} error
+                         */
+                            function (error) {
+                                console.error('Could not remove from list');
+                                console.error(error);
+                            });
+
+                    div.querySelector('.swrlNotAdded').classList.remove('hidden');
+                    div.querySelector('.swrlAdded').classList.add('hidden');
+
+                    showToasterMessage('Removed ' + swrl.details.title + ' from your list');
+                }
+            });
+        if (isOnList(swrl)) {
+            div.querySelector('.swrlAdded').classList.remove('hidden');
+        } else {
+            div.querySelector('.swrlNotAdded').classList.remove('hidden');
+        }
     }
+}
+
+/**
+ * @param {Swrl} swrl
+ */
+const isOnList = (swrl) => {
+    return swrl.later && swrl.later.indexOf(swrlUser.uid) !== -1
 }
 
 /**
@@ -167,8 +203,24 @@ export function addRecommendButton(div, swrl, stateController) {
  */
 export function addDoneButton(swrlDiv, swrl, firestore, swrlsContainer, view) {
     if (swrlDiv) {
-        swrlDiv.querySelector('.swrlDone').classList.remove('hidden');
         swrlDiv.querySelector('.swrlDone').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!swrlUser || swrlUser.isAnonymous) {
+                showRequireLoginScreen('to mark a Swrl as done');
+            }
+            else {
+                unmarkASwrlAsDone(swrl, firestore)
+                    .catch(function (error) {
+                        console.error('Could not add to list');
+                        console.error(error);
+                    });
+                showToasterMessage('Unmarked ' + swrl.details.title + ' as done');
+                swrlDiv.querySelector('.swrlDone').classList.add('hidden');
+                swrlDiv.querySelector('.swrlNotDone').classList.remove('hidden');
+            }
+        });
+        swrlDiv.querySelector('.swrlNotDone').addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             if (!swrlUser || swrlUser.isAnonymous) {
@@ -180,16 +232,17 @@ export function addDoneButton(swrlDiv, swrl, firestore, swrlsContainer, view) {
                         console.error('Could not add to list');
                         console.error(error);
                     });
-                if (view === DISCOVER || view === SEARCH || view === YOUR_LIST) {
-                    swrlDiv.querySelector('.swrlMarkedAsDone').classList.remove('hidden');
-                    setTimeout(function () {
-                        if (swrlDiv && swrlsContainer) {
-                            swrlsContainer.removeChild(swrlDiv);
-                        }
-                    }, 1000);
-                }
                 showToasterMessage('Marked ' + swrl.details.title + ' as done');
+                swrlDiv.querySelector('.swrlNotDone').classList.add('hidden');
+                swrlDiv.querySelector('.swrlDone').classList.remove('hidden');
+                swrlDiv.querySelector('.swrlAdded').classList.add('hidden');
+                swrlDiv.querySelector('.swrlNotAdded').classList.remove('hidden');
             }
         });
+        if (swrl.done && swrl.done.indexOf(swrlUser.uid) !== -1) {
+            swrlDiv.querySelector('.swrlDone').classList.remove('hidden');
+        } else {
+            swrlDiv.querySelector('.swrlNotDone').classList.remove('hidden');
+        }
     }
 }

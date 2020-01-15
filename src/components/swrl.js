@@ -57,7 +57,15 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
         $swrl('.swrlLoveCount').classList.add('hidden');
         $swrl('.swrlSpinnerLoveCount').classList.remove('hidden');
 
+        /** @type {HTMLTemplateElement} */
+        // @ts-ignore
+        const swrlButtonsTemplate = document.getElementById('swrlButtons');
+        const buttons = swrlButtonsTemplate.content.cloneNode(true);
+
+        $swrl('.swrlButtons').appendChild(buttons);
+
         if (view === SEARCH || view === RECOMMEND) {
+            $swrl('.swrlButtonSpinner').classList.remove('hidden');
             //for these let's try get the latest swrl details for the buttons
             const docRef = firestore.collection(Collection.SWRLS).doc(swrl.swrlID);
             docRef.get()
@@ -71,8 +79,16 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
                             console.error(error);
                         }
                     }
+                    swrlDiv.querySelector('.swrlButtonSpinner').classList.add('hidden');
                     addStats(swrlDiv, latestSwrl);
                     addLoveButton(view, latestSwrl, swrlDiv, firestore, null);
+                    addDoneButton(swrlDiv, latestSwrl, firestore, swrlsContainer, view);
+                    addAddButton(view, swrlDiv, latestSwrl, firestore, swrlsContainer, null);
+                    //Already on the recommend screen, so would be weird to recommend again!
+                    if (view !== RECOMMEND) {
+                        addRecommendButton(swrlDiv, swrl, stateController);
+                    }
+
                     swrlDiv.addEventListener('click', (e) => {
                         e.stopPropagation();
                         e.preventDefault();
@@ -85,6 +101,13 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
         } else {
             addStats(swrlDiv, swrl);
             addLoveButton(view, swrl, swrlDiv, firestore, null);
+            addDoneButton(swrlDiv, swrl, firestore, swrlsContainer, view);
+            addAddButton(view, swrlDiv, swrl, firestore, swrlsContainer, null);
+            //Already on the recommend screen, so would be weird to recommend again!
+            if (view !== RECOMMEND) {
+                addRecommendButton(swrlDiv, swrl, stateController);
+            }
+
             swrlDiv.addEventListener('click', (e) => {
                 e.stopPropagation();
                 e.preventDefault();
@@ -95,14 +118,7 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
             })
         }
 
-        addDoneButton(swrlDiv, swrl, firestore, swrlsContainer, view);
-        addAddButton(view, swrlDiv, swrl, firestore, swrlsContainer, null);
-
-        //Already on the recommend screen, so would be weird to recommend again!
-        if (view !== RECOMMEND) {
-            addRecommendButton(swrlDiv, swrl, stateController);
-        }
-
+        
         addDeleteButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer);
 
         swrlsContainer.appendChild(swrlFragment);
@@ -119,7 +135,7 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
  * @param {HTMLElement} swrlsContainer 
  */
 function addDeleteButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer) {
-    if (view === YOUR_LIST || view === DISCOVER) {
+    if (swrlDiv && view === DISCOVER) {
         $swrl('.swrlDelete').classList.remove('hidden');
         $swrl('.swrlDelete').addEventListener('click', (e) => {
             e.stopPropagation();

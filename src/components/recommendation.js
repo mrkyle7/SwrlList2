@@ -51,6 +51,13 @@ export const renderRecommendation = async (stateController, view, recommendation
         $recommendation('.swrlTitle').innerText = title;
         $recommendation('.swrlType').innerText = recommendation.swrl.type.name;
 
+         /** @type {HTMLTemplateElement} */
+        // @ts-ignore
+        const swrlButtonsTemplate = document.getElementById('swrlButtons');
+        const buttons = swrlButtonsTemplate.content.cloneNode(true);
+
+        $recommendation('.swrlButtons').appendChild(buttons);
+
         addStats(recommendationDiv, recommendation.swrl);
         addLoveButton(view, recommendation.swrl, recommendationDiv, firestore, recommendation);
         addAddButton(view, recommendationDiv, recommendation.swrl, firestore, null, recommendation);
