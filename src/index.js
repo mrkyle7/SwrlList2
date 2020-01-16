@@ -50,6 +50,14 @@ const app = {
             bindMenuSwipeAction();
             const firebase = initialiseFirebase();
             const firestore = firebase.firestore();
+            document.addEventListener('offline', () => firestore.disableNetwork(), false);
+            document.addEventListener('online', () => firestore.enableNetwork(), false);
+            const initialState = navigator.connection.type;
+            if (initialState === Connection.NONE) {
+                firestore.disableNetwork();
+            } else {
+                firestore.enableNetwork();
+            }
             setUpLogin(firebase, firestore);
             initMessaging(firebase, firestore);
             stateController = new StateController(firestore);
@@ -64,7 +72,11 @@ const app = {
 };
 
 window.onerror = function (what, line, file) {
-    alert(what + '; ' + line + '; ' + file);
+    if (what.toString().match('.*FIRESTORE.*')) {
+        window.location.reload(true);
+    } else {
+        alert(what + '; ' + line + '; ' + file);
+    }
 };
 
 function handleOpenURL(url) {
