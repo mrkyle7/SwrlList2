@@ -1,0 +1,14 @@
+16/1/2020
+- Improved navigation between list and full page swrls
+
+14/1/2020
+- Buttons show added and done and no longer remove the swrl from list immediately
+
+14/1/2020
+- Bug fix on page buttons
+
+13/1/2020
+- Swrl buttons on the full page view
+
+11/1/2020
+- Now you can see lots more details!

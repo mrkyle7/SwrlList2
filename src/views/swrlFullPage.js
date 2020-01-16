@@ -71,10 +71,41 @@ async function showSwrlFullPage(stateController) {
 
     pageButtons.appendChild(buttons);
 
-    addAddButton(FULL_PAGE, swrlFullPageView, swrl, firestore, null, null);
-    addLoveButton(FULL_PAGE, swrl, swrlFullPageView, firestore, null);
-    addRecommendButton(swrlFullPageView, swrl, stateController);
-    addDoneButton(swrlFullPageView, swrl, firestore, null, FULL_PAGE);
+    pageButtons.querySelector('.swrlButtonSpinner').classList.remove('hidden');
+
+    firestore.collection(Collection.SWRLS).doc(swrl.swrlID).get()
+        .then(doc => {
+            const data = doc.data();
+            let currentSwrl = swrl;
+            try {
+                currentSwrl = Swrl.fromFirestore(data);
+            } catch (err) {
+                console.error('Could not get data for swrl');
+                console.error(err);
+            }
+
+            pageButtons.querySelector('.swrlButtonSpinner').classList.add('hidden');
+
+            addAddButton(FULL_PAGE, swrlFullPageView, currentSwrl, firestore, null, null);
+            addLoveButton(FULL_PAGE, currentSwrl, swrlFullPageView, firestore, null);
+            addRecommendButton(swrlFullPageView, currentSwrl, stateController);
+            addDoneButton(swrlFullPageView, currentSwrl, firestore, null, FULL_PAGE);
+
+            renderSocialCards(currentSwrl, swrlPageCardTemplate, swrlPageSubCardTemplate, firestore);
+        })
+        .catch(err => {
+            console.error('Could not get data for swrl');
+            console.error(err);
+
+            pageButtons.querySelector('.swrlButtonSpinner').classList.add('hidden');
+
+            addAddButton(FULL_PAGE, swrlFullPageView, swrl, firestore, null, null);
+            addLoveButton(FULL_PAGE, swrl, swrlFullPageView, firestore, null);
+            addRecommendButton(swrlFullPageView, swrl, stateController);
+            addDoneButton(swrlFullPageView, swrl, firestore, null, FULL_PAGE);
+            renderSocialCards(swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, firestore);
+        })
+
 
     /** @type {HTMLTemplateElement} */
     // @ts-ignore
@@ -115,7 +146,6 @@ async function showSwrlFullPage(stateController) {
         console.error(err);
         loadingbar.classList.add('hidden');
     }
-    renderSocialCards(swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, firestore);
 }
 
 /**
@@ -512,10 +542,10 @@ function destroySwrlFullPage() {
         detailController.abort();
     }
 
-    while(pageButtons.firstChild) {
+    while (pageButtons.firstChild) {
         pageButtons.removeChild(pageButtons.firstChild);
     }
-    
+
     destroyDetailCards();
     while (swrlFullPageSocialCards.firstChild) {
         swrlFullPageSocialCards.removeChild(swrlFullPageSocialCards.firstChild);

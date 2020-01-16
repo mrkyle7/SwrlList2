@@ -55,6 +55,8 @@ const discoverTab = document.getElementById('discoverTab');
 
 const swrlsContainer = document.getElementById('swrlList');
 let currentID;
+let currentCategory;
+let currentView;
 
 /**
  * @param {Category} category
@@ -68,16 +70,25 @@ export function showList(category, view, firestore, stateController) {
 
     currentID = Math.random();
     const resultsID = currentID;
-    clearList();
+
     if (view === YOUR_LIST) {
         yourListTab.classList.add('selected');
     } else if (view === DISCOVER) {
         discoverTab.classList.add('selected');
     }
-    document.getElementById('swrlList').classList.remove('hidden');
-    document.getElementById('messageContainer').classList.remove('hidden');
-    document.getElementById('message').innerText = 'Loading Swrls...';
-    document.querySelector('#messageContainer .loadingSpinner').classList.remove('hidden');
+    swrlsContainer.classList.remove('hidden');
+    document.getElementById('swrlListView').classList.remove('hidden');
+
+    if (currentCategory !== category || currentView !== view) {
+        clearList();
+        document.getElementById('messageContainer').classList.remove('hidden');
+        document.getElementById('message').innerText = 'Loading Swrls...';
+        document.querySelector('#messageContainer .loadingSpinner').classList.remove('hidden');
+    } else {
+        document.querySelector('#swrlListView .loadingbar').classList.remove('hidden');
+    }
+    currentCategory = category
+    currentView = view;
     const swrlsRef = firestore.collection(Collection.SWRLS);
     if (swrlsRef) {
         runQuery(swrlsRef, category, view)
@@ -85,7 +96,11 @@ export function showList(category, view, firestore, stateController) {
                 if (currentID === resultsID) {
                     document.getElementById('messageContainer').classList.add('hidden');
                     document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
+                    document.querySelector('#swrlListView .loadingbar').classList.add('hidden');
+
+                    clearList();
                     if (!querySnapshot.empty) {
+
                         querySnapshot.forEach(
                             /**
                              * @param {firebase.firestore.QueryDocumentSnapshot} docSnapshot
@@ -98,7 +113,7 @@ export function showList(category, view, firestore, stateController) {
                                     console.error(`Cannot render swrl ${docSnapshot.id}`);
                                     console.error(docSnapshot.data());
                                     console.error(error);
-                                }   
+                                }
                             })
                         if (view === DISCOVER && swrlsContainer.querySelectorAll('div').length == 0) {
                             console.log('No Swrls to discover');
@@ -171,10 +186,10 @@ export function destroyList() {
     document.getElementById('swrlList').classList.add('hidden');
     document.getElementById('messageContainer').classList.add('hidden');
     document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
+    document.querySelector('#swrlListView .loadingbar').classList.add('hidden');
     yourListTab.classList.remove('selected');
     discoverTab.classList.remove('selected');
     currentID = undefined;
-    clearList();
 }
 
 /**
