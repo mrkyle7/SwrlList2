@@ -4,7 +4,7 @@ import { YOUR_LIST, DISCOVER } from '../constants/View';
 import { Collection } from '../constants/Collection';
 import { Category } from '../constants/Category';
 import { swrlUser } from '../firebase/login';
-import { renderSwrl } from '../components/swrl';
+import swrl, { renderSwrl } from '../components/swrl';
 import showRequireLoginScreen from '../components/requireLoginScreen';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
@@ -100,7 +100,7 @@ export function showList(category, view, firestore, stateController) {
 
                     clearList();
                     if (!querySnapshot.empty) {
-
+                        const swrls = [];
                         querySnapshot.forEach(
                             /**
                              * @param {firebase.firestore.QueryDocumentSnapshot} docSnapshot
@@ -108,13 +108,17 @@ export function showList(category, view, firestore, stateController) {
                             (docSnapshot) => {
                                 try {
                                     const swrl = Swrl.fromFirestore(docSnapshot.data());
-                                    renderSwrl(stateController, view, swrl, firestore, swrlsContainer);
+                                    if (!(view === DISCOVER && (isOnList(swrl) || isDeleted(swrl)))) {
+                                        swrls.push(swrl);
+                                    }
                                 } catch (error) {
-                                    console.error(`Cannot render swrl ${docSnapshot.id}`);
+                                    console.error(`Cannot get swrl ${docSnapshot.id}`);
                                     console.error(docSnapshot.data());
                                     console.error(error);
                                 }
                             })
+                        renderNextSwrls(swrls, stateController, view, firestore);
+
                         if (view === DISCOVER && swrlsContainer.querySelectorAll('div').length == 0) {
                             console.log('No Swrls to discover');
                             showNoSwrlsDiscoverView(category);
@@ -139,6 +143,47 @@ export function showList(category, view, firestore, stateController) {
         } else {
             console.log('View was changed');
         }
+    }
+}
+
+/**
+ * @param {Swrl} swrl
+ */
+function isOnList(swrl) {
+    return (swrl.later && swrl.later.indexOf(swrlUser.uid) !== -1)
+        || (swrl.done && swrl.done.indexOf(swrlUser.uid) !== -1);
+}
+
+/**
+ * @param {Swrl} swrl
+ */
+function isDeleted(swrl) {
+    return swrl.deleted && swrl.deleted.indexOf(swrlUser.uid) !== -1;
+}
+
+/**
+ * 
+ * @param {Swrl[]} swrls 
+ * @param {StateController} stateController 
+ * @param {Constant} view 
+ * @param {firebase.firestore.Firestore} firestore 
+ */
+function renderNextSwrls(swrls, stateController, view, firestore) {
+    const end = swrls.length > 20 ? 20 : swrls.length;
+    const swrlsToRender = swrls.slice(0, end);
+    swrlsToRender.forEach(swrl => renderSwrl(stateController, view, swrl, firestore, swrlsContainer));
+    if (swrls.length > 20) {
+        /** @type {HTMLElement} */
+        // @ts-ignore
+        const showMoreSwrls = document.getElementById('showMoreSwrls').content.cloneNode(true);
+        const div = showMoreSwrls.querySelector('div');
+        div.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            swrlsContainer.removeChild(div);
+            renderNextSwrls(swrls.slice(20, swrls.length), stateController, view, firestore);
+        })
+        swrlsContainer.appendChild(showMoreSwrls);
     }
 }
 
