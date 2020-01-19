@@ -5,7 +5,7 @@ import { Rating } from "../model/rating";
 
 
 const tmdbAPIKey = 'c3356e66739e40233c7870d42b30bc34';
-const imageUrlPrefix = 'https://image.tmdb.org/t/p/original';
+const imageUrlPrefix = 'https://image.tmdb.org/t/p/w500';
 
 export class TmdbFilmDetailGetter extends DetailGetter {
     constructor() {

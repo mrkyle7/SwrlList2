@@ -52,7 +52,10 @@ const app = {
             const firestore = firebase.firestore();
             document.addEventListener('offline', () => firestore.disableNetwork(), false);
             document.addEventListener('online', () => firestore.enableNetwork(), false);
+
+            // @ts-ignore
             const initialState = navigator.connection.type;
+            // @ts-ignore
             if (initialState === Connection.NONE) {
                 firestore.disableNetwork();
             } else {
@@ -72,7 +75,7 @@ const app = {
 };
 
 window.onerror = function (what, line, file) {
-    if (what.toString().match('.*FIRESTORE.*')) {
+    if (what.toString().match('FIRESTORE|The transaction was aborted')) {
         window.location.reload(true);
     } else {
         alert(what + '; ' + line + '; ' + file);

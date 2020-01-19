@@ -6,7 +6,7 @@ import { Swrl } from '../model/swrl';
 import { Details } from '../model/details';
 
 const tmdbAPIKey = 'c3356e66739e40233c7870d42b30bc34';
-const imageUrlPrefix = 'https://image.tmdb.org/t/p/original';
+const imageUrlPrefix = 'https://image.tmdb.org/t/p/w500';
 
 export class WatchSearch extends Search {
 

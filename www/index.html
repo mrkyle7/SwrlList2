@@ -39,8 +39,11 @@
   </div>
   <div id="sidebarMenu">
     <ul class="sidebarMenuInner">
-      <li><img class="profile-photo hidden" id="userPhoto" src="" />
+      <li><img class="profile-photo menu-image hidden" id="userPhoto" src="" />
         <p id="loginStatus">Not logged in</p>
+      </li>
+      <li class="hidden" id="savedSearchesMenu"><img class="menu-image" src="img/search-24px-white.svg">
+        <p>Saved searches</p>
       </li>
       <li class="hidden" id="logout">Logout</li>
     </ul>
@@ -110,12 +113,25 @@
       <img class="loadingbar hidden" src="img/loadingbar.svg" />
       <div id="swrlList" class="hidden swrlsContainer"></div>
     </div>
+    <div id="savedSearchesView" class="hidden">
+      <img class="loadingbar hidden" src="img/loadingbar.svg" />
+      <div id="savedSearches" class="hidden swrlsContainer"></div>
+    </div>
     <div id="recommendationList" class="hidden swrlsContainer"></div>
     <div id="searchView" class="hidden">
       <div id="searchResults" class="hidden swrlsContainer">
+        <div id="addToSavedSearch" class="hidden">
+          <div><span id="addToSavedSearchContent"></span> <img class="swrlButton" src="img/save-24px.svg" /></div>
+        </div>
         <img class="loadingbar hidden" src="img/loadingbar.svg" />
         <div id="resultList"></div>
       </div>
+      <div id="savedSearchesCard" class="card hidden">
+        <p class="cardTitle">Saved Searches</p>
+        <div id="savedSearchesSearchView" class="cardContent">
+        </div>
+      </div>
+      
       <div id="searching" class="hidden statusMessage">
         <img class="swrlSpinnerListCount loadingSpinner" src="img/spinner.gif" />
         <p id="searchingMessage">Searching...</p>
@@ -160,9 +176,7 @@
   </div>
   <template id="swrl">
     <div class="swrl">
-      <div class="swrlBanner swrlAddedConfirm hidden">Added to your list</div>
-      <div class="swrlBanner swrlMarkedAsDone hidden">Marked as Done</div>
-      <div class="swrlBanner swrlDeleted hidden">Swrl Deleted</div>
+      <div class="swrlBanner swrlDeleted hidden">Swrl Dismissed</div>
       <div class="swrlInfo">
         <img class="swrlImage" src="" />
         <div class="swrlDetails">
@@ -186,6 +200,16 @@
       </div>
       <div class="swrlButtons">
 
+      </div>
+    </div>
+  </template>
+  <template id="savedSearch">
+    <div class="savedSearch">
+      <img class="searchCategoryIcon" src="" />
+      <span class="savedSearchText"></span>
+      <div class="savedSearchButtons">
+        <img class="deleteSavedSearch" src="img/delete.svg" />
+        <img class="runSavedSearch" src="img/search-24px.svg" />
       </div>
     </div>
   </template>

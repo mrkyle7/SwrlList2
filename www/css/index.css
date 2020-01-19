@@ -111,6 +111,9 @@ body {
 
 .profile-photo {
     border-radius: 50%;
+}
+
+.menu-image {
     height: 40px;
     width: 40px;
     margin: 4px;
@@ -477,9 +480,15 @@ body {
     position: absolute;
 }
 
-#swrlList, #searchResults, #searchView, #recommend, #recommendationList, #swrlFullPage {
+#swrlList, #searchResults, #searchView, #recommend, #recommendationList, #swrlFullPage, #savedSearches {
     position: absolute;
     bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+#savedSearchesCard {
+    position: absolute;
     left: 0;
     right: 0;
 }
@@ -493,7 +502,7 @@ body {
     background-color: white
 }
 
-#searchResults, #searchView {
+#searchResults, #searchView, #savedSearchesCard {
     top: 156px
 }
 
@@ -501,7 +510,7 @@ body {
     display: contents;
 }
 
-#recommend, #swrlFullPage {
+#recommend, #swrlFullPage, #savedSearches {
     top: 56px;
     overflow: scroll;
 }
@@ -615,7 +624,7 @@ body {
     text-overflow: ellipsis;
 }
 
-.swrlTitle{
+.swrlTitle {
     margin: 4px;
 }
 
@@ -696,10 +705,10 @@ body {
     #swrlList, #recommendationList {
         top: 104px;
     }
-    #searchResults, #searchView {
+    #searchResults, #searchView, #savedSearchesCard {
         top: 156px;
     }
-    #recommend, #swrlFullPage {
+    #recommend, #swrlFullPage, #savedSearches {
         top: 56px;
     }
     .main .section {
@@ -926,4 +935,57 @@ body {
     top: 0;
     line-height: 32px;
     margin-left: 4px;
+}
+
+#addToSavedSearch {
+    cursor: pointer;
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    display: flex;
+    position: relative;
+    margin: 4px;
+    width: fit-content;
+    height: 32px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#addToSavedSearch div {
+    display: flex;
+    margin: 4px;
+    line-height: 24px;
+}
+
+#addToSavedSearch img {
+    align-self: flex-end;
+    margin: 4px;
+    height: 24px;
+    width: 24px;
+}
+
+.savedSearch {
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    margin: 4px;
+    height: 56px;
+}
+
+.savedSearchText, .savedSearchButtons {
+    line-height: 48px;
+    margin: 4px;
+}
+
+.savedSearch img {
+    height: 32px;
+    width: 32px;
+    margin: auto 8px auto 4px;
+    vertical-align: middle;
+}
+
+.savedSearchButtons {
+    position: absolute;
+    right: 0;
 }

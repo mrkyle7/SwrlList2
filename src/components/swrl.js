@@ -155,7 +155,7 @@ function addDeleteButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer) 
                         swrlsContainer.removeChild(swrlDiv);
                     }
                 }, 1000);
-                showToasterMessage('Deleted ' + swrl.details.title + ' from your list');
+                showToasterMessage('Dismissed ' + swrl.details.title);
             }
         });
     }

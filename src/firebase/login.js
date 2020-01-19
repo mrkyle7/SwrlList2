@@ -148,10 +148,11 @@ function handleLoginSuccess(firestore) {
             image.src = 'img/emoji_people-24px.svg' 
         }
     });
-    document.querySelector("#userPhoto").classList.remove('hidden');
-    document.querySelector("#logout").classList.remove('hidden');
-    document.querySelector("#login").classList.add('hidden');
-    document.querySelector("#loginStatus").innerHTML = swrlUser.displayName;
+    document.getElementById("userPhoto").classList.remove('hidden');
+    document.getElementById("logout").classList.remove('hidden');
+    document.getElementById("savedSearchesMenu").classList.remove('hidden');
+    document.getElementById("login").classList.add('hidden');
+    document.getElementById("loginStatus").innerHTML = swrlUser.displayName;
 }
 
 /**
@@ -171,6 +172,7 @@ function updateSwrlerDetails(firestore) {
 function handleAnonymous() {
     document.querySelector("#inboxDisplay").classList.add('hidden');
     document.querySelector("#logout").classList.add('hidden');
+    document.querySelector("#savedSearchesMenu").classList.add('hidden');
     document.querySelector("#login").classList.remove('hidden');
     document.querySelector("#userPhoto").classList.add('hidden');
     document.querySelector("#loginStatus").innerHTML = "Mystery Swrler";
@@ -182,6 +184,7 @@ function handleAnonymous() {
 function handleLogout() {
     document.querySelector("#inboxDisplay").classList.add('hidden');
     document.querySelector("#logout").classList.add('hidden');
+    document.querySelector("#savedSearchesMenu").classList.add('hidden');
     document.querySelector("#login").classList.remove('hidden');
     document.querySelector("#userPhoto").classList.add('hidden');
     document.querySelector("#loginStatus").innerHTML = "Not Logged In";

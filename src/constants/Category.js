@@ -16,8 +16,9 @@ export class Category extends Constant {
      * @param {string} searchPlaceholder
      * @param {Search} search
      * @param {string} colour
+     * @param {string} image
      */
-    constructor(id, name, displayName, noSwrlsMessage, noSwrlsDiscoverMessage, searchMessage, searchPlaceholder, search, colour) {
+    constructor(id, name, displayName, noSwrlsMessage, noSwrlsDiscoverMessage, searchMessage, searchPlaceholder, search, colour, image) {
         super(id);
         this.name = name;
         this.displayName = displayName;
@@ -27,6 +28,7 @@ export class Category extends Constant {
         this.searchPlaceholder = searchPlaceholder;
         this.search = search;
         this.colour = colour;
+        this.image = image;
         Object.freeze(this);
     }
 }
@@ -40,7 +42,8 @@ export const WATCH = new Category(
     'Search for a TV show or movie',
     'Search by title',
     new WatchSearch(),
-    '#3EB283');
+    '#3EB283',
+    'img/movie-24px.svg');
 
 export const READ = new Category(
     2,
@@ -51,7 +54,8 @@ export const READ = new Category(
     'Search for a book',
     'Search by title or author',
     new ReadSearch(),
-    '#F6A900');
+    '#F6A900',
+    'img/menu_book-24px.svg');
 
 export const LISTEN = new Category(
     3,
@@ -62,7 +66,8 @@ export const LISTEN = new Category(
     'Search for an album or podcast',
     'Search by title or artist',
     new ListenSearch(),
-    '#b042f4');
+    '#b042f4',
+    'img/headset-24px.svg');
 
 export const PLAY = new Category(
     4,
@@ -73,7 +78,8 @@ export const PLAY = new Category(
     'Search for a boardgame or video game',
     'Search by title',
     new PlaySearch(),
-    '#71A8D6');
+    '#71A8D6',
+    'img/videogame_asset-24px.svg');
 
 export const Categories = Object.freeze([WATCH, READ, LISTEN, PLAY]);
 

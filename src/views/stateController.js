@@ -12,6 +12,8 @@ import { RecommendationsScreen } from "../screens/recommendationsScreen";
 import { RecommendScreen } from "../screens/recommendScreen";
 import { SwrlScreen } from "../screens/swrlScreen";
 import { SwrlFullPage } from "./swrlFullPage";
+import { SavedSearchesScreen } from "../screens/savedSearchesScreen";
+import { SavedSearches } from "./savedSearches";
 
 export class StateController {
     /**
@@ -25,6 +27,7 @@ export class StateController {
         this.recommendationsScreen = new RecommendationsScreen(this);
         this.recommendScreen = new RecommendScreen(this);
         this.swrlScreen = new SwrlScreen(this);
+        this.savedSearches = new SavedSearchesScreen(this);
         //views
         this.homeView = new Home(this);
         this.inboxView = new InboxRecommendations(this);
@@ -34,6 +37,7 @@ export class StateController {
         this.searchView = new SearchView(this);
         this.recommendView = new Recommend(this);
         this.swrlView = new SwrlFullPage(this);
+        this.savedSearchesView = new SavedSearches(this);
         //states
         /** @type {State[]} */
         this.previousStates = [];
@@ -81,6 +85,8 @@ export class StateController {
             e.preventDefault();
             this.showPreviousScreen();
         })
+
+        this._initMenuItems();
 
         const inboxIcon = document.getElementById('inboxDisplay');
         inboxIcon.addEventListener('click', (e) => {
@@ -138,6 +144,26 @@ export class StateController {
 
                 this._bindSectionClick(section, category);
             });
+    }
+
+    _initMenuItems() {
+        const savedSearchMenuItem = document.getElementById('savedSearchesMenu');
+        const openSavedSearch = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            this._closeMenu();
+            this.changeState(new State(this.savedSearchesView, undefined, undefined, undefined))
+        }
+        savedSearchMenuItem.addEventListener('click', openSavedSearch);
+        savedSearchMenuItem.addEventListener('touchstart', openSavedSearch);
+    }
+
+    _closeMenu() {
+        /** @type {HTMLInputElement} */
+        const openSidebarMenuElement = document.querySelector("#openSidebarMenu");
+        openSidebarMenuElement.checked = false;
+        const fade = document.getElementById('fade');
+        fade.classList.add('hidden');
     }
 
     /**
