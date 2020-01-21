@@ -21,7 +21,7 @@ export class TmdbFilmDetailGetter extends DetailGetter {
     get(id, signal, searchId) {
         // to be overidden
         return new Promise(async (resolve, reject) => {
-            const url = `https://api.themoviedb.org/3/movie/${id}?api_key=${tmdbAPIKey}`;
+            const url = `https://api.themoviedb.org/3/movie/${id}?api_key=${tmdbAPIKey}&append_to_response=credits`;
             try {
                 const response = await fetch(url, { signal });
                 const data = await response.json();

@@ -71,22 +71,21 @@ let currentSearchController;
 function showSearch(category, searchText, firestore, stateController) {
     searchView.classList.remove('hidden');
     tabs.classList.remove('hidden');
+    searchBar.classList.remove('hidden');
+    searchTab.classList.add('selected');
+    searchBar.focus();
+    searchBar.placeholder = category.searchPlaceholder;
+    searchResultsContainer.classList.remove('hidden');
+
     if (category !== currentCategory) {
         clearResults();
         searchBar.value = '';
         addToSavedSearch.classList.add('hidden');
     }
     currentCategory = category;
-    searchResultsContainer.classList.remove('hidden');
-    searchBar.classList.remove('hidden');
-    searchTab.classList.add('selected');
-    searchBar.focus();
-    searchBar.placeholder = category.searchPlaceholder;
-    if (!resultsShowing && (searchText === undefined || searchText.length === 0)) {
-        messageContainer.classList.remove('hidden');
-        message.innerText = category.searchMessage;
 
-        showSavedSearches(firestore, stateController);
+    if (!resultsShowing && (searchText === undefined || searchText.length === 0)) {
+        showSavedSearchesOrSearchMessage(firestore, stateController);
     }
     if (searchText !== undefined && searchText.length > 0) {
         searchBar.value = searchText;
@@ -99,78 +98,98 @@ function showSearch(category, searchText, firestore, stateController) {
  * @param {firebase.firestore.Firestore} firestore 
  * @param {StateController} stateController 
  */
-function showSavedSearches(firestore, stateController) {
+function showSavedSearchesOrSearchMessage(firestore, stateController) {
+    showMessage(currentCategory.searchMessage);
     firestore.collection(Collection.SAVEDSEARCHES)
         .where("uid", "==", swrlUser.uid)
         .where("category", "==", currentCategory.id)
         .get()
         .then(querySnapshot => {
-            while (savedSearches.firstChild) {
-                savedSearches.removeChild(savedSearches.firstChild);
-            }
-            if (!querySnapshot.empty) {
+            if (!querySnapshot.empty && searchBar.value.length === 0) {
+                hideAllMessages();
                 savedSearchesCard.classList.remove('hidden');
-                querySnapshot.forEach(doc => {
-                    const data = doc.data();
-                    const id = doc.id;
-                    try {
-                        const savedSearch = SavedSearch.fromJson(data);
-                        /** @type {HTMLElement} */
-                        // @ts-ignore
-                        const fragment = savedSearchTemplate.content.cloneNode(true);
-                        const div = fragment.querySelector('div');
-                        // @ts-ignore
-                        fragment.querySelector('.searchCategoryIcon').src = savedSearch.category.image;
-                        // @ts-ignore
-                        fragment.querySelector('.savedSearchText').innerText = savedSearch.searchText;
-                        div.style.backgroundColor = savedSearch.category.colour;
-                        // @ts-ignore
-                        fragment.querySelector('.deleteSavedSearch').addEventListener('click', (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            showToasterMessage('Deleted saved search: ' + savedSearch.searchText);
-                            if (div) {
-                                savedSearches.removeChild(div);
-                            }
-                            firestore.collection(Collection.SAVEDSEARCHES).doc(id).delete();
-                            if (!savedSearches.querySelector('.savedSearch')) {
-                                console.log('No more saved searches');
-                                savedSearchesCard.classList.add('hidden');
-                            }
-                        });
-                        // @ts-ignore
-                        fragment.querySelector('.runSavedSearch').addEventListener('click', (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            showToasterMessage('Running and deleting saved search: ' + savedSearch.searchText);
-                            stateController.changeState(new State(stateController.searchView, savedSearch.category, savedSearch.searchText, undefined));
-                            firestore.collection(Collection.SAVEDSEARCHES).doc(id).delete();
-                        });
-                        savedSearches.appendChild(fragment);
-                    }
-                    catch (err) {
-                        console.error('Could not render saved search');
-                        console.error(err);
-                    }
-                });
-                if (savedSearches.childNodes.length === 0) {
-                    savedSearchesCard.classList.add('hidden');
+                renderSavedSearches(querySnapshot, firestore, stateController);
+                if (!savedSearchesExist()) {
+                    showMessage(currentCategory.searchMessage);
                 }
             }
         });
+}
+
+function savedSearchesExist() {
+    return savedSearches.querySelector('.savedSearch');
+}
+
+/**
+ * 
+ * @param {firebase.firestore.QuerySnapshot} querySnapshot 
+ * @param {firebase.firestore.Firestore} firestore 
+ * @param {StateController} stateController 
+ */
+function renderSavedSearches(querySnapshot, firestore, stateController) {
+    while (savedSearches.firstChild) {
+        savedSearches.removeChild(savedSearches.firstChild);
+    }
+    querySnapshot.forEach(doc => {
+        const data = doc.data();
+        const id = doc.id;
+        try {
+            const savedSearch = SavedSearch.fromJson(data);
+            /** @type {HTMLElement} */
+            // @ts-ignore
+            const fragment = savedSearchTemplate.content.cloneNode(true);
+            const div = fragment.querySelector('div');
+            // @ts-ignore
+            fragment.querySelector('.searchCategoryIcon').src = savedSearch.category.image;
+            // @ts-ignore
+            fragment.querySelector('.savedSearchText').innerText = savedSearch.searchText;
+            div.style.backgroundColor = savedSearch.category.colour;
+            // @ts-ignore
+            fragment.querySelector('.deleteSavedSearch').addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                showToasterMessage('Deleted saved search: ' + savedSearch.searchText);
+                if (div) {
+                    savedSearches.removeChild(div);
+                }
+                firestore.collection(Collection.SAVEDSEARCHES).doc(id).delete();
+                if (!savedSearchesExist()) {
+                    console.log('No more saved searches');
+                    showMessage(currentCategory.searchMessage);
+                }
+            });
+            // @ts-ignore
+            fragment.querySelector('.runSavedSearch').addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                showToasterMessage('Running and deleting saved search: ' + savedSearch.searchText);
+                stateController.changeState(new State(stateController.searchView, savedSearch.category, savedSearch.searchText, undefined));
+                firestore.collection(Collection.SAVEDSEARCHES).doc(id).delete();
+            });
+            savedSearches.appendChild(fragment);
+        }
+        catch (err) {
+            console.error('Could not render saved search');
+            console.error(err);
+        }
+    });
 }
 
 function destroySearch() {
     searchView.classList.remove('hidden');
     searchBar.classList.add('hidden');
     tabs.classList.add('hidden');
+    searchTab.classList.remove('selected');
     searchResultsContainer.classList.add('hidden');
+    hideAllMessages();
+}
+
+function hideAllMessages() {
     messageContainer.classList.add('hidden');
     message.innerText = '';
     searching.classList.add('hidden');
     loadingbar.classList.add('hidden');
     searchingMessage.innerText = '';
-    searchTab.classList.remove('selected');
     savedSearchesCard.classList.add('hidden');
 }
 
@@ -186,19 +205,12 @@ export function initSearchBar(firestore, stateController) {
             category: currentCategory.id
         });
         showToasterMessage(`Added "${searchBar.value}" to saved searches`);
+        cancelCurrentSearch();
         searchBar.value = '';
         stateController.currentState.searchTerms = '';
-        addToSavedSearch.classList.add('hidden');
         clearResults();
-        showSavedSearches(firestore, stateController);
-        currentSearchID = undefined;
-        if (currentSearchController) {
-            currentSearchController.abort();
-        }
-        searching.classList.add('hidden');
-        loadingbar.classList.add('hidden');
-        messageContainer.classList.remove('hidden');
-        message.innerText = currentCategory.searchMessage;
+        addToSavedSearch.classList.add('hidden');
+        showSavedSearchesOrSearchMessage(firestore, stateController);
     })
     searchBar.addEventListener('keydown', (e) => {
         if (e.code === 'Enter') {
@@ -212,32 +224,44 @@ export function initSearchBar(firestore, stateController) {
     })
 }
 
+function cancelCurrentSearch() {
+    currentSearchID = undefined;
+    if (currentSearchController) {
+        currentSearchController.abort();
+    }
+    if (searchDelay) {
+        clearTimeout(searchDelay);
+    }
+}
+
+/**
+ * @param {string} text
+ */
+function showMessage(text) {
+    hideAllMessages();
+    messageContainer.classList.remove('hidden');
+    message.innerText = text;
+}
+
 /**
  * 
  * @param {StateController} stateController 
  * @param {firebase.firestore.Firestore} firestore 
  */
 function runSearch(stateController, firestore) {
+    cancelCurrentSearch();
     const searchText = searchBar.value;
-    if (searchDelay) {
-        clearTimeout(searchDelay);
-    }
     stateController.currentState.searchTerms = searchText;
     if (searchText.length > 0) {
-        savedSearchesCard.classList.add('hidden');
+        hideAllMessages();
         addToSavedSearch.classList.remove('hidden');
         addToSavedSearchContent.innerText = `Save "${searchText}" to search later`;
         searchDelay = setTimeout(() => {
-            if (currentSearchController) {
-                currentSearchController.abort();
-            }
             currentSearchController = new AbortController();
             const signal = currentSearchController.signal;
             currentSearchID = Math.random();
             if (!resultsShowing && currentSearchID !== undefined) {
-                messageContainer.classList.add('hidden');
-                searching.classList.remove('hidden');
-                searchingMessage.innerText = 'Searching for ' + searchText + '...';
+                showSearchingSpinner(searchText);
             }
             else {
                 loadingbar.classList.remove('hidden');
@@ -247,7 +271,6 @@ function runSearch(stateController, firestore) {
                 search.run(searchText, signal, currentSearchID)
                     .then((result) => {
                         if (result.id === currentSearchID) {
-                            savedSearchesCard.classList.add('hidden');
                             clearResults();
                             processResults(result.results, firestore, searchText, stateController);
                         }
@@ -258,8 +281,7 @@ function runSearch(stateController, firestore) {
                     .catch((err) => {
                         //TODO: add better view for errors?
                         console.error(err);
-                        messageContainer.classList.remove('hidden');
-                        message.innerText = 'Error - No results found for ' + searchText;
+                        showMessage('Error - No results found for ' + searchText)
                     });
             }
         }, 500);
@@ -270,10 +292,17 @@ function runSearch(stateController, firestore) {
         }
         clearResults();
         addToSavedSearch.classList.add('hidden');
-        showSavedSearches(firestore, stateController);
-        messageContainer.classList.remove('hidden');
-        message.innerText = currentCategory.searchMessage;
+        showSavedSearchesOrSearchMessage(firestore, stateController);
     }
+}
+
+/**
+ * @param {string} searchText
+ */
+function showSearchingSpinner(searchText) {
+    hideAllMessages();
+    searching.classList.remove('hidden');
+    searchingMessage.innerText = 'Searching for ' + searchText + '...';
 }
 
 function clearResults() {
@@ -290,14 +319,11 @@ function clearResults() {
  * @param {StateController} stateController
  */
 function processResults(results, firestore, searchText, stateController) {
-    searching.classList.add('hidden');
-    loadingbar.classList.add('hidden');
     if (results.length == 0) {
-        messageContainer.classList.remove('hidden');
-        message.innerText = 'No results found for ' + searchText;
+        showMessage('No results found for ' + searchText);
     } else {
         resultsShowing = true;
-        messageContainer.classList.add('hidden');
+        hideAllMessages();
         results.forEach((swrl) => {
             renderSwrl(stateController, SEARCH, swrl, firestore, searchResulList);
         });
