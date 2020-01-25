@@ -2,6 +2,7 @@ import { DetailGetter } from "./detailGetter";
 import { Details } from "../model/details";
 import { Link } from "../model/link";
 import { Rating } from "../model/rating";
+import { TmdbPerson } from "../model/tmdbPerson";
 
 
 const tmdbAPIKey = 'c3356e66739e40233c7870d42b30bc34';
@@ -45,6 +46,41 @@ export class TmdbFilmDetailGetter extends DetailGetter {
                 if (omdbData !== undefined && omdbData.Actors !== undefined && omdbData.Actors !== null) {
                     actors = omdbData.Actors.split(', ');
                 }
+
+                const TMDBActors = [];
+
+                data.credits.cast.forEach(
+                    /**
+                    * @param {any} person
+                    * @param {number} number
+                    */
+                    (person, number) => {
+                        if (number < 5) {
+                            TMDBActors.push(
+                                new TmdbPerson(
+                                    person.name,
+                                    person.id,
+                                    person.profile_path ? `${imageUrlPrefix}${person.profile_path}` : undefined));
+                        }
+                    });
+
+
+                const TMDBDirectors = [];
+
+                data.credits.crew.forEach(
+                    /**
+                    * @param {any} person
+                    * @param {number} number
+                    */
+                    (person) => {
+                        if (person.job === 'Director') {
+                            TMDBDirectors.push(
+                                new TmdbPerson(
+                                    person.name,
+                                    person.id,
+                                    person.profile_path ? `${imageUrlPrefix}${person.profile_path}` : undefined));
+                        }
+                    });
 
                 let ratings = [];
 
@@ -93,7 +129,9 @@ export class TmdbFilmDetailGetter extends DetailGetter {
                             data.tagline,
                             overview,
                             actors,
+                            TMDBActors,
                             director,
+                            TMDBDirectors,
                             ratings,
                             data.runtime ? data.runtime + ' mins' : undefined,
                             undefined,

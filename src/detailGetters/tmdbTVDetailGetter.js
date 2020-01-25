@@ -2,6 +2,7 @@ import { DetailGetter } from "./detailGetter";
 import { Details } from "../model/details";
 import { Link } from "../model/link";
 import { Network } from "../model/network";
+import { TmdbPerson } from "../model/tmdbPerson";
 
 
 const tmdbAPIKey = 'c3356e66739e40233c7870d42b30bc34';
@@ -40,9 +41,43 @@ export class TmdbTVDetailGetter extends DetailGetter {
                     averageEpisodeLength = averageEpisodeLength + ' mins';
                 }
 
+                const TMDBActors = [];
+
+                data.credits.cast.forEach(
+                    /**
+                    * @param {any} person
+                    * @param {number} number
+                    */
+                    (person, number) => {
+                        if (number < 5) {
+                            TMDBActors.push(
+                                new TmdbPerson(
+                                    person.name,
+                                    person.id,
+                                    person.profile_path ? `${imageUrlPrefix}${person.profile_path}` : undefined));
+                        }
+                    });
+
+
+                const TMDBDirectors = [];
+
+                data.credits.crew.forEach(
+                    /**
+                    * @param {any} person
+                    * @param {number} number
+                    */
+                    (person) => {
+                        if (person.job === 'Director') {
+                            TMDBDirectors.push(
+                                new TmdbPerson(
+                                    person.name,
+                                    person.id,
+                                    person.profile_path ? `${imageUrlPrefix}${person.profile_path}` : undefined));
+                        }
+                    });
+
+
                 const networks = [];
-
-
                 data.networks.forEach(
                     /**
                      * @param {{ name: string; logo_path: string; }} network
@@ -67,7 +102,9 @@ export class TmdbTVDetailGetter extends DetailGetter {
                             undefined,
                             data.overview,
                             undefined,
+                            TMDBActors,
                             undefined,
+                            TMDBDirectors,
                             [],
                             undefined,
                             data.number_of_seasons,

@@ -131,7 +131,7 @@
         <div id="savedSearchesSearchView" class="cardContent">
         </div>
       </div>
-      
+
       <div id="searching" class="hidden statusMessage">
         <img class="swrlSpinnerListCount loadingSpinner" src="img/spinner.gif" />
         <p id="searchingMessage">Searching...</p>
@@ -153,9 +153,12 @@
         <img id="swrlImageLarge" src="" />
       </div>
 
-      <div class="pageButtons">
+      <div class="pageButtonsContainer">
+        <div class="pageButtons">
 
+        </div>
       </div>
+
       <div id="swrlFullPageCards" class="cardsContainer"></div>
       <div id="swrlFullPageSocialCards" class="cardsContainer"></div>
     </div>
@@ -290,6 +293,14 @@
         <span class="actionText markUnRead hidden">MARK UNREAD</span>
         <span class="actionText dismiss">DISMISS</span>
       </div>
+    </div>
+  </template>
+  <template id="personLink">
+    <div class="personLink">
+      <div class="imageCropper">
+        <img class="personLinkImage" src="" />
+      </div>
+      <span class="personLinkText"></span>
     </div>
   </template>
   <template id="swrlerSmall">

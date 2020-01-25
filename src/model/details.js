@@ -2,6 +2,7 @@ import { assertObjectHasDefinedProperty } from "../utils/propertyChecker";
 import { Link } from "./link";
 import { Rating } from "./rating";
 import { Network } from "./network";
+import { TmdbPerson } from "./tmdbPerson";
 
 export class Details {
     /**
@@ -16,7 +17,9 @@ export class Details {
      * @param {string} tagline
      * @param {string} overview
      * @param {string[]} actors
+     * @param {TmdbPerson[]} tMDBActors
      * @param {string} director
+     * @param {TmdbPerson[]} tMDBDirectors
      * @param {Rating[]} ratings
      * @param {string} runtime
      * @param {number} numberOfSeasons
@@ -32,7 +35,7 @@ export class Details {
      * 
      */
     constructor(id, title, imageUrl, artist, author, releaseYear,
-        genres, links, tagline, overview, actors, director, ratings, runtime,
+        genres, links, tagline, overview, actors, tMDBActors, director, tMDBDirectors, ratings, runtime,
         numberOfSeasons, averageEpisodeLength, lastAirDate, networks,
         designers, platforms, publishers, playerCount, twoPlayerRecommendation, playingTime) {
         this.id = id;
@@ -46,7 +49,9 @@ export class Details {
         this.tagline = tagline;
         this.overview = overview;
         this.actors = actors;
+        this.tMDBActors = tMDBActors;
         this.director = director;
+        this.tMDBDirectors = tMDBDirectors;
         this.ratings = ratings;
         this.runtime = runtime;
         this.numberOfSeasons = numberOfSeasons;
@@ -67,7 +72,8 @@ export class Details {
     toJSON() {
         const json = {};
         Object.keys(this).forEach(key => {
-            if (key === 'links' || key === 'ratings' || key === 'networks') {
+            if (key === 'links' || key === 'ratings' || key === 'networks'
+                || key === 'tMDBActors' || key === 'tMDBDirectors') {
                 const specialArray = [];
                 this[key].forEach(obj => {
                     const special = {};
@@ -107,6 +113,18 @@ export class Details {
                     links.push(new Link(link.url, link.name, link.logo));
                 })
         }
+        const tMDBActors = [];
+        if (json.tMDBActors !== undefined) {
+            json.tMDBActors.forEach(person => {
+                tMDBActors.push(new TmdbPerson(person.name, person.id, person.imageUrl))
+            })
+        }
+        const tMDBDirectors = [];
+        if (json.tMDBDirectors !== undefined) {
+            json.tMDBDirectors.forEach(person => {
+                tMDBDirectors.push(new TmdbPerson(person.name, person.id, person.imageUrl))
+            })
+        }
         const ratings = [];
         if (json.ratings !== undefined) {
             json.ratings.forEach(
@@ -132,9 +150,9 @@ export class Details {
         return new Details(json.id, json.title, json.imageUrl, json.artist, json.author, json.releaseYear,
             json.genres || [],
             links, json.tagline, json.overview,
-            json.actors || [], json.director, ratings, json.runtime,
+            json.actors || [], tMDBActors, json.director, tMDBDirectors, ratings, json.runtime,
             json.numberOfSeasons, json.averageEpisodeLength, json.lastAirDate, networks,
-            json.designers|| [], json.platforms || [], json.publishers || [],
+            json.designers || [], json.platforms || [], json.publishers || [],
             json.playerCount, json.twoPlayerRecommendation, json.playingTime);
     }
 

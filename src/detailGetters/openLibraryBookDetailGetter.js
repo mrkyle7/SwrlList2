@@ -14,7 +14,6 @@ export class OpenLibraryBookDetailGetter extends DetailGetter {
      * @return {Promise<{id: number, details: Details}>}
      */
     get(id, signal, searchId) {
-        // to be overidden
         return new Promise(async (resolve, reject) => {
             const url = "https://openlibrary.org/api/books?format=json&jscmd=data&bibkeys=ISBN:" + id;
 
@@ -43,13 +42,15 @@ export class OpenLibraryBookDetailGetter extends DetailGetter {
                             data.cover ? data.cover.large : 'img/NoPoster.jpg',
                             undefined,
                             data.authors ? data.authors[0].name : 'Unknown',
-                            releaseYear(data.publish_date), 
+                            releaseYear(data.publish_date),
                             data.subjects ? data.subjects.map(s => s.name) : [],
                             links,
                             data.subtitle,
                             undefined,
                             [],
+                            [],
                             undefined,
+                            [],
                             [],
                             undefined,
                             undefined,

@@ -2,8 +2,6 @@ import { BOOK } from '../constants/Type';
 import { READ } from '../constants/Category';
 import { Search } from './search';
 import { Swrl } from '../model/swrl';
-import { Details } from '../model/details';
-import { Link } from '../model/link';
 import { OpenLibraryBookDetailGetter } from '../detailGetters/openLibraryBookDetailGetter';
 
 export class ReadSearch extends Search {

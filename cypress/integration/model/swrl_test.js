@@ -9,6 +9,7 @@ import firebase from 'firebase';
 import { Link } from '../../../src/model/link';
 import { Rating } from '../../../src/model/rating';
 import { Network } from '../../../src/model/network';
+import { TmdbPerson } from '../../../src/model/tmdbPerson';
 
 describe('Can parse JSON to Swrl', function () {
     context('swrl.js', function () {
@@ -16,7 +17,7 @@ describe('Can parse JSON to Swrl', function () {
             const aDate = new Date();
             const swrl1 = new Swrl(FILM, WATCH, 'abc123',
                 new Details('film-123', 'A Film', 'http://img', undefined, undefined, '2019',
-                    [], [], undefined, undefined, [], undefined, [], undefined, 1, 12, '2', [],
+                    [], [], undefined, undefined, [], [], undefined, [], [], undefined, 1, '12 mins', '2', [],
                     [],
                     [],
                     [],
@@ -26,7 +27,7 @@ describe('Can parse JSON to Swrl', function () {
                 aDate, ['user1'], [], [], [], undefined, [], []);
             const swrl2 = new Swrl(FILM, WATCH, 'abc123',
                 new Details('film-123', 'A Film', 'http://img', undefined, undefined, '2019',
-                    [], [], undefined, undefined, [], undefined, [], undefined, 1, 12, '2', [],
+                    [], [], undefined, undefined, [], [], undefined, [], [], undefined, 1, '12 mins', '2', [],
                     [],
                     [],
                     [],
@@ -36,7 +37,7 @@ describe('Can parse JSON to Swrl', function () {
                 aDate, ['user1'], [], [], [], undefined, [], []);
             const swrl3 = new Swrl(TV, WATCH, 'abc1234',
                 new Details('tv-123', 'A TV Show', 'http://img', undefined, undefined, undefined,
-                    [], [], undefined, undefined, [], undefined, [], undefined, 1, 12, '2', [],
+                    [], [], undefined, undefined, [], [], undefined, [], [], undefined, 1, '12 mins', '2', [],
                     [],
                     [],
                     [],
@@ -69,6 +70,8 @@ describe('Can parse JSON to Swrl', function () {
                         name: 'no logo'
                     }],
                     actors: ['Sean Connery'],
+                    tMDBActors: [{ name: 'Sean Connery', id: 2, imageUrl: '/img' }],
+                    tMDBDirectors: [{ name: 'mr director', id: 2, imageUrl: '/img' }],
                     ratings: [{
                         source: 'imdb',
                         rating: '10/10'
@@ -102,7 +105,9 @@ describe('Can parse JSON to Swrl', function () {
             const expected = new Swrl(ALBUM, LISTEN, 'ITUNESALBUM_ABC123',
                 new Details('isbn123', 'No title', '/img/NoPoster.jpg', undefined, 'Unknown', undefined,
                     ['action', 'comedy'], [new Link('http://', 'link', 'http://img'), new Link('http://', 'no logo', undefined)], 'cool film', 'something happens',
-                    ['Sean Connery'], 'mr director', [new Rating('imdb', '10/10', undefined), new Rating('rotten tomatoes', '95%', 'http://rotten')],
+                    ['Sean Connery'], [new TmdbPerson('Sean Connery', 2, '/img')], 'mr director',
+                    [new TmdbPerson('mr director', 2, '/img')],
+                    [new Rating('imdb', '10/10', undefined), new Rating('rotten tomatoes', '95%', 'http://rotten')],
                     '120 mins', 1, '12 mins', '2', [new Network('ABC', 'http://img')],
                     ['mr harry'],
                     ['ps3'],
@@ -133,7 +138,7 @@ describe('Can parse JSON to Swrl', function () {
             }
             const expected = new Swrl(ALBUM, LISTEN, 'ITUNESALBUM_ABC123',
                 new Details('ABC123', 'No title', '/img/NoPoster.jpg', 'Unknown', undefined, undefined,
-                    [], [], undefined, undefined, [], undefined, [], undefined,
+                    [], [], undefined, undefined, [], [], undefined, [], [], undefined,
                     undefined, undefined, undefined, [],
                     [],
                     [],
@@ -159,7 +164,9 @@ describe('Can parse JSON to Swrl', function () {
                     networks: [],
                     designers: [],
                     platforms: [],
-                    publishers: []
+                    publishers: [],
+                    tMDBActors: [],
+                    tMDBDirectors: []
                 },
                 type: 3, //BOOK
                 category: 2, //READ
@@ -167,7 +174,7 @@ describe('Can parse JSON to Swrl', function () {
             };
             const swrl = new Swrl(BOOK, READ, 'OPENLIBRARY-ISBN_123',
                 new Details('isbn123', 'No title', '/img/NoPoster.jpg', null, 'Unknown', undefined,
-                    [], [], undefined, undefined, [], undefined, [], undefined,
+                    [], [], undefined, undefined, [], [], undefined, [], [], undefined,
                     undefined, undefined, undefined, [],
                     [],
                     [],
@@ -197,6 +204,8 @@ describe('Can parse JSON to Swrl', function () {
                         name: 'no logo'
                     }],
                     actors: ['Sean Connery'],
+                    tMDBActors: [{name: 'Sean Connery', id: 2, imageUrl: '/img'}],
+                    tMDBDirectors: [{name: 'mr director', id: 2, imageUrl: '/img'}],
                     ratings: [{
                         source: 'imdb',
                         rating: '10/10'
@@ -224,7 +233,8 @@ describe('Can parse JSON to Swrl', function () {
             const swrl = new Swrl(BOOK, READ, 'OPENLIBRARY-ISBN_123',
                 new Details('isbn123', 'No title', '/img/NoPoster.jpg', undefined, 'Unknown', undefined,
                     ['action', 'comedy'], [new Link('http://', 'link', 'http://img'), new Link('http://', 'no logo', undefined)], undefined, undefined,
-                    ['Sean Connery'], undefined, [new Rating('imdb', '10/10', undefined), new Rating('rotten tomatoes', '95%', 'http://rotten')],
+                    ['Sean Connery'], [new TmdbPerson('Sean Connery', 2, '/img')], undefined,
+                    [new TmdbPerson('mr director', 2, '/img')], [new Rating('imdb', '10/10', undefined), new Rating('rotten tomatoes', '95%', 'http://rotten')],
                     undefined, 1, '12 mins', '2', [new Network('ABC', 'http://img')],
                     ['mr harry'],
                     ['ps3'],

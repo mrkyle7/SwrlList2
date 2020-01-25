@@ -1,0 +1,18 @@
+25/1/2020
+- Actors and Directors now have photos on the full page view. Also click them to search for more content from them!
+
+21/1/2020
+- UI fixes on the search screen
+
+19/1/2020
+- Load swrls 20 at a time to improve performance
+- Save searches for later when you're offline!
+
+16/1/2020
+- Being offline should now be much faster
+
+16/1/2020
+- Improved navigation between list and full page swrls
+
+14/1/2020
+- Buttons show added and done and no longer remove the swrl from list immediately

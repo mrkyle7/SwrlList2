@@ -10,6 +10,7 @@ import { Recommendation } from '../model/recommendation';
 import { Swrl } from '../model/swrl';
 import { addAddButton, addLoveButton, addRecommendButton, addDoneButton } from '../components/buttons';
 import { FULL_PAGE } from '../constants/View';
+import { WATCH } from '../constants/Category';
 
 const swrlFullPageView = document.getElementById('swrlFullPage');
 
@@ -114,7 +115,7 @@ async function showSwrlFullPage(stateController) {
     // @ts-ignore
     const swrlPageSubCardTemplate = document.getElementById('swrlPageSubCard');
 
-    renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl);
+    renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl, stateController);
     detailController = new AbortController();
     searchId = Math.random();
     loadingbar.classList.remove('hidden');
@@ -131,7 +132,7 @@ async function showSwrlFullPage(stateController) {
                     firestore.collection(Collection.SWRLS).doc(updatedSwrl.swrlID).set(firestoreData,
                         { merge: true });
                     destroyDetailCards();
-                    renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, updatedSwrl);
+                    renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, updatedSwrl, stateController);
                     console.log('got new details');
                     loadingbar.classList.add('hidden');
                 }
@@ -385,9 +386,11 @@ const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, 
 
 /**
  * @param {HTMLTemplateElement} swrlPageCardTemplate
+ * @param {HTMLTemplateElement} swrlPageSubCardTemplate
  * @param {Swrl} swrl
+ * @param {StateController} stateController
  */
-function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl) {
+function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl, stateController) {
     /** @type {HTMLElement} */
     // @ts-ignore
     const detailsCard = swrlPageCardTemplate.content.cloneNode(true);
@@ -399,19 +402,23 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl) 
     addTextDetails('Title', swrl.details.getFullTitle());
     addTextDetails('Artist', swrl.details.artist);
     addTextDetails('Author', swrl.details.author);
-    addTextDetails('Designers', swrl.details.designers && swrl.details.designers.length > 0 ?
+    addTextDetails('Designers', swrl.details.designers.length > 0 ?
         swrl.details.designers.join(', ') : undefined);
-    addTextDetails('Platforms', swrl.details.platforms && swrl.details.platforms.length > 0 ?
+    addTextDetails('Platforms', swrl.details.platforms.length > 0 ?
         swrl.details.platforms.join(', ') : undefined);
-    addTextDetails('Publishers', swrl.details.publishers && swrl.details.publishers.length > 0 ?
+    addTextDetails('Publishers', swrl.details.publishers.length > 0 ?
         swrl.details.publishers.join(', ') : undefined);
-    addTextDetails('Genres', swrl.details.genres && swrl.details.genres.length > 0 ?
+    addTextDetails('Genres', swrl.details.genres.length > 0 ?
         swrl.details.genres.join(', ') : undefined);
     addTextDetails('Tagline', swrl.details.tagline);
     addTextDetails('Overview', swrl.details.overview);
-    addTextDetails('Actors', swrl.details.actors && swrl.details.actors.length > 0 ?
-        swrl.details.actors.join(', ') : undefined);
-    addTextDetails('Director', swrl.details.director);
+    if (swrl.details.tMDBActors.length === 0) {
+        addTextDetails('Actors', swrl.details.actors.length > 0 ?
+            swrl.details.actors.join(', ') : undefined);
+    }
+    if (swrl.details.tMDBDirectors.length === 0) {
+        addTextDetails('Director', swrl.details.director);
+    }
     addTextDetails('Runtime', swrl.details.runtime);
     addTextDetails('Average Episode Length', swrl.details.averageEpisodeLength);
     addTextDetails('Player Count', swrl.details.playerCount);
@@ -424,8 +431,70 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl) 
 
     swrlFullPageCards.appendChild(detailsCard);
 
+    if (swrl.details.tMDBDirectors.length > 0) {
+        /** @type {HTMLElement} */
+        // @ts-ignore
+        const directorsCard = swrlPageCardTemplate.content.cloneNode(true);
+        const $directorsCard = directorsCard.querySelector.bind(directorsCard);
+        $directorsCard('.cardContent').querySelector('.loadingSpinnerSmall').classList.add('hidden');
 
-    if (swrl.details.links !== undefined && swrl.details.links !== null && swrl.details.links.length > 0) {
+        $directorsCard('.cardTitle').innerText = 'Directors';
+
+        swrl.details.tMDBDirectors.forEach(person => {
+
+            // @ts-ignore
+            const linkElementFragment = document.getElementById('personLink').content.cloneNode(true);
+            const linkElementDiv = linkElementFragment.querySelector('div');
+
+            linkElementFragment.querySelector('.personLinkImage').src = person.imageUrl;
+            linkElementFragment.querySelector('.personLinkImage').title = person.name;
+            linkElementFragment.querySelector('.personLinkText').innerText = person.name;
+            
+            linkElementDiv.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                stateController.changeState(
+                    new State(stateController.searchView, WATCH, `personID:${person.id}`, undefined));
+            })
+            $directorsCard('.cardContent').appendChild(linkElementFragment);
+        })
+
+        swrlFullPageCards.appendChild(directorsCard);
+    }
+
+    
+    if (swrl.details.tMDBActors.length > 0) {
+        /** @type {HTMLElement} */
+        // @ts-ignore
+        const actorsCard = swrlPageCardTemplate.content.cloneNode(true);
+        const $actorsCard = actorsCard.querySelector.bind(actorsCard);
+        $actorsCard('.cardContent').querySelector('.loadingSpinnerSmall').classList.add('hidden');
+
+        $actorsCard('.cardTitle').innerText = 'Actors';
+
+        swrl.details.tMDBActors.forEach(person => {
+
+            // @ts-ignore
+            const linkElementFragment = document.getElementById('personLink').content.cloneNode(true);
+            const linkElementDiv = linkElementFragment.querySelector('div');
+
+            linkElementFragment.querySelector('.personLinkImage').src = person.imageUrl;
+            linkElementFragment.querySelector('.personLinkImage').title = person.name;
+            linkElementFragment.querySelector('.personLinkText').innerText = person.name;
+            
+            linkElementDiv.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                stateController.changeState(
+                    new State(stateController.searchView, WATCH, `personID:${person.id}`, undefined));
+            })
+            $actorsCard('.cardContent').appendChild(linkElementFragment);
+        })
+
+        swrlFullPageCards.appendChild(actorsCard);
+    }
+
+    if (swrl.details.links.length > 0) {
         /** @type {HTMLElement} */
         // @ts-ignore
         const linksCard = swrlPageCardTemplate.content.cloneNode(true);
@@ -455,7 +524,7 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl) 
         swrlFullPageCards.appendChild(linksCard);
     }
 
-    if (swrl.details.networks !== undefined && swrl.details.networks !== null && swrl.details.networks.length > 0) {
+    if (swrl.details.networks.length > 0) {
         /** @type {HTMLElement} */
         // @ts-ignore
         const networksCard = swrlPageCardTemplate.content.cloneNode(true);
@@ -482,7 +551,7 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl) 
         swrlFullPageCards.appendChild(networksCard);
     }
 
-    if (swrl.details.ratings !== undefined && swrl.details.ratings !== null && swrl.details.ratings.length > 0) {
+    if (swrl.details.ratings.length > 0) {
         /** @type {HTMLElement} */
         // @ts-ignore
         const ratingsCard = swrlPageCardTemplate.content.cloneNode(true);

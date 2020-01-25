@@ -449,18 +449,33 @@ body {
 }
 
 .swrlerSmall {
-    display: inline-block;
-    margin: 4px;
     height: 32px;
+}
+
+.personLink {
+    height: 64px;
+}
+
+.swrlerSmall, .personLink {
+    cursor: pointer;
+    display: flex;
+    margin: 4px;
     position: relative;
     width: calc(100% - 8px);
 }
 
 .swrlerSmallText {
-    font-size: 12px;
     line-height: 32px;
+    font-size: 12px;
+}
+
+.personLinkText {
+    line-height: 64px;
+    font-size: 16px;
+}
+
+.swrlerSmallText, .personLinkText {
     top: 0;
-    position: absolute;
     margin-left: 4px;
 }
 
@@ -469,6 +484,21 @@ body {
     width: 24px;
     height: 24px;
     margin: 4px;
+}
+
+.imageCropper {
+    width: 56px;
+    height: 56px;
+    overflow: hidden;
+    border-radius: 50%;
+    margin-top: 4px;
+    margin-right: 4px;
+}
+
+.personLinkImage {
+    margin: 0 auto;
+    height: auto;
+    width: 100%;
 }
 
 .swrlerSmallDelete {
@@ -531,8 +561,8 @@ body {
 .recommendation, .card {
     border-radius: 2px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-    display: flex;
-    flex-direction: column;
+    /* display: flex;
+    flex-direction: column; */
     position: relative;
     margin: 12px 4px 0px 4px;
 }
@@ -571,7 +601,7 @@ body {
 .recommendationActions {
     display: flex;
     direction: rtl;
-    margin: 4px;
+    padding: 4px;
 }
 
 .actionText {
@@ -629,8 +659,9 @@ body {
 }
 
 .cardTitle {
-    margin: 8px;
-    margin-bottom: 4px;
+    padding: 8px;
+    padding-bottom: 4px;
+    margin: 0;
 }
 
 .cardSubTitle {
@@ -888,24 +919,22 @@ body {
     margin-top: -12px;
 }
 
-/* Swrl full page */
-
-#swrlFullPage, .cardsContainer {
-    display: flex;
-    flex-direction: column;
+.pageButtonsContainer {
+    width: 100%;
 }
 
 .pageButtons {
+    display: table;
+    width: fit-content;
     margin: auto;
 }
 
 #swrlImageContainer {
-    display: flex;
-    flex-direction: column;
     width: 100%
 }
 
 #swrlImageLarge {
+    display: block;
     max-width: 40%;
     max-height: 200px;
     margin: 8px auto 8px auto;
@@ -914,7 +943,7 @@ body {
 .cardContent {
     display: flex;
     flex-direction: column;
-    margin: 4px;
+    padding: 4px;
 }
 
 .smallLink {
