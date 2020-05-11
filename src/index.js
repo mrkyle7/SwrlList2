@@ -65,7 +65,7 @@ const app = {
             initMessaging(firebase, firestore);
             stateController = new StateController(firestore);
             stateController.initialiseAllViews();
-            const startState = new State(stateController.homeView, undefined, undefined, undefined);
+            const startState = new State(stateController.homeView);
             stateController.changeState(startState);
         } catch (error) {
             console.error('Caught Error loading');

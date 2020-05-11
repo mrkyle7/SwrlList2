@@ -3,16 +3,20 @@ import { UIView } from "../views/UIView";
 import { Swrl } from "./swrl";
 
 export class State {
+
+    /** @type {UIView} */
+    view;
+    /** @type {Category} */
+    selectedCategory;
+    searchTerms = '';
+    /** @type {Swrl} */
+    swrl;
+    numberOfSwrlsToDisplay = 20;
+
     /**
      * @param {UIView} view
-     * @param {Category} selectedCategory
-     * @param {string} searchTerms
-     * @param {Swrl} swrl
      */
-    constructor(view, selectedCategory, searchTerms, swrl) {
+    constructor(view) {
         this.view = view;
-        this.selectedCategory = selectedCategory;
-        this.searchTerms = searchTerms;
-        this.swrl = swrl;
     }
 }

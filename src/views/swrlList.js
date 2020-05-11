@@ -117,7 +117,7 @@ export function showList(category, view, firestore, stateController) {
                                     console.error(error);
                                 }
                             })
-                        renderNextSwrls(swrls, stateController, view, firestore);
+                        renderNextSwrls(swrls, stateController, view, firestore, true);
 
                         if (view === DISCOVER && swrlsContainer.querySelectorAll('div').length == 0) {
                             console.log('No Swrls to discover');
@@ -162,17 +162,18 @@ function isDeleted(swrl) {
 }
 
 /**
- * 
- * @param {Swrl[]} swrls 
- * @param {StateController} stateController 
- * @param {Constant} view 
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {Swrl[]} swrls
+ * @param {StateController} stateController
+ * @param {Constant} view
+ * @param {firebase.firestore.Firestore} firestore
+ * @param {Boolean} firstLoad
  */
-function renderNextSwrls(swrls, stateController, view, firestore) {
-    const end = swrls.length > 20 ? 20 : swrls.length;
+function renderNextSwrls(swrls, stateController, view, firestore, firstLoad) {
+    const numberToRender = firstLoad ? stateController.currentState.numberOfSwrlsToDisplay : 20;
+    const end = swrls.length > numberToRender ? numberToRender : swrls.length;
     const swrlsToRender = swrls.slice(0, end);
     swrlsToRender.forEach(swrl => renderSwrl(stateController, view, swrl, firestore, swrlsContainer));
-    if (swrls.length > 20) {
+    if (swrls.length > numberToRender) {
         /** @type {HTMLElement} */
         // @ts-ignore
         const showMoreSwrls = document.getElementById('showMoreSwrls').content.cloneNode(true);
@@ -181,7 +182,8 @@ function renderNextSwrls(swrls, stateController, view, firestore) {
             e.preventDefault();
             e.stopPropagation();
             swrlsContainer.removeChild(div);
-            renderNextSwrls(swrls.slice(20, swrls.length), stateController, view, firestore);
+            stateController.currentState.numberOfSwrlsToDisplay = stateController.currentState.numberOfSwrlsToDisplay + 20;
+            renderNextSwrls(swrls.slice(numberToRender, swrls.length), stateController, view, firestore, false);
         })
         swrlsContainer.appendChild(showMoreSwrls);
     }

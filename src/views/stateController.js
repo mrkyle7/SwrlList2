@@ -41,7 +41,7 @@ export class StateController {
         //states
         /** @type {State[]} */
         this.previousStates = [];
-        this.currentState = new State(undefined, undefined, undefined, undefined);
+        this.currentState = new State(undefined);
     }
 
     /**
@@ -63,7 +63,7 @@ export class StateController {
 
     showPreviousScreen() {
         if (this.previousStates.length === 0) {
-            this.currentState = new State(this.homeView, undefined, undefined, undefined);
+            this.currentState = new State(this.homeView);
             this.homeView.show();
         } else {
             this.currentState.view.destroy();
@@ -92,8 +92,7 @@ export class StateController {
         inboxIcon.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
-            console.log('clicked show recommendations');
-            const inboxState = new State(this.inboxView, this.currentState.selectedCategory, this.currentState.searchTerms, this.currentState.swrl);
+            const inboxState = new State(this.inboxView);
             this.changeState(inboxState);
         });
 
@@ -101,7 +100,7 @@ export class StateController {
         inboxTab.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const inboxState = new State(this.inboxView, this.currentState.selectedCategory, this.currentState.searchTerms, this.currentState.swrl);
+            const inboxState = new State(this.inboxView);
             this.changeState(inboxState);
         });
 
@@ -109,7 +108,7 @@ export class StateController {
         sentTab.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const sentState = new State(this.sentView, this.currentState.selectedCategory, this.currentState.searchTerms, this.currentState.swrl);
+            const sentState = new State(this.sentView);
             this.changeState(sentState);
         });
 
@@ -152,7 +151,7 @@ export class StateController {
             e.stopPropagation();
             e.preventDefault();
             this._closeMenu();
-            this.changeState(new State(this.savedSearchesView, undefined, undefined, undefined))
+            this.changeState(new State(this.savedSearchesView))
         }
         savedSearchMenuItem.addEventListener('click', openSavedSearch);
         savedSearchMenuItem.addEventListener('touchstart', openSavedSearch);
@@ -174,7 +173,9 @@ export class StateController {
         yourListTab.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
-            const yourListState = new State(this.yourListView, this.currentState.selectedCategory, this.currentState.searchTerms, this.currentState.swrl)
+            const yourListState = new State(this.yourListView)
+            yourListState.selectedCategory = this.currentState.selectedCategory;
+            yourListState.searchTerms = this.currentState.searchTerms;
             this.changeState(yourListState);
         });
     }
@@ -185,7 +186,9 @@ export class StateController {
         discoverTab.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
-            const discoverState = new State(this.discoverView, this.currentState.selectedCategory, this.currentState.searchTerms, this.currentState.swrl)
+            const discoverState = new State(this.discoverView);
+            discoverState.selectedCategory = this.currentState.selectedCategory;
+            discoverState.searchTerms = this.currentState.searchTerms;
             this.changeState(discoverState);
         });
     }
@@ -196,7 +199,9 @@ export class StateController {
         searchTab.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
-            const searchState = new State(this.searchView, this.currentState.selectedCategory, this.currentState.searchTerms, this.currentState.swrl)
+            const searchState = new State(this.searchView)
+            searchState.selectedCategory = this.currentState.selectedCategory;
+            searchState.searchTerms = this.currentState.searchTerms;
             this.changeState(searchState);
         });
     }
@@ -208,14 +213,18 @@ export class StateController {
     _bindSectionClick(section, category) {
         section.addEventListener('click', () => {
 
-            console.log('Clicked section ' + category);
-
             const previousView = this.previousStates.length > 0 ?
                 this.previousStates[this.previousStates.length - 1].view : undefined;
 
-            const discoverState = new State(this.discoverView, category, this.currentState.searchTerms, this.currentState.swrl);
-            const yourlistState = new State(this.yourListView, category, this.currentState.searchTerms, this.currentState.swrl);
-            const searchState = new State(this.searchView, category, this.currentState.searchTerms, this.currentState.swrl);
+            const discoverState = new State(this.discoverView);
+            discoverState.selectedCategory = category;
+            discoverState.searchTerms = this.currentState.searchTerms;
+            const yourlistState = new State(this.yourListView);
+            yourlistState.selectedCategory = category;
+            yourlistState.searchTerms = this.currentState.searchTerms;
+            const searchState = new State(this.searchView);
+            searchState.selectedCategory = category;
+            searchState.searchTerms = this.currentState.searchTerms;
             if (previousView === undefined) {
                 // choose default view based on whether the user is logged in or not
                 if (!swrlUser || swrlUser.isAnonymous) {

@@ -453,8 +453,10 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl, 
             linkElementDiv.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                stateController.changeState(
-                    new State(stateController.searchView, WATCH, `personID:${person.id}`, undefined));
+                const searchView = new State(stateController.searchView);
+                searchView.selectedCategory = WATCH;
+                searchView.searchTerms = `personID:${person.id}`;
+                stateController.changeState(searchView);
             })
             $directorsCard('.cardContent').appendChild(linkElementFragment);
         })
@@ -485,8 +487,10 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl, 
             linkElementDiv.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                stateController.changeState(
-                    new State(stateController.searchView, WATCH, `personID:${person.id}`, undefined));
+                const searchView = new State(stateController.searchView);
+                searchView.selectedCategory = WATCH;
+                searchView.searchTerms = `personID:${person.id}`;
+                stateController.changeState(searchView);
             })
             $actorsCard('.cardContent').appendChild(linkElementFragment);
         })

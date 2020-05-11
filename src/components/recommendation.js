@@ -67,10 +67,10 @@ export const renderRecommendation = async (stateController, view, recommendation
         $recommendation('.recommendationSwrl').addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
-            stateController.changeState(new State(stateController.swrlView,
-                recommendation.swrl.category,
-                stateController.currentState.searchTerms,
-                recommendation.swrl));
+            const swrlFullPage = new State(stateController.swrlView);
+            swrlFullPage.swrl = recommendation.swrl;
+            swrlFullPage.selectedCategory = stateController.currentState.selectedCategory;
+            stateController.changeState(swrlFullPage);
         })
 
         if (view === INBOX) {

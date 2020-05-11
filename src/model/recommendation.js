@@ -40,6 +40,7 @@ export class Recommendation {
     static async fromFirestore(doc, firestore) {
         const data = doc.data();
         const swrlDoc = await firestore.collection(Collection.SWRLS).doc(data.swrlID).get();
+        console.log(swrlDoc.data())
         return new Recommendation(doc.id, data.from, data.to, data.message, data.swrlID,
             data.created !== undefined && data.created != null ? data.created.toDate() : undefined,
             Swrl.fromFirestore(swrlDoc.data()),

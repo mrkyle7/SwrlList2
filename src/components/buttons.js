@@ -183,11 +183,9 @@ export function addRecommendButton(div, swrl, stateController) {
             if (!swrlUser || swrlUser.isAnonymous) {
                 showRequireLoginScreen('to recommend a Swrl');
             } else {
-                const recommend = new State(stateController.recommendView,
-                    stateController.currentState.selectedCategory,
-                    stateController.currentState.searchTerms,
-                    swrl);
-                stateController.changeState(recommend);
+                const recommendView = new State(stateController.recommendView);
+                recommendView.swrl = swrl;
+                stateController.changeState(recommendView);
             }
         });
 }

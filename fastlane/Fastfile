@@ -18,7 +18,7 @@ platform :android do
   lane :deploy do
     cordova(
       platform: "android",
-      keystore_path: "/Users/kyle/androidkey-swrl-list.jks",
+      keystore_path: "/Users/jemky/androidkey-swrl-list.jks",
       keystore_alias: "kjhandroid",
       key_password: ENV["KEYPASSWORD"],
       keystore_password: ENV["STOREPASSWORD"],

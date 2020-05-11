@@ -91,10 +91,9 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
                 swrlDiv.addEventListener('click', (e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    stateController.changeState(new State(stateController.swrlView,
-                        stateController.currentState.selectedCategory,
-                        stateController.currentState.searchTerms,
-                        latestSwrl));
+                    const swrlFullPage = new State(stateController.swrlView);
+                    swrlFullPage.swrl = latestSwrl;
+                    stateController.changeState(swrlFullPage);
                 })
             })
     } else {
@@ -110,10 +109,9 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
         swrlDiv.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
-            stateController.changeState(new State(stateController.swrlView,
-                stateController.currentState.selectedCategory,
-                stateController.currentState.searchTerms,
-                swrl));
+            const swrlFullPage = new State(stateController.swrlView);
+            swrlFullPage.swrl = swrl;
+            stateController.changeState(swrlFullPage);
         })
     }
 

@@ -111,7 +111,10 @@ function renderSavedSearches(querySnapshot, firestore, stateController) {
                 e.preventDefault();
                 e.stopPropagation();
                 showToasterMessage('Running and deleting saved search: ' + savedSearch.searchText);
-                stateController.changeState(new State(stateController.searchView, savedSearch.category, savedSearch.searchText, undefined));
+                const searchView = new State(stateController.searchView);
+                searchView.selectedCategory = savedSearch.category;
+                searchView.searchTerms = savedSearch.searchText;
+                stateController.changeState(searchView);
                 firestore.collection(Collection.SAVEDSEARCHES).doc(id).delete();
             });
             savedSearches.appendChild(fragment);

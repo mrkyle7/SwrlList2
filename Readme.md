@@ -24,11 +24,23 @@ To get started, follow the [Android](https://cordova.apache.org/docs/en/latest/g
 
 Run the usual `npm install` and `cordova prepare` then (as per the guides above) `cordova emulate android` to run in an Android emulator or use Xcode to run on iOS.
 
+You also need:
+
+- cordova
+- node
+- typescript
+- firebase
+
 `openXcode.sh` is a helper script to launch Xcode for this project. 
 
 N.B. When running in iOS, run `cordova prepare ios` to ensure your latest changes are built. 
 
 To run the local browser, run `npm start`
+
+# Testing
+
+tsc --allowJs --noEmit
+npx cypress run
 
 # How to publish
 
