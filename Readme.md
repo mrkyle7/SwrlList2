@@ -30,6 +30,7 @@ You also need:
 - node
 - typescript
 - firebase
+- gradle
 
 `openXcode.sh` is a helper script to launch Xcode for this project. 
 
