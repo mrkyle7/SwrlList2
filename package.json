@@ -7,7 +7,7 @@
     "scripts": {
         "start": "cordova prepare browser && node server.js",
         "test": "npx cypress run",
-        "heroku-postbuild": "npm install -g cordova@8.1.2 && cordova platform add browser && echo added browser && cordova prepare browser && echo prepared browser"
+        "heroku-postbuild": "npm install -g cordova@8.1.2 && cordova prepare browser && cordova prepare browser"
     },
     "engines": {
         "node": "11.7.0"
