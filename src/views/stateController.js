@@ -14,6 +14,9 @@ import { SwrlScreen } from "../screens/swrlScreen";
 import { SwrlFullPage } from "./swrlFullPage";
 import { SavedSearchesScreen } from "../screens/savedSearchesScreen";
 import { SavedSearches } from "./savedSearches";
+import { alphabetical, Sort, sortFromId } from "../constants/Sort";
+
+export let sort = alphabetical;
 
 export class StateController {
     /**
@@ -95,6 +98,38 @@ export class StateController {
             const inboxState = new State(this.inboxView);
             this.changeState(inboxState);
         });
+
+        const filterButton = document.getElementById('filterButton');
+        filterButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const fade = document.getElementById('fade')
+            fade.classList.remove('hidden');
+            const filters = document.getElementById('filters')
+            filters.classList.remove('hidden');
+        })
+
+        const filterApplyButton = document.getElementById('submitFilters');
+        filterApplyButton.addEventListener('click', (e) => {
+            e.stopPropagation()
+            e.preventDefault()
+            const fade = document.getElementById('fade')
+            fade.classList.add('hidden');
+            const filters = document.getElementById('filters')
+            filters.classList.add('hidden');
+            const checkedSort = document.querySelector('input[name="sort"]:checked');
+            if (checkedSort) {
+                const selectedSort = sortFromId(parseInt(checkedSort.value));
+                if (selectedSort) {
+                    sort = selectedSort;
+
+                    const refreshState = new State(this.currentState.view)
+                    refreshState.selectedCategory = this.currentState.selectedCategory;
+                    refreshState.searchTerms = this.currentState.searchTerms;
+                    this.changeState(refreshState);
+                }
+            }
+        })
 
         const inboxTab = document.getElementById('inboxTab');
         inboxTab.addEventListener('click', (e) => {

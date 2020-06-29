@@ -124,5 +124,4 @@ const updateInboxCount = () => {
                 && (!r.dismissed || r.dismissed.indexOf(swrlUser.uid) === -1))
             .length;
     inboxCount.innerText = count.toString();
-    showLoginButtons();
 }

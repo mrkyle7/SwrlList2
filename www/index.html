@@ -27,6 +27,9 @@
     <div id="recommendSendContainer" class="hidden">
       <img id="recommendSendButton" src="img/send.svg" />
     </div>
+    <div id="filterContainer" class="hidden">
+      <img id="filterButton" src="img/filter_alt-24px.svg" />
+    </div>
   </div>
   <input type="checkbox" class="openSidebarMenu" id="openSidebarMenu">
   <label id="menuButton" for="openSidebarMenu" class="sidebarIconToggle">
@@ -52,6 +55,22 @@
   <div id="menuSwipeable"></div>
   <div id='centre' class="main">
     <div id="fade" class="hidden"></div>
+    <div id="filters" class="hidden">
+      <h3>Sort</h3>
+      <form>
+        <input type="radio" id="alphabetical" name="sort" value="1" checked>
+        <label for="alphabetical">Alphabetical</label><br>
+        <input type="radio" id="recentlyadded" name="sort" value="2">
+        <label for="recentlyadded">Recently Added</label><br>
+        <input type="radio" id="recentlyupdated" name="sort" value="3">
+        <label for="recentlyupdated">Recently Updated</label>
+        <br>
+        <br>
+        <div class="center">
+          <input type="submit" id="submitFilters" value="Apply">
+        </div>
+      </form>
+    </div>
     <div id="sections" class="sections">
       <div class="section watch">
         <div class="section-detail">

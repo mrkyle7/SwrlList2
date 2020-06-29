@@ -21,6 +21,13 @@ const swrlButtonsTemplate = document.getElementById('swrlButtons');
 const swrlFullPageCards = document.getElementById('swrlFullPageCards');
 const swrlFullPageSocialCards = document.getElementById('swrlFullPageSocialCards');
 const loadingbar = document.querySelector('#swrlImageContainer .loadingbar')
+/** @type {HTMLTemplateElement} */
+// @ts-ignore
+const swrlPageCardTemplate = document.getElementById('swrlPageCard');
+/** @type {HTMLTemplateElement} */
+// @ts-ignore
+const swrlPageSubCardTemplate = document.getElementById('swrlPageSubCard');
+
 /** @type {AbortController} */
 let detailController = undefined;
 let searchId = undefined;
@@ -74,16 +81,22 @@ async function showSwrlFullPage(stateController) {
 
     pageButtons.querySelector('.swrlButtonSpinner').classList.remove('hidden');
 
+    let swrlExists = false;
+
     firestore.collection(Collection.SWRLS).doc(swrl.swrlID).get()
         .then(doc => {
-            const data = doc.data();
             let currentSwrl = swrl;
-            try {
-                currentSwrl = Swrl.fromFirestore(data);
-            } catch (err) {
-                console.error('Could not get data for swrl');
-                console.error(err);
+            if (doc.exists) {
+                try {
+                    const data = doc.data();
+                    currentSwrl = Swrl.fromFirestore(data);
+                    swrlExists = true;
+                } catch (err) {
+                    console.error('Could not get data for swrl');
+                    console.error(err);
+                }
             }
+
 
             pageButtons.querySelector('.swrlButtonSpinner').classList.add('hidden');
 
@@ -93,6 +106,8 @@ async function showSwrlFullPage(stateController) {
             addDoneButton(swrlFullPageView, currentSwrl, firestore, null, FULL_PAGE);
 
             renderSocialCards(currentSwrl, swrlPageCardTemplate, swrlPageSubCardTemplate, firestore);
+            updateDetails(swrl, swrlExists, firestore, stateController);
+
         })
         .catch(err => {
             console.error('Could not get data for swrl');
@@ -105,48 +120,11 @@ async function showSwrlFullPage(stateController) {
             addRecommendButton(swrlFullPageView, swrl, stateController);
             addDoneButton(swrlFullPageView, swrl, firestore, null, FULL_PAGE);
             renderSocialCards(swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, firestore);
+            updateDetails(swrl, swrlExists, firestore, stateController);
         })
 
 
-    /** @type {HTMLTemplateElement} */
-    // @ts-ignore
-    const swrlPageCardTemplate = document.getElementById('swrlPageCard');
-    /** @type {HTMLTemplateElement} */
-    // @ts-ignore
-    const swrlPageSubCardTemplate = document.getElementById('swrlPageSubCard');
-
     renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl, stateController);
-    detailController = new AbortController();
-    searchId = Math.random();
-    loadingbar.classList.remove('hidden');
-    console.log('getting new details');
-    try {
-        swrl.type.detailGetter.get(swrl.details.id, detailController.signal, searchId)
-            .then(result => {
-                if (result && result.details && result.id === searchId) {
-                    const updatedSwrl = swrl;
-                    updatedSwrl.details = result.details;
-                    swrlImageLarge.src = updatedSwrl.details.imageUrl;
-                    const firestoreData = updatedSwrl.toPartialFireStoreData();
-                    firestoreData.updated = firebase.firestore.FieldValue.serverTimestamp();
-                    firestore.collection(Collection.SWRLS).doc(updatedSwrl.swrlID).set(firestoreData,
-                        { merge: true });
-                    destroyDetailCards();
-                    renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, updatedSwrl, stateController);
-                    console.log('got new details');
-                    loadingbar.classList.add('hidden');
-                }
-            })
-            .catch(err => {
-                console.error('Could not get details');
-                console.error(err);
-                loadingbar.classList.add('hidden');
-            });
-    } catch (err) {
-        console.error('Could not get details');
-        console.error(err);
-        loadingbar.classList.add('hidden');
-    }
 }
 
 /**
@@ -384,6 +362,42 @@ const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, 
     }
 }
 
+function updateDetails(swrl, swrlExists, firestore, stateController) {
+    detailController = new AbortController();
+    searchId = Math.random();
+    loadingbar.classList.remove('hidden');
+    console.log('getting new details');
+    try {
+        swrl.type.detailGetter.get(swrl.details.id, detailController.signal, searchId)
+            .then(result => {
+                if (result && result.details && result.id === searchId) {
+                    const updatedSwrl = swrl;
+                    updatedSwrl.details = result.details;
+                    swrlImageLarge.src = updatedSwrl.details.imageUrl;
+                    if (swrlExists) {
+                        const firestoreData = updatedSwrl.toPartialFireStoreData();
+                        firestore.collection(Collection.SWRLS).doc(updatedSwrl.swrlID).set(firestoreData,
+                            { merge: true });
+                    }
+                    destroyDetailCards();
+                    renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, updatedSwrl, stateController);
+                    console.log('got new details');
+                    loadingbar.classList.add('hidden');
+                }
+            })
+            .catch(err => {
+                console.error('Could not get details');
+                console.error(err);
+                loadingbar.classList.add('hidden');
+            });
+    }
+    catch (err) {
+        console.error('Could not get details');
+        console.error(err);
+        loadingbar.classList.add('hidden');
+    }
+}
+
 /**
  * @param {HTMLTemplateElement} swrlPageCardTemplate
  * @param {HTMLTemplateElement} swrlPageSubCardTemplate
@@ -449,7 +463,7 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl, 
             linkElementFragment.querySelector('.personLinkImage').src = person.imageUrl;
             linkElementFragment.querySelector('.personLinkImage').title = person.name;
             linkElementFragment.querySelector('.personLinkText').innerText = person.name;
-            
+
             linkElementDiv.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -464,7 +478,7 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl, 
         swrlFullPageCards.appendChild(directorsCard);
     }
 
-    
+
     if (swrl.details.tMDBActors.length > 0) {
         /** @type {HTMLElement} */
         // @ts-ignore
@@ -483,7 +497,7 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl, 
             linkElementFragment.querySelector('.personLinkImage').src = person.imageUrl;
             linkElementFragment.querySelector('.personLinkImage').title = person.name;
             linkElementFragment.querySelector('.personLinkText').innerText = person.name;
-            
+
             linkElementDiv.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();

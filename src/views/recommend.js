@@ -64,9 +64,6 @@ export function showRecommend(stateController) {
 
     renderSwrl(stateController, RECOMMEND, swrl, firestore, recommendedSwrl);
 
-    recommendSendContainer.classList.remove('hidden');
-    hideLoginButtons();
-
     bindRecommendSendButton(stateController, swrl, firestore);
 
     firestore.collection(Collection.SWRLERS).get()
@@ -161,9 +158,6 @@ export function destroyRecommend() {
     // @ts-ignore
     recommendToInput.value = '';
     recommendMessage.value = '';
-
-    recommendSendContainer.classList.add('hidden');
-    showLoginButtons();
 
     while (recommendedSwrl.firstChild) {
         recommendedSwrl.removeChild(recommendedSwrl.firstChild);

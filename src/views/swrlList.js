@@ -9,7 +9,8 @@ import showRequireLoginScreen from '../components/requireLoginScreen';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
 import { UIView } from './UIView';
-import { StateController } from './stateController';
+import { StateController, sort } from './stateController';
+import { Sort, recentlyUpdated, alphabetical, recentlyAdded } from '../constants/Sort';
 
 export class YourListView extends UIView {
     /**
@@ -207,16 +208,16 @@ function runQuery(db, category, view) {
             } else {
                 return db.where("category", "==", category.id)
                     .where("later", "array-contains", swrlUser.uid)
-                    .orderBy("details.title")
+                    .orderBy(sort.column, sort.direction)
                     .get();
             }
         case DISCOVER:
             return db.where("category", "==", category.id)
-                .orderBy("updated", "desc")
+                .orderBy(sort.column, sort.direction)
                 .get();
         default:
             return db.where("category", "==", category.id)
-                .orderBy("updated", "desc")
+                .orderBy(sort.column, sort.direction)
                 .get();
     }
 }

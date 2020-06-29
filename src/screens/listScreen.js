@@ -1,5 +1,6 @@
 import { StateController } from "../views/stateController";
 import { Screen } from "./Screen";
+import { hideLoginButtons } from "../firebase/login";
 
 export class ListScreen extends Screen {
     /**
@@ -18,5 +19,10 @@ export class ListScreen extends Screen {
         titleText.innerText = this.stateController.currentState.selectedCategory.displayName;
         const header = document.getElementById('header');
         header.style.backgroundColor = this.stateController.currentState.selectedCategory.colour;
+        const recommendSendContainer = document.getElementById('recommendSendContainer');
+        recommendSendContainer.classList.add('hidden');
+        const filterContainer = document.getElementById('filterContainer');
+        filterContainer.classList.remove('hidden');
+        hideLoginButtons();
     }
 }

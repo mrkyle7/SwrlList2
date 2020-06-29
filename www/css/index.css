@@ -82,7 +82,7 @@ body {
     overflow: hidden;
 }
 
-#inboxDisplay, #recommendSendContainer {
+#inboxDisplay, #recommendSendContainer , #filterContainer{
     margin: 12px;
     height: 32px;
     width: 32px;
@@ -92,7 +92,7 @@ body {
     cursor: pointer;
 }
 
-#inboxIcon, #recommendSendButton {
+#inboxIcon, #recommendSendButton , #filterButton{
     width: 32px;
 }
 
@@ -719,61 +719,6 @@ body {
     z-index: 7;
 }
 
-@media only screen and (min-width: 1025px) {
-    .main .sections {
-        top: 68px;
-        bottom: 12px;
-    }
-    #centre {
-        top: 112px;
-    }
-    .tabs {
-        top: 60px;
-    }
-    #swrlSearch {
-        top: 112px;
-    }
-    #swrlList, #recommendationList {
-        top: 104px;
-    }
-    #searchResults, #searchView, #savedSearchesCard {
-        top: 156px;
-    }
-    #recommend, #swrlFullPage, #savedSearches {
-        top: 56px;
-    }
-    .main .section {
-        padding-left: 0px;
-    }
-    .main .section, #centre, .tabs, #swrlSearch, .swrlsContainer, #recommend, #swrlFullPage, #loggingInView {
-        margin-left: auto;
-        margin-right: auto;
-        width: 640px;
-    }
-    #toasterMessage {
-        width: 592px;
-        margin-left: 16px;
-        bottom: 12px;
-    }
-    .section .close, .section .back {
-        position: absolute;
-        left: 50%;
-        margin-left: -312px;
-    }
-    .main .section-detail {
-        margin-left: 176px;
-    }
-    .main .selected .section-detail {
-        margin-left: 256px;
-    }
-    #recommendationsDetail {
-        margin-left: 184px;
-    }
-    .selected .recommendTitle {
-        font-size: 2vw;
-    }
-}
-
 #sidebarMenu {
     height: 100%;
     position: fixed;
@@ -830,6 +775,25 @@ body {
     background: black;
     z-index: 9;
     opacity: 0.5;
+}
+
+#filters {
+    position: absolute;
+    top: 118px;
+    left: 36px;
+    right: 36px;
+    background: black;
+    color: white;
+    z-index: 10;
+    padding-bottom: 8px;
+}
+
+#filters h3 {
+    margin: 8px;
+}
+
+.center {
+    text-align: center;
 }
 
 #openSidebarMenu {
@@ -1022,4 +986,64 @@ body {
 .savedSearchButtons {
     position: absolute;
     right: 0;
+}
+
+@media only screen and (min-width: 1025px) {
+    .main .sections {
+        top: 68px;
+        bottom: 12px;
+    }
+    #centre {
+        top: 112px;
+    }
+    .tabs {
+        top: 60px;
+    }
+    #swrlSearch {
+        top: 112px;
+    }
+    #swrlList, #recommendationList {
+        top: 104px;
+    }
+    #searchResults, #searchView, #savedSearchesCard {
+        top: 156px;
+    }
+    #recommend, #swrlFullPage, #savedSearches {
+        top: 56px;
+    }
+    .main .section {
+        padding-left: 0px;
+    }
+    .main .section, #centre, .tabs, #swrlSearch, .swrlsContainer, #recommend, #swrlFullPage, #loggingInView {
+        margin-left: auto;
+        margin-right: auto;
+        width: 640px;
+    }
+    #toasterMessage {
+        width: 592px;
+        margin-left: 16px;
+        bottom: 12px;
+    }
+    .section .close, .section .back {
+        position: absolute;
+        left: 50%;
+        margin-left: -312px;
+    }
+    .main .section-detail {
+        margin-left: 176px;
+    }
+    .main .selected .section-detail {
+        margin-left: 256px;
+    }
+    #recommendationsDetail {
+        margin-left: 184px;
+    }
+
+    #filters {
+        left: 356px;
+        right: 356px;
+    }
+    .selected .recommendTitle {
+        font-size: 2vw;
+    }
 }

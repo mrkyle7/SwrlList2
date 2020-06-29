@@ -1,5 +1,6 @@
 import { StateController } from "../views/stateController";
 import { Screen } from "./Screen";
+import { showLoginButtons } from "../firebase/login";
 
 export class SavedSearchesScreen extends Screen {
     /**
@@ -18,5 +19,10 @@ export class SavedSearchesScreen extends Screen {
         titleText.innerText = 'Saved Searches';
         const header = document.getElementById('header');
         header.style.backgroundColor = '#4990E2';
+        const recommendSendContainer = document.getElementById('recommendSendContainer');
+        recommendSendContainer.classList.add('hidden');
+        const filterContainer = document.getElementById('filterContainer');
+        filterContainer.classList.add('hidden');
+        showLoginButtons();
     }
 }

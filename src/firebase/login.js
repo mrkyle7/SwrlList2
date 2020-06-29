@@ -132,6 +132,7 @@ function handleLoginSuccess(firestore) {
 
     updateSwrlerDetails(firestore);
     setUpRecommendationsListener(firestore);
+    showLoginButtons();
     updateDeviceToken(firestore);
     /** @type {HTMLImageElement} */
     const userPhotoElement = document.querySelector("#userPhoto");
