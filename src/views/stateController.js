@@ -15,9 +15,11 @@ import { SwrlFullPage } from "./swrlFullPage";
 import { SavedSearchesScreen } from "../screens/savedSearchesScreen";
 import { SavedSearches } from "./savedSearches";
 import { alphabetical, Sort, sortFromId } from "../constants/Sort";
-import { Screen } from "../screens/Screen";
+import { Filter, RECOMMENDED_FILTER, filterFromId } from "../constants/Filter";
 
 export let sort = alphabetical;
+/** @type {Filter[]} */
+export let filters = [];
 
 export class StateController {
     /**
@@ -170,21 +172,28 @@ export class StateController {
             e.preventDefault();
             const fade = document.getElementById('fade');
             fade.classList.add('hidden');
-            const filters = document.getElementById('filters');
-            filters.classList.add('hidden');
+            const filterPopup = document.getElementById('filters');
+            filterPopup.classList.add('hidden');
             const checkedSort = document.querySelector('input[name="sort"]:checked');
             if (checkedSort) {
                 const selectedSort = sortFromId(parseInt(checkedSort.value));
                 if (selectedSort) {
                     sort = selectedSort;
-
-                    if (this.currentState.view.screen === this.listScreen) {
-                        const refreshState = new State(this.currentState.view);
-                        refreshState.selectedCategory = this.currentState.selectedCategory;
-                        refreshState.searchTerms = this.currentState.searchTerms;
-                        this.changeState(refreshState);
-                    }
                 }
+            }
+            filters = [];
+            const selectedFilters = document.querySelectorAll('input[name="filter"]:checked');
+            selectedFilters.forEach(selectedFilter => {
+                const filter = filterFromId(parseInt(selectedFilter.value));
+                if (filter) {
+                    filters.push(filter);
+                } 
+            })
+            if (this.currentState.view.screen === this.listScreen) {
+                const refreshState = new State(this.currentState.view);
+                refreshState.selectedCategory = this.currentState.selectedCategory;
+                refreshState.searchTerms = this.currentState.searchTerms;
+                this.changeState(refreshState);
             }
         };
     }

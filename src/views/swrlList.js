@@ -9,8 +9,7 @@ import showRequireLoginScreen from '../components/requireLoginScreen';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
 import { UIView } from './UIView';
-import { StateController, sort } from './stateController';
-import { Sort, recentlyUpdated, alphabetical, recentlyAdded } from '../constants/Sort';
+import { StateController, sort, filters} from './stateController';
 
 export class YourListView extends UIView {
     /**
@@ -109,7 +108,8 @@ export function showList(category, view, firestore, stateController) {
                             (docSnapshot) => {
                                 try {
                                     const swrl = Swrl.fromFirestore(docSnapshot.data());
-                                    if (!(view === DISCOVER && (isOnList(swrl) || isDeleted(swrl)))) {
+                                    if (!(view === DISCOVER && (isOnList(swrl) || isDeleted(swrl)))
+                                        && filters.every(f => f.match(swrl, swrlUser ? swrlUser.uid : undefined))) {
                                         swrls.push(swrl);
                                     }
                                 } catch (error) {
