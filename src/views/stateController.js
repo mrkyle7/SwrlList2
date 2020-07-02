@@ -15,6 +15,7 @@ import { SwrlFullPage } from "./swrlFullPage";
 import { SavedSearchesScreen } from "../screens/savedSearchesScreen";
 import { SavedSearches } from "./savedSearches";
 import { alphabetical, Sort, sortFromId } from "../constants/Sort";
+import { Screen } from "../screens/Screen";
 
 export let sort = alphabetical;
 
@@ -110,26 +111,9 @@ export class StateController {
         })
 
         const filterApplyButton = document.getElementById('submitFilters');
-        filterApplyButton.addEventListener('click', (e) => {
-            e.stopPropagation()
-            e.preventDefault()
-            const fade = document.getElementById('fade')
-            fade.classList.add('hidden');
-            const filters = document.getElementById('filters')
-            filters.classList.add('hidden');
-            const checkedSort = document.querySelector('input[name="sort"]:checked');
-            if (checkedSort) {
-                const selectedSort = sortFromId(parseInt(checkedSort.value));
-                if (selectedSort) {
-                    sort = selectedSort;
-
-                    const refreshState = new State(this.currentState.view)
-                    refreshState.selectedCategory = this.currentState.selectedCategory;
-                    refreshState.searchTerms = this.currentState.searchTerms;
-                    this.changeState(refreshState);
-                }
-            }
-        })
+        filterApplyButton.addEventListener('click', this.applyFilters());
+        const fade = document.getElementById('fade');
+        fade.addEventListener('click', this.applyFilters());
 
         const inboxTab = document.getElementById('inboxTab');
         inboxTab.addEventListener('click', (e) => {
@@ -178,6 +162,31 @@ export class StateController {
 
                 this._bindSectionClick(section, category);
             });
+    }
+
+    applyFilters() {
+        return (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const fade = document.getElementById('fade');
+            fade.classList.add('hidden');
+            const filters = document.getElementById('filters');
+            filters.classList.add('hidden');
+            const checkedSort = document.querySelector('input[name="sort"]:checked');
+            if (checkedSort) {
+                const selectedSort = sortFromId(parseInt(checkedSort.value));
+                if (selectedSort) {
+                    sort = selectedSort;
+
+                    if (this.currentState.view.screen === this.listScreen) {
+                        const refreshState = new State(this.currentState.view);
+                        refreshState.selectedCategory = this.currentState.selectedCategory;
+                        refreshState.searchTerms = this.currentState.searchTerms;
+                        this.changeState(refreshState);
+                    }
+                }
+            }
+        };
     }
 
     _initMenuItems() {

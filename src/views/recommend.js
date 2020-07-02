@@ -287,7 +287,7 @@ function setupAutocomplete(toInput) {
     }
     /*execute a function when someone clicks in the document:*/
     // @ts-ignore
-    document.addEventListener("click", function (e) {
+    fade.addEventListener("click", function (e) {
         closeAllLists();
         // @ts-ignore
         recommendToInput.value = '';
