@@ -35,6 +35,7 @@ const app = {
         document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
         document.addEventListener('backbutton', () => {
             if (stateController !== undefined) {
+                stateController.hidefilters();
                 stateController.showPreviousScreen();
             }
         });
@@ -65,8 +66,17 @@ const app = {
             initMessaging(firebase, firestore);
             stateController = new StateController(firestore);
             stateController.initialiseAllViews();
-            const startState = new State(stateController.homeView);
-            stateController.changeState(startState);
+
+            if (device.platform === 'browser') {
+                const startState = new State(stateController.homeView);
+                stateController.changeState(startState);
+            } else {
+                universalLinks.subscribe('eventName', (event) => {
+                    console.log(`the url was: ${event.url}`);
+                    const startState = new State(stateController.homeView);
+                    stateController.changeState(startState);
+                })
+            }
         } catch (error) {
             console.error('Caught Error loading');
             console.error(error);

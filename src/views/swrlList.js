@@ -9,7 +9,7 @@ import showRequireLoginScreen from '../components/requireLoginScreen';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
 import { UIView } from './UIView';
-import { StateController, sort, filters} from './stateController';
+import { StateController, sort, filters, typeFilter } from './stateController';
 
 export class YourListView extends UIView {
     /**
@@ -206,19 +206,22 @@ function runQuery(db, category, view) {
                     resolve({ empty: true });
                 });
             } else {
-                return db.where("category", "==", category.id)
+                let search = db.where("category", "==", category.id)
                     .where("later", "array-contains", swrlUser.uid)
-                    .orderBy(sort.column, sort.direction)
-                    .get();
+                    .orderBy(sort.column, sort.direction);
+                if (typeFilter) search = search.where(typeFilter.column, '==', typeFilter.value);
+                return search.get();
             }
         case DISCOVER:
-            return db.where("category", "==", category.id)
+            let search = db.where("category", "==", category.id)
                 .orderBy(sort.column, sort.direction)
-                .get();
+            if (typeFilter) search = search.where(typeFilter.column, '==', typeFilter.value);
+            return search.get();
         default:
-            return db.where("category", "==", category.id)
+            let defaultSearch = db.where("category", "==", category.id)
                 .orderBy(sort.column, sort.direction)
-                .get();
+            if (typeFilter) defaultSearch = defaultSearch.where(typeFilter.column, '==', typeFilter.value);
+            return defaultSearch.get();
     }
 }
 

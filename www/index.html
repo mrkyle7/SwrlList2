@@ -57,10 +57,26 @@
     <div id="fade" class="hidden"></div>
     <div id="filters" class="hidden">
       <form>
-      <h3>Filters</h3>
-      <input type="checkbox" id="recommended" name="filter" value="1">
-      <label for="recommended">Recommended to you</label><br>
-      <h3>Sort</h3>
+        <h3>Filters</h3>
+        <input type="radio" id="filmFilter" name="whereFilter" value="1">
+        <label for="filmFilter">Films</label>
+        <input type="radio" id="tvFilter" name="whereFilter" value="2">
+        <label for="tvFilter">TV</label>
+        <input type="radio" id="bookFilter" name="whereFilter" value="3">
+        <label for="bookFilter">Books</label>
+        <input type="radio" id="albumFilter" name="whereFilter" value="4">
+        <label for="albumFilter">Albums</label>
+        <input type="radio" id="podcastFilter" name="whereFilter" value="5">
+        <label for="podcastFilter">Podcasts</label>
+        <input type="radio" id="boardGameFilter" name="whereFilter" value="6">
+        <label for="boardGameFilter">Boardgames</label>
+        <input type="radio" id="videoGames" name="whereFilter" value="7">
+        <label for="videoGames">Video games</label>
+        <input type="radio" id="allTypes" name="whereFilter" value="-1">
+        <label for="allTypes">All</label>
+        <br><input type="checkbox" id="recommended" name="filter" value="1">
+        <label for="recommended">Recommended to you</label><br>
+        <h3>Sort</h3>
         <input type="radio" id="alphabetical" name="sort" value="1" checked>
         <label for="alphabetical">Alphabetical</label><br>
         <input type="radio" id="recentlyadded" name="sort" value="2">

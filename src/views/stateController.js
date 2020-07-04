@@ -2,7 +2,7 @@ import { Home } from "./homePage";
 import { State } from "../model/state";
 import { InboxRecommendations, SentRecommendations } from "./recommendations";
 import { initSearchBar, SearchView } from "./searchResults";
-import { Category, Categories } from "../constants/Category";
+import { Category, Categories, WATCH, READ, LISTEN, PLAY } from "../constants/Category";
 import { swrlUser } from "../firebase/login";
 import { YourListView, DiscoverView } from "./swrlList";
 import { Recommend } from "./recommend";
@@ -14,13 +14,15 @@ import { SwrlScreen } from "../screens/swrlScreen";
 import { SwrlFullPage } from "./swrlFullPage";
 import { SavedSearchesScreen } from "../screens/savedSearchesScreen";
 import { SavedSearches } from "./savedSearches";
-import { alphabetical, Sort, sortFromId } from "../constants/Sort";
-import { Filter, RECOMMENDED_FILTER, filterFromId } from "../constants/Filter";
+import { alphabetical, sortFromId } from "../constants/Sort";
+import { Filter, filterFromId } from "../constants/Filter";
+import { FILM_FILTER, WhereFilter, whereFilterFromId } from "../constants/WhereFilter";
 
 export let sort = alphabetical;
 /** @type {Filter[]} */
 export let filters = [];
-
+/** @type {WhereFilter} */
+export let typeFilter = undefined;
 export class StateController {
     /**
      * @param {firebase.firestore.Firestore} firestore
@@ -61,6 +63,9 @@ export class StateController {
             } else if (this.currentState.view.screen !== newState.view.screen) {
                 this.previousStates.push(this.currentState);
             }
+            if (this.currentState.selectedCategory !== newState.selectedCategory) {
+                typeFilter = undefined
+            }
         }
         this.currentState = newState;
         newState.view.show();
@@ -89,6 +94,7 @@ export class StateController {
         backButton.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
+            this.hidefilters();
             this.showPreviousScreen();
         })
 
@@ -108,6 +114,28 @@ export class StateController {
             e.preventDefault();
             const fade = document.getElementById('fade')
             fade.classList.remove('hidden');
+            const typeFilters = document.querySelectorAll('input[name="whereFilter"]');
+            typeFilters.forEach(filter => {
+                if (filter.value === "-1") {
+                    if (typeFilter === undefined) {
+                        filter.checked = true;
+                    }
+                } else {
+                    const label = document.querySelector(`label[for="${filter.id}"]`)
+                    filter.classList.add('hidden');
+                    if (label) label.classList.add('hidden')
+                    if (this.currentState.selectedCategory &&
+                        this.currentState.selectedCategory.typeFilters.some(tf => tf.id === parseInt(filter.value))) {
+                        filter.classList.remove('hidden')
+                        if (label) label.classList.remove('hidden')
+                    }
+                    if (typeFilter && typeFilter.id === parseInt(filter.value)) {
+                        filter.checked = true;
+                    } else {
+                        filter.checked = false;
+                    }
+                }
+            })
             const filters = document.getElementById('filters')
             filters.classList.remove('hidden');
         })
@@ -170,10 +198,7 @@ export class StateController {
         return (e) => {
             e.stopPropagation();
             e.preventDefault();
-            const fade = document.getElementById('fade');
-            fade.classList.add('hidden');
-            const filterPopup = document.getElementById('filters');
-            filterPopup.classList.add('hidden');
+            this.hidefilters();
             const checkedSort = document.querySelector('input[name="sort"]:checked');
             if (checkedSort) {
                 const selectedSort = sortFromId(parseInt(checkedSort.value));
@@ -187,7 +212,13 @@ export class StateController {
                 const filter = filterFromId(parseInt(selectedFilter.value));
                 if (filter) {
                     filters.push(filter);
-                } 
+                }
+            })
+            const typeFilters = document.querySelectorAll('input[name="whereFilter"]:checked');
+            typeFilters.forEach(tf => {
+                if (tf.value === "-1") typeFilter = undefined
+                const whereFilter = whereFilterFromId(parseInt(tf.value));
+                if (whereFilter) typeFilter = whereFilter;
             })
             if (this.currentState.view.screen === this.listScreen) {
                 const refreshState = new State(this.currentState.view);
@@ -196,6 +227,13 @@ export class StateController {
                 this.changeState(refreshState);
             }
         };
+    }
+
+    hidefilters() {
+        const fade = document.getElementById('fade');
+        fade.classList.add('hidden');
+        const filterPopup = document.getElementById('filters');
+        filterPopup.classList.add('hidden');
     }
 
     _initMenuItems() {

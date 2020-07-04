@@ -1,0 +1,15 @@
+4/7/2020
+- You can now filter to a specific type of Swrl, eg TV!
+
+2/7/2020
+- fix bug with filters
+- you can filter to swrls recommended to you!
+
+19/6/2020
+- you can now change the sort criteria of your lists
+
+26/6/2020
+- fix resetting the list when going back
+
+25/1/2020
+- Actors and Directors now have photos on the full page view. Also click them to search for more content from them!

@@ -4,6 +4,7 @@ import { ListenSearch } from '../search/listenSearch';
 import { PlaySearch } from '../search/playSearch';
 import { Constant } from './Constant';
 import { Search } from '../search/search';
+import { WhereFilter, FILM_FILTER, TV_FILTER, BOOK_FILTER, ALBUM_FILTER, PODCAST_FILTER, BOARDGAME_FILTER, VIDEOGAME_FILTER } from './WhereFilter';
 
 export class Category extends Constant {
     /**
@@ -17,8 +18,10 @@ export class Category extends Constant {
      * @param {Search} search
      * @param {string} colour
      * @param {string} image
+     * @param {WhereFilter[]} typeFilters
      */
-    constructor(id, name, displayName, noSwrlsMessage, noSwrlsDiscoverMessage, searchMessage, searchPlaceholder, search, colour, image) {
+    constructor(id, name, displayName, noSwrlsMessage, noSwrlsDiscoverMessage,
+         searchMessage, searchPlaceholder, search, colour, image, typeFilters) {
         super(id);
         this.name = name;
         this.displayName = displayName;
@@ -29,6 +32,7 @@ export class Category extends Constant {
         this.search = search;
         this.colour = colour;
         this.image = image;
+        this.typeFilters = typeFilters;
         Object.freeze(this);
     }
 }
@@ -43,7 +47,8 @@ export const WATCH = new Category(
     'Search by title',
     new WatchSearch(),
     '#3EB283',
-    'img/movie-24px.svg');
+    'img/movie-24px.svg',
+    [FILM_FILTER, TV_FILTER]);
 
 export const READ = new Category(
     2,
@@ -55,7 +60,8 @@ export const READ = new Category(
     'Search by title or author',
     new ReadSearch(),
     '#F6A900',
-    'img/menu_book-24px.svg');
+    'img/menu_book-24px.svg',
+    [BOOK_FILTER]);
 
 export const LISTEN = new Category(
     3,
@@ -67,7 +73,8 @@ export const LISTEN = new Category(
     'Search by title or artist',
     new ListenSearch(),
     '#b042f4',
-    'img/headset-24px.svg');
+    'img/headset-24px.svg',
+    [ALBUM_FILTER, PODCAST_FILTER]);
 
 export const PLAY = new Category(
     4,
@@ -79,7 +86,8 @@ export const PLAY = new Category(
     'Search by title',
     new PlaySearch(),
     '#71A8D6',
-    'img/videogame_asset-24px.svg');
+    'img/videogame_asset-24px.svg',
+    [BOARDGAME_FILTER, VIDEOGAME_FILTER]);
 
 export const Categories = Object.freeze([WATCH, READ, LISTEN, PLAY]);
 

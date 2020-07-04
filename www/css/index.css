@@ -780,8 +780,8 @@ body {
 #filters {
     position: absolute;
     top: 118px;
-    left: 36px;
-    right: 36px;
+    left: 48px;
+    right: 48px;
     background: black;
     color: white;
     z-index: 10;
@@ -1040,8 +1040,8 @@ body {
     }
 
     #filters {
-        left: 356px;
-        right: 356px;
+        left: 480px;
+        right: 480px;
     }
     .selected .recommendTitle {
         font-size: 2vw;
