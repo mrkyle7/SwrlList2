@@ -9,7 +9,9 @@ import showRequireLoginScreen from '../components/requireLoginScreen';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
 import { UIView } from './UIView';
-import { StateController, sort, filters, typeFilter } from './stateController';
+import { StateController} from './stateController';
+import { Sort } from '../constants/Sort';
+import { WhereFilter } from '../constants/WhereFilter';
 
 export class YourListView extends UIView {
     /**
@@ -91,7 +93,7 @@ export function showList(category, view, firestore, stateController) {
     currentView = view;
     const swrlsRef = firestore.collection(Collection.SWRLS);
     if (swrlsRef) {
-        runQuery(swrlsRef, category, view)
+        runQuery(swrlsRef, category, view, stateController.currentState.sort, stateController.currentState.typeFilter)
             .then(function (querySnapshot) {
                 if (currentID === resultsID) {
                     document.getElementById('messageContainer').classList.add('hidden');
@@ -109,7 +111,7 @@ export function showList(category, view, firestore, stateController) {
                                 try {
                                     const swrl = Swrl.fromFirestore(docSnapshot.data());
                                     if (!(view === DISCOVER && (isOnList(swrl) || isDeleted(swrl)))
-                                        && filters.every(f => f.match(swrl, swrlUser ? swrlUser.uid : undefined))) {
+                                        && stateController.currentState.filters.every(f => f.match(swrl, swrlUser ? swrlUser.uid : undefined))) {
                                         swrls.push(swrl);
                                     }
                                 } catch (error) {
@@ -191,13 +193,14 @@ function renderNextSwrls(swrls, stateController, view, firestore, firstLoad) {
 }
 
 /**
- * 
- * @param {firebase.firestore.CollectionReference} db 
- * @param {Category} category 
- * @param {Constant} view 
+ * @param {firebase.firestore.CollectionReference} db
+ * @param {Category} category
+ * @param {Constant} view
  * @return {Promise}
+ * @param {Sort} sort
+ * @param {WhereFilter} typeFilter
  */
-function runQuery(db, category, view) {
+function runQuery(db, category, view, sort, typeFilter) {
     switch (view) {
         case YOUR_LIST:
             if (!swrlUser || swrlUser.isAnonymous) {

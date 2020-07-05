@@ -14,15 +14,10 @@ import { SwrlScreen } from "../screens/swrlScreen";
 import { SwrlFullPage } from "./swrlFullPage";
 import { SavedSearchesScreen } from "../screens/savedSearchesScreen";
 import { SavedSearches } from "./savedSearches";
-import { alphabetical, sortFromId } from "../constants/Sort";
-import { Filter, filterFromId } from "../constants/Filter";
-import { FILM_FILTER, WhereFilter, whereFilterFromId } from "../constants/WhereFilter";
+import { sortFromId } from "../constants/Sort";
+import { filterFromId } from "../constants/Filter";
+import { whereFilterFromId } from "../constants/WhereFilter";
 
-export let sort = alphabetical;
-/** @type {Filter[]} */
-export let filters = [];
-/** @type {WhereFilter} */
-export let typeFilter = undefined;
 export class StateController {
     /**
      * @param {firebase.firestore.Firestore} firestore
@@ -62,9 +57,6 @@ export class StateController {
                 this.previousStates.push(this.currentState);
             } else if (this.currentState.view.screen !== newState.view.screen) {
                 this.previousStates.push(this.currentState);
-            }
-            if (this.currentState.selectedCategory !== newState.selectedCategory) {
-                typeFilter = undefined
             }
         }
         this.currentState = newState;
@@ -117,25 +109,24 @@ export class StateController {
             const typeFilters = document.querySelectorAll('input[name="whereFilter"]');
             typeFilters.forEach(filter => {
                 if (filter.value === "-1") {
-                    if (typeFilter === undefined) {
-                        filter.checked = true;
-                    }
+                    filter.checked = this.currentState.typeFilter === undefined;
                 } else {
-                    const label = document.querySelector(`label[for="${filter.id}"]`)
                     filter.classList.add('hidden');
+                    const label = document.querySelector(`label[for="${filter.id}"]`)
                     if (label) label.classList.add('hidden')
                     if (this.currentState.selectedCategory &&
                         this.currentState.selectedCategory.typeFilters.some(tf => tf.id === parseInt(filter.value))) {
                         filter.classList.remove('hidden')
                         if (label) label.classList.remove('hidden')
                     }
-                    if (typeFilter && typeFilter.id === parseInt(filter.value)) {
-                        filter.checked = true;
-                    } else {
-                        filter.checked = false;
-                    }
+                    filter.checked = this.currentState.typeFilter && this.currentState.typeFilter.id === parseInt(filter.value);
                 }
             })
+            document.querySelectorAll('input[name="sort"]')
+                .forEach(s => s.checked = this.currentState.sort.id === parseInt(s.value))
+            document.querySelectorAll('input[name="filter"]')
+                .forEach(input => input.checked = this.currentState.filters.some(f => f.id === parseInt(input.value)))
+
             const filters = document.getElementById('filters')
             filters.classList.remove('hidden');
         })
@@ -203,27 +194,30 @@ export class StateController {
             if (checkedSort) {
                 const selectedSort = sortFromId(parseInt(checkedSort.value));
                 if (selectedSort) {
-                    sort = selectedSort;
+                    this.currentState.sort = selectedSort;
                 }
             }
-            filters = [];
+            this.currentState.filters = [];
             const selectedFilters = document.querySelectorAll('input[name="filter"]:checked');
             selectedFilters.forEach(selectedFilter => {
                 const filter = filterFromId(parseInt(selectedFilter.value));
                 if (filter) {
-                    filters.push(filter);
+                    this.currentState.filters.push(filter);
                 }
             })
             const typeFilters = document.querySelectorAll('input[name="whereFilter"]:checked');
             typeFilters.forEach(tf => {
-                if (tf.value === "-1") typeFilter = undefined
+                if (tf.value === "-1") this.currentState.typeFilter = undefined
                 const whereFilter = whereFilterFromId(parseInt(tf.value));
-                if (whereFilter) typeFilter = whereFilter;
+                if (whereFilter) this.currentState.typeFilter = whereFilter;
             })
             if (this.currentState.view.screen === this.listScreen) {
                 const refreshState = new State(this.currentState.view);
                 refreshState.selectedCategory = this.currentState.selectedCategory;
                 refreshState.searchTerms = this.currentState.searchTerms;
+                refreshState.sort = this.currentState.sort;
+                refreshState.filters = this.currentState.filters;
+                refreshState.typeFilter = this.currentState.typeFilter;
                 this.changeState(refreshState);
             }
         };
@@ -267,6 +261,9 @@ export class StateController {
             const yourListState = new State(this.yourListView)
             yourListState.selectedCategory = this.currentState.selectedCategory;
             yourListState.searchTerms = this.currentState.searchTerms;
+            yourListState.sort = this.currentState.sort;
+            yourListState.typeFilter = this.currentState.typeFilter;
+            yourListState.filters = this.currentState.filters
             this.changeState(yourListState);
         });
     }
@@ -280,6 +277,9 @@ export class StateController {
             const discoverState = new State(this.discoverView);
             discoverState.selectedCategory = this.currentState.selectedCategory;
             discoverState.searchTerms = this.currentState.searchTerms;
+            discoverState.sort = this.currentState.sort;
+            discoverState.typeFilter = this.currentState.typeFilter;
+            discoverState.filters = this.currentState.filters
             this.changeState(discoverState);
         });
     }
@@ -293,6 +293,9 @@ export class StateController {
             const searchState = new State(this.searchView)
             searchState.selectedCategory = this.currentState.selectedCategory;
             searchState.searchTerms = this.currentState.searchTerms;
+            searchState.sort = this.currentState.sort;
+            searchState.typeFilter = this.currentState.typeFilter;
+            searchState.filters = this.currentState.filters
             this.changeState(searchState);
         });
     }

@@ -322,6 +322,10 @@ function clearResults() {
  * @param {StateController} stateController
  */
 function processResults(results, firestore, searchText, stateController) {
+    results = results.filter(result => {
+        return !stateController.currentState.typeFilter
+            || result.type.id === stateController.currentState.typeFilter.value
+    })
     if (results.length == 0) {
         showMessage('No results found for ' + searchText);
     } else {
