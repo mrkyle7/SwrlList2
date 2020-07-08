@@ -25,4 +25,24 @@ export class RecommendScreen extends Screen {
         filterContainer.classList.add('hidden');
         hideLoginButtons();
     }
+
+    /**
+     * @param {boolean} newScreen
+     */
+    updateLocationHistory(newScreen) {
+        const title = `Recommend ${this.stateController.currentState.swrl.details.getFullTitle()}`;
+        const state = {
+            pageTitle: title,
+            stateId: this.stateController.currentState.id
+        };
+        const url = `/recommend/${this.stateController.currentState.swrl.swrlID}`;
+        
+        if (newScreen) {
+            window.history.pushState(state, title, url);
+        } else {
+            window.history.replaceState(state, title, url);
+        }
+
+        document.title = title;
+    }
 }

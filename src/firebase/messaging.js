@@ -1,6 +1,6 @@
 import { Collection } from "../constants/Collection";
 import { swrlUser } from "./login";
-const firebase = require('firebase');
+const firebase = require('firebase/app');
 
 /** @type {string} */
 export let deviceToken;

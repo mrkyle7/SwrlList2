@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 // @ts-check
 
-import firebase from 'firebase';
+import firebase from 'firebase/app';
 import { Swrl } from '../../../src/model/swrl';
 import { ALBUM } from '../../../src/constants/Type';
 import { LISTEN } from '../../../src/constants/Category';

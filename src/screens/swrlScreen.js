@@ -25,4 +25,24 @@ export class SwrlScreen extends Screen {
         filterContainer.classList.add('hidden');
         showLoginButtons();
     }
+
+    /**
+     * @param {boolean} newScreen
+     */
+    updateLocationHistory(newScreen) {
+        const title = `${this.stateController.currentState.swrl.details.getFullTitle()}`;
+        const state = {
+            pageTitle: title,
+            stateId: this.stateController.currentState.id
+        };
+        const url = `/swrl/${this.stateController.currentState.swrl.swrlID}`;
+        
+        if (newScreen) {
+            window.history.pushState(state, title, url);
+        } else {
+            window.history.replaceState(state, title, url);
+        }
+
+        document.title = title;
+    }
 }

@@ -51,6 +51,27 @@ export class StateController {
     * @param {State} newState
     */
     changeState(newState) {
+        let newScreen = false
+        if (this.currentState.view !== undefined) {
+            this.currentState.view.destroy();
+            if (this.previousStates.length === 0) {
+                this.previousStates.push(this.currentState);
+                newScreen = true
+            } else if (this.currentState.view.screen !== newState.view.screen) {
+                this.previousStates.push(this.currentState);
+                newScreen = true;
+            }
+        }
+        this.currentState = newState;
+        newState.view.screen.updateLocationHistory(newScreen);
+        newState.view.show();
+        this._updateTitleBar();
+    }
+    
+    /**
+    * @param {State} newState
+    */
+    replaceState(newState) {
         if (this.currentState.view !== undefined) {
             this.currentState.view.destroy();
             if (this.previousStates.length === 0) {
@@ -74,6 +95,7 @@ export class StateController {
             this.currentState = previousState;
             previousState.view.show();
         }
+
         this._updateTitleBar();
     }
 
@@ -87,7 +109,12 @@ export class StateController {
             e.stopPropagation();
             e.preventDefault();
             this.hidefilters();
-            this.showPreviousScreen();
+            //@ts-ignore
+            if (device.platform === 'browser') {
+                window.history.back();
+            } else {
+                this.showPreviousScreen();
+            }
         })
 
         this._initMenuItems();
@@ -108,23 +135,29 @@ export class StateController {
             fade.classList.remove('hidden');
             const typeFilters = document.querySelectorAll('input[name="whereFilter"]');
             typeFilters.forEach(filter => {
+                //@ts-ignore
                 if (filter.value === "-1") {
+                    //@ts-ignore
                     filter.checked = this.currentState.typeFilter === undefined;
                 } else {
                     filter.classList.add('hidden');
                     const label = document.querySelector(`label[for="${filter.id}"]`)
                     if (label) label.classList.add('hidden')
                     if (this.currentState.selectedCategory &&
+                        //@ts-ignore
                         this.currentState.selectedCategory.typeFilters.some(tf => tf.id === parseInt(filter.value))) {
                         filter.classList.remove('hidden')
                         if (label) label.classList.remove('hidden')
                     }
+                    //@ts-ignore
                     filter.checked = this.currentState.typeFilter && this.currentState.typeFilter.id === parseInt(filter.value);
                 }
             })
             document.querySelectorAll('input[name="sort"]')
+                //@ts-ignore
                 .forEach(s => s.checked = this.currentState.sort.id === parseInt(s.value))
             document.querySelectorAll('input[name="filter"]')
+                //@ts-ignore
                 .forEach(input => input.checked = this.currentState.filters.some(f => f.id === parseInt(input.value)))
 
             const filters = document.getElementById('filters')
@@ -192,6 +225,7 @@ export class StateController {
             this.hidefilters();
             const checkedSort = document.querySelector('input[name="sort"]:checked');
             if (checkedSort) {
+                //@ts-ignore
                 const selectedSort = sortFromId(parseInt(checkedSort.value));
                 if (selectedSort) {
                     this.currentState.sort = selectedSort;
@@ -200,6 +234,7 @@ export class StateController {
             this.currentState.filters = [];
             const selectedFilters = document.querySelectorAll('input[name="filter"]:checked');
             selectedFilters.forEach(selectedFilter => {
+                //@ts-ignore
                 const filter = filterFromId(parseInt(selectedFilter.value));
                 if (filter) {
                     this.currentState.filters.push(filter);
@@ -207,7 +242,9 @@ export class StateController {
             })
             const typeFilters = document.querySelectorAll('input[name="whereFilter"]:checked');
             typeFilters.forEach(tf => {
+                //@ts-ignore
                 if (tf.value === "-1") this.currentState.typeFilter = undefined
+                //@ts-ignore
                 const whereFilter = whereFilterFromId(parseInt(tf.value));
                 if (whereFilter) this.currentState.typeFilter = whereFilter;
             })

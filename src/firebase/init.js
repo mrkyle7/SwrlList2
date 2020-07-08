@@ -21,7 +21,7 @@ export default function initialiseFirebase() {
     myFirebase.firestore().settings({
         cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
     });
-    myFirebase.firestore().enablePersistence({ experimentalTabSynchronization: true })
+    myFirebase.firestore().enablePersistence({ synchronizeTabs: true })
         .then(() => {
             console.log('Firestore Persistence enabled');
         })

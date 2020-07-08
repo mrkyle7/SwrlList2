@@ -25,4 +25,25 @@ export class ListScreen extends Screen {
         filterContainer.classList.remove('hidden');
         hideLoginButtons();
     }
+
+    /**
+     * @param {boolean} newScreen
+     */
+    updateLocationHistory(newScreen) {
+
+        const title = `Swrl List 2: ${this.stateController.currentState.selectedCategory.displayName}`;
+        const state = {
+            pageTitle: title,
+            stateId: this.stateController.currentState.id
+        };
+        const url = `/${this.stateController.currentState.selectedCategory.name}`;
+        
+        if (newScreen) {
+            window.history.pushState(state, title, url);
+        } else {
+            window.history.replaceState(state, title, url);
+        }
+
+        document.title = title;
+    }
 }

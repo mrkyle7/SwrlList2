@@ -13,6 +13,8 @@ let myFirebase;
 const loggingInView = document.getElementById('loggingInView');
 const loggingInAnonymousView = document.getElementById('loggingInAnonymousView');
 
+export let initialisedLogin = false;
+
 /**
  * @param {firebase.app.App} firebaseInstance
  * @param {firebase.firestore.Firestore} firestore
@@ -39,9 +41,11 @@ export function setUpLogin(firebaseInstance, firestore) {
             loginAnonymously();
             handleLogout();
         }
+        initialisedLogin = true;
     }, (error) => {
         console.error('Error on auth state changed');
         console.error(error);
+        initialisedLogin = true;
     });
 }
 

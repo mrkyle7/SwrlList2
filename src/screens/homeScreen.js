@@ -25,4 +25,20 @@ export class HomeScreen extends Screen {
         filterContainer.classList.add('hidden');
         showLoginButtons();
     }
+
+    /**
+     * @param {boolean} newScreen
+     */
+    updateLocationHistory(newScreen) {
+        const title =  'Swrl List 2';
+        const state = { pageTitle: title, stateId: this.stateController.currentState.id };
+        const url = `/`;
+        if (newScreen) {
+            window.history.pushState(state, title, url);
+        } else {
+            window.history.replaceState(state, title, url);
+        }
+
+        document.title = title;
+    }
 }

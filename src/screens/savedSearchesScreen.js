@@ -25,4 +25,24 @@ export class SavedSearchesScreen extends Screen {
         filterContainer.classList.add('hidden');
         showLoginButtons();
     }
+
+    /**
+     * @param {boolean} newScreen
+     */
+    updateLocationHistory(newScreen) {
+        const title = `Saved Searches`;
+        const state = {
+            pageTitle: title,
+            stateId: this.stateController.currentState.id
+        };
+        const url = `/savedsearches`;
+        
+        if (newScreen) {
+            window.history.pushState(state, title, url);
+        } else {
+            window.history.replaceState(state, title, url);
+        }
+
+        document.title = title;
+    }
 }

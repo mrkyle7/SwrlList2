@@ -1,5 +1,5 @@
 import { INBOX, SENT } from '../constants/View';
-import { recommendationsInboxCache, recommendationsSentCache } from '../listeners/recommendations';
+import { recommendationsInboxCache, recommendationsSentCache, inboxReady } from '../listeners/recommendations';
 import { Collection } from '../constants/Collection';
 import { renderRecommendation } from '../components/recommendation';
 import { swrlUser } from '../firebase/login';
@@ -60,16 +60,20 @@ export let currentRenderID;
  * @param {Constant} view 
  * @param {firebase.firestore.Firestore} firestore 
  */
-const showRecommendations = (stateController, view, firestore) => {
+const showRecommendations = async (stateController, view, firestore) => {
     recommendationTabs.classList.remove('hidden');
     recommendationList.classList.remove('hidden');
     currentRenderID = Math.random();
     clearList();
     loadingSpinner.classList.remove('hidden');
+    while (swrlUser && !swrlUser.isAnonymous && !inboxReady) {
+        console.log('waiting for inbox...')
+        await new Promise((resolve, _) => setTimeout(() => resolve(), 300))
+    }
     if (view === INBOX) {
-        showInboxFromCache(stateController, view, firestore, currentRenderID);
         inboxTab.classList.add('selected');
         sentTab.classList.remove('selected');
+        showInboxFromCache(stateController, view, firestore, currentRenderID);
     } else {
         inboxTab.classList.remove('selected');
         sentTab.classList.add('selected');

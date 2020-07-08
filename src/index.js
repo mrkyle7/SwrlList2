@@ -21,10 +21,14 @@
 require("typeface-raleway");
 import bindMenuSwipeAction from './utils/swipeUtils';
 import initialiseFirebase from './firebase/init';
-import { setUpLogin } from './firebase/login';
+import { setUpLogin, initialisedLogin, swrlUser } from './firebase/login';
 import { StateController } from './views/stateController';
 import { State } from './model/state';
 import { initMessaging } from './firebase/messaging';
+import { Collection } from './constants/Collection';
+import { Swrl } from './model/swrl';
+import { Category, WATCH, LISTEN, READ, PLAY } from './constants/Category';
+import { inboxReady } from './listeners/recommendations';
 
 /** @type {StateController} */
 let stateController;
@@ -45,7 +49,7 @@ const app = {
     //
     // Bind any cordova events here. Common events are:
     // 'pause', 'resume', etc.
-    onDeviceReady: function () {
+    onDeviceReady: async function () {
         console.log('Received Event: onDeviceReady');
         try {
             bindMenuSwipeAction();
@@ -66,8 +70,76 @@ const app = {
             initMessaging(firebase, firestore);
             stateController = new StateController(firestore);
             stateController.initialiseAllViews();
+
+            window.onpopstate =
+                /**
+                 * @param {PopStateEvent} event
+                 */
+                (event) => {
+                    if (event.state) {
+                        const state = stateController.previousStates.find(s => s.id === event.state.stateId)
+                        if (state) {
+                            stateController.replaceState(state);
+                        } else {
+                            stateController.changeState(startState);
+                        }
+                    } else {
+                        stateController.changeState(startState);
+                    }
+                }
+
+            const originalPath = document.location.pathname;
             const startState = new State(stateController.homeView);
-            stateController.changeState(startState);
+            stateController.previousStates.push(startState);
+            stateController.currentState = startState;
+            window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/')
+
+            //@ts-ignore
+            if (device.platform === 'browser') {
+                while (!initialisedLogin) {
+                    console.log('waiting for login...')
+                    await new Promise((resolve, _) => setTimeout(() => resolve(), 300))
+                }
+                console.log('testing for deep link')
+                const match = /\/([^\/]*)\/?([^\/]*)\/?/.exec(originalPath);
+                if (match && match.length > 1) {
+                    switch (match[1]) {
+                        case 'swrl':
+                            swrlRoute(match, firestore);
+                            break;
+                        case 'watch':
+                            listRoute(WATCH);
+                            break;
+                        case 'read':
+                            listRoute(READ);
+                            break;
+                        case 'listen':
+                            listRoute(LISTEN);
+                            break;
+                        case 'play':
+                            listRoute(PLAY);
+                            break;
+                        case 'recommend':
+                            recommendRoute(match, firestore);
+                            break;
+                        case 'recommendations':
+                            recommendationsRoute()
+                            break;
+                        case 'savedsearches':
+                            savedSearchesRoute();
+                            break;
+                        default:
+                            console.log('Not a recognised deep link URL')
+                            stateController.changeState(startState);
+                            break;
+                    }
+                } else {
+                    console.log('Not a deep link URL')
+                    stateController.changeState(startState);
+                }
+            } else {
+                stateController.changeState(startState);
+            }
         } catch (error) {
             console.error('Caught Error loading');
             console.error(error);
@@ -83,8 +155,95 @@ window.onerror = function (what, line, file) {
     }
 };
 
-function handleOpenURL(url) {
-    document.querySelector("#feedback").innerHTML = "App was opened by URL: " + url;
+/**
+ * @param {Category} category
+ */
+function listRoute(category) {
+    const state = new State(stateController.yourListView);
+    state.selectedCategory = category;
+    document.getElementById('loadingView').classList.add('hidden');
+    stateController.changeState(state);
 }
+
+function recommendationsRoute() {
+    const state = new State(stateController.inboxView);
+    document.getElementById('loadingView').classList.add('hidden');
+    stateController.changeState(state);
+}
+
+function savedSearchesRoute() {
+    const state = new State(stateController.savedSearchesView);
+    document.getElementById('loadingView').classList.add('hidden');
+    stateController.changeState(state);
+}
+
+/**
+ * @param {any[]} match
+ * @param {firebase.firestore.Firestore} firestore
+ */
+function swrlRoute(match, firestore) {
+    const swrlId = match[2];
+    if (swrlId) {
+        console.log(`Found deep link for swrl, id: ${swrlId}`);
+        document.getElementById('loadingView').classList.remove('hidden');
+        firestore.collection(Collection.SWRLS).doc(swrlId).get()
+            .then(doc => {
+                if (doc.exists) {
+                    const swrl = Swrl.fromFirestore(doc.data());
+                    const category = swrl.category;
+                    const swrlFullPage = new State(stateController.swrlView);
+                    swrlFullPage.swrl = swrl;
+                    swrlFullPage.selectedCategory = category;
+                    document.getElementById('loadingView').classList.add('hidden');
+                    stateController.changeState(swrlFullPage);
+                }
+                else {
+                    console.log('Swrl did not exist, going to home page');
+                    document.getElementById('loadingView').classList.add('hidden');
+                    const startState = new State(stateController.homeView);
+                    stateController.changeState(startState);
+                    window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('loadingView').classList.add('hidden');
+            });
+    }
+}
+
+/**
+ * @param {any[]} match
+ * @param {firebase.firestore.Firestore} firestore
+ */
+function recommendRoute(match, firestore) {
+    const swrlId = match[2];
+    if (swrlId) {
+        console.log(`Found deep link for swrl, id: ${swrlId}`);
+        document.getElementById('loadingView').classList.remove('hidden');
+        firestore.collection(Collection.SWRLS).doc(swrlId).get()
+            .then(doc => {
+                if (doc.exists) {
+                    const swrl = Swrl.fromFirestore(doc.data());
+                    const state = new State(stateController.recommendView);
+                    state.swrl = swrl;
+                    document.getElementById('loadingView').classList.add('hidden');
+                    stateController.changeState(state);
+                }
+                else {
+                    console.log('Swrl did not exist, going to home page');
+                    document.getElementById('loadingView').classList.add('hidden');
+                    const startState = new State(stateController.homeView);
+                    stateController.changeState(startState);
+                    window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('loadingView').classList.add('hidden');
+            });
+    }
+}
+
 
 app.initialize();

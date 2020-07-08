@@ -11,6 +11,7 @@ import { Recommendation } from '../model/recommendation';
 import { StateController } from '../views/stateController';
 import { getSwrler } from '../firebase/swrler';
 import { State } from '../model/state';
+import { Swrl } from '../model/swrl';
 
 /**
  * 
@@ -32,6 +33,13 @@ export const renderRecommendation = async (stateController, view, recommendation
         let $recommendation = recommendationFragment.querySelector.bind(recommendationFragment);
         let recommendationDiv = $recommendation('div');
 
+        if (!recommendation.swrl) {
+            console.log('Getting Swrl for recommendation')
+            const swrlDoc = await firestore.collection(Collection.SWRLS).doc(recommendation.swrlID).get();
+            const swrl = Swrl.fromFirestore(swrlDoc.data())
+            recommendation.swrl = swrl;
+        }
+
         $recommendation('.swrlImage').src = recommendation.swrl.details.imageUrl;
         $recommendation('.swrlImage').addEventListener('error',
             /**
@@ -51,7 +59,7 @@ export const renderRecommendation = async (stateController, view, recommendation
         $recommendation('.swrlTitle').innerText = title;
         $recommendation('.swrlType').innerText = recommendation.swrl.type.name;
 
-         /** @type {HTMLTemplateElement} */
+        /** @type {HTMLTemplateElement} */
         // @ts-ignore
         const swrlButtonsTemplate = document.getElementById('swrlButtons');
         const buttons = swrlButtonsTemplate.content.cloneNode(true);
@@ -74,8 +82,10 @@ export const renderRecommendation = async (stateController, view, recommendation
         })
 
         if (view === INBOX) {
-            const fromSwrler = await getSwrler(recommendation.from, firestore);
-            if (fromSwrler) {
+            if (!recommendation.fromSwrler) {
+                recommendation.fromSwrler = await getSwrler(recommendation.from, firestore);
+            }
+            if (recommendation.fromSwrler) {
                 /** @type {HTMLTemplateElement} */
                 // @ts-ignore
                 let recommenderTemplate = document.getElementById('recommender');
@@ -83,7 +93,7 @@ export const renderRecommendation = async (stateController, view, recommendation
                 // @ts-ignore
                 let recommenderFragment = recommenderTemplate.content.cloneNode(true);
                 let $recommender = recommenderFragment.querySelector.bind(recommenderFragment);
-                $recommender('.swrlerSmallImage').src = fromSwrler.photoURL;
+                $recommender('.swrlerSmallImage').src = recommendation.fromSwrler.photoURL;
                 $recommender('.swrlerSmallImage').addEventListener('error',
                     /**
                      * @param {Event} e
@@ -93,28 +103,30 @@ export const renderRecommendation = async (stateController, view, recommendation
                         // @ts-ignore
                         const image = e.target;
                         if (image) {
-                            image.src = 'img/emoji_people-24px.svg' 
+                            image.src = 'img/emoji_people-24px.svg'
                         }
                     });
-                $recommender('.recommenderName').innerText = fromSwrler.displayName;
+                $recommender('.recommenderName').innerText = recommendation.fromSwrler.displayName;
                 recommendationDiv.appendChild(recommenderFragment);
             }
         } else if (view === SENT) {
-            let toSwrlers = await
-                Promise.all(recommendation.to
-                    .map(
-                        /**
-                          * @param {string} uid
-                         */
-                        async uid => {
-                            let swrler = await getSwrler(uid, firestore);
-                            if (swrler) {
-                                return swrler.displayName;
-                            } else {
-                                return undefined;
-                            }
-                        }));
-            let toSwrlersText = toSwrlers
+            if (!recommendation.toSwrlers) {
+                recommendation.toSwrlers = await
+                    Promise.all(recommendation.to
+                        .map(
+                            /**
+                              * @param {string} uid
+                             */
+                            async uid => {
+                                let swrler = await getSwrler(uid, firestore);
+                                if (swrler) {
+                                    return swrler.displayName;
+                                } else {
+                                    return undefined;
+                                }
+                            }));
+            }
+            let toSwrlersText = recommendation.toSwrlers
                 .filter(displayName => displayName !== undefined)
                 .join(', ');
             /** @type {HTMLTemplateElement} */

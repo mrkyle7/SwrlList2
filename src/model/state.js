@@ -7,6 +7,8 @@ import { WhereFilter } from "../constants/WhereFilter";
 
 export class State {
 
+    /** @type {number} */
+    id;
     /** @type {UIView} */
     view;
     /** @type {Category} */
@@ -26,5 +28,6 @@ export class State {
      */
     constructor(view) {
         this.view = view;
+        this.id = Math.random()
     }
 }

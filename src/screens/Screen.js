@@ -12,4 +12,11 @@ export class Screen {
     updateTitleBar() {
         //override me
     }
+
+    /**
+     * @param {boolean} newScreen
+     */
+    updateLocationHistory(newScreen){
+        //override me
+    }
 }

@@ -5,7 +5,7 @@ import { Swrl } from '../../../src/model/swrl';
 import { FILM, TV, ALBUM, BOOK } from '../../../src/constants/Type';
 import { WATCH, LISTEN, READ } from '../../../src/constants/Category';
 import { Details } from '../../../src/model/details';
-import firebase from 'firebase';
+import firebase from 'firebase/app';
 import { Link } from '../../../src/model/link';
 import { Rating } from '../../../src/model/rating';
 import { Network } from '../../../src/model/network';
