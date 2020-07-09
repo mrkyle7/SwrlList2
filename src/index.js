@@ -92,10 +92,10 @@ const app = {
             const startState = new State(stateController.homeView);
             stateController.previousStates.push(startState);
             stateController.currentState = startState;
-            window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/')
 
             //@ts-ignore
             if (device.platform === 'browser') {
+                window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/')
                 while (!initialisedLogin) {
                     console.log('waiting for login...')
                     await new Promise((resolve, _) => setTimeout(() => resolve(), 300))
@@ -202,7 +202,11 @@ function swrlRoute(match, firestore) {
                     document.getElementById('loadingView').classList.add('hidden');
                     const startState = new State(stateController.homeView);
                     stateController.changeState(startState);
-                    window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/');
+                    //@ts-ignore
+                    if (device.platform === 'browser') {
+                        window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/');
+                    }
+
                 }
             })
             .catch(err => {
@@ -235,7 +239,10 @@ function recommendRoute(match, firestore) {
                     document.getElementById('loadingView').classList.add('hidden');
                     const startState = new State(stateController.homeView);
                     stateController.changeState(startState);
-                    window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/');
+                    //@ts-ignore
+                    if (device.platform === 'browser') {
+                        window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/');
+                    }
                 }
             })
             .catch(err => {

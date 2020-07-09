@@ -63,7 +63,10 @@ export class StateController {
             }
         }
         this.currentState = newState;
-        newState.view.screen.updateLocationHistory(newScreen);
+        //@ts-ignore
+        if (device.platform === 'browser') {
+            newState.view.screen.updateLocationHistory(newScreen);
+        }
         newState.view.show();
         this._updateTitleBar();
     }
