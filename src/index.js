@@ -29,6 +29,7 @@ import { Collection } from './constants/Collection';
 import { Swrl } from './model/swrl';
 import { Category, WATCH, LISTEN, READ, PLAY } from './constants/Category';
 import { inboxReady } from './listeners/recommendations';
+import { getSwrler } from './firebase/swrler';
 
 /** @type {StateController} */
 let stateController;
@@ -105,7 +106,10 @@ const app = {
                 if (match && match.length > 1) {
                     switch (match[1]) {
                         case 'swrl':
-                            swrlRoute(match, firestore);
+                            swrlRoute(match, firestore, startState);
+                            break;
+                        case 'swrler':
+                            swrlerRoute(match, firestore, startState);
                             break;
                         case 'watch':
                             listRoute(WATCH);
@@ -180,8 +184,9 @@ function savedSearchesRoute() {
 /**
  * @param {any[]} match
  * @param {firebase.firestore.Firestore} firestore
+ * @param {State} startState
  */
-function swrlRoute(match, firestore) {
+function swrlRoute(match, firestore, startState) {
     const swrlId = match[2];
     if (swrlId) {
         console.log(`Found deep link for swrl, id: ${swrlId}`);
@@ -213,6 +218,47 @@ function swrlRoute(match, firestore) {
                 console.error(err);
                 document.getElementById('loadingView').classList.add('hidden');
             });
+    } else {
+        stateController.changeState(startState);
+    }
+}
+
+/**
+ * @param {any[]} match
+ * @param {firebase.firestore.Firestore} firestore
+ * @param {State} startState
+ */
+function swrlerRoute(match, firestore, startState) {
+    const swrlerId = match[2];
+    if (swrlerId) {
+        console.log(`Found deep link for swrler, id: ${swrlerId}`);
+        document.getElementById('loadingView').classList.remove('hidden');
+        getSwrler(swrlerId, firestore)
+            .then(swrler => {
+                if (swrler) {
+                    const state = new State(stateController.swrlerLaterView);
+                    state.swrler = swrler;
+                    document.getElementById('loadingView').classList.add('hidden');
+                    stateController.changeState(state);
+                }
+                else {
+                    console.log('Swrler did not exist, going to home page');
+                    document.getElementById('loadingView').classList.add('hidden');
+                    const startState = new State(stateController.homeView);
+                    stateController.changeState(startState);
+                    //@ts-ignore
+                    if (device.platform === 'browser') {
+                        window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/');
+                    }
+
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('loadingView').classList.add('hidden');
+            });
+    } else {
+        stateController.changeState(startState);
     }
 }
 

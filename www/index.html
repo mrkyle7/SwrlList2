@@ -59,22 +59,29 @@
       <form>
         <h3>Filters</h3>
         <input type="radio" id="filmFilter" name="whereFilter" value="1">
-        <label for="filmFilter">Films</label>
+        <label for="filmFilter">Films<br></label> 
+        
         <input type="radio" id="tvFilter" name="whereFilter" value="2">
-        <label for="tvFilter">TV</label>
+        <label for="tvFilter">TV<br></label>
+
         <input type="radio" id="bookFilter" name="whereFilter" value="3">
-        <label for="bookFilter">Books</label>
+        <label for="bookFilter">Books<br></label>
+
         <input type="radio" id="albumFilter" name="whereFilter" value="4">
-        <label for="albumFilter">Albums</label>
+        <label for="albumFilter">Albums<br></label>
+
         <input type="radio" id="podcastFilter" name="whereFilter" value="5">
-        <label for="podcastFilter">Podcasts</label>
+        <label for="podcastFilter">Podcasts<br></label>
+
         <input type="radio" id="boardGameFilter" name="whereFilter" value="6">
-        <label for="boardGameFilter">Boardgames</label>
+        <label for="boardGameFilter">Boardgames<br></label>
+
         <input type="radio" id="videoGames" name="whereFilter" value="7">
-        <label for="videoGames">Video games</label>
+        <label for="videoGames">Video games<br></label>
+
         <input type="radio" id="allTypes" name="whereFilter" value="-1">
         <label for="allTypes">All</label>
-        <br><input type="checkbox" id="recommended" name="filter" value="1">
+        <br><br><input type="checkbox" id="recommended" name="filter" value="1">
         <label for="recommended">Recommended to you</label><br>
         <h3>Sort</h3>
         <input type="radio" id="alphabetical" name="sort" value="1" checked>
@@ -129,6 +136,17 @@
       </div>
       <div id="searchTab">
         <a>SEARCH</a>
+      </div>
+    </div>
+    <div id="swrlerTabs" class="hidden tabs">
+      <div id="swrlerLaterTab">
+        <a>LATER</a>
+      </div>
+      <div id="swrlerLovedTab">
+        <a>LOVED</a>
+      </div>
+      <div id="swrlerDoneTab">
+        <a>DONE</a>
       </div>
     </div>
     <div id="recommendationTabs" class="hidden tabs">

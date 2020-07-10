@@ -17,6 +17,9 @@ import { SavedSearches } from "./savedSearches";
 import { sortFromId } from "../constants/Sort";
 import { filterFromId } from "../constants/Filter";
 import { whereFilterFromId } from "../constants/WhereFilter";
+import { SwrlerListScreen } from "../screens/swrlerListScreen";
+import { SwrlerLater as SwrlerLaterView, SwrlerLoved as SwrlerLovedView, SwrlerDone as SwrlerDoneView } from "./swrlerList";
+import { UIView } from "./UIView";
 
 export class StateController {
     /**
@@ -27,6 +30,7 @@ export class StateController {
         //screens
         this.homeScreen = new HomeScreen(this);
         this.listScreen = new ListScreen(this);
+        this.swrlerListScreen = new SwrlerListScreen(this);
         this.recommendationsScreen = new RecommendationsScreen(this);
         this.recommendScreen = new RecommendScreen(this);
         this.swrlScreen = new SwrlScreen(this);
@@ -37,6 +41,9 @@ export class StateController {
         this.sentView = new SentRecommendations(this);
         this.yourListView = new YourListView(this);
         this.discoverView = new DiscoverView(this);
+        this.swrlerLaterView = new SwrlerLaterView(this);
+        this.swrlerLovedView = new SwrlerLovedView(this);
+        this.swrlerDoneView = new SwrlerDoneView(this);
         this.searchView = new SearchView(this);
         this.recommendView = new Recommend(this);
         this.swrlView = new SwrlFullPage(this);
@@ -70,7 +77,7 @@ export class StateController {
         newState.view.show();
         this._updateTitleBar();
     }
-    
+
     /**
     * @param {State} newState
     */
@@ -146,9 +153,10 @@ export class StateController {
                     filter.classList.add('hidden');
                     const label = document.querySelector(`label[for="${filter.id}"]`)
                     if (label) label.classList.add('hidden')
-                    if (this.currentState.selectedCategory &&
+                    if ((this.currentState.selectedCategory &&
                         //@ts-ignore
-                        this.currentState.selectedCategory.typeFilters.some(tf => tf.id === parseInt(filter.value))) {
+                        this.currentState.selectedCategory.typeFilters.some(tf => tf.id === parseInt(filter.value)))
+                        || this.currentState.view.screen === this.swrlerListScreen) {
                         filter.classList.remove('hidden')
                         if (label) label.classList.remove('hidden')
                     }
@@ -204,9 +212,25 @@ export class StateController {
 
         initSearchBar(this.firestore, this);
 
-        this._bindYourListTab(yourListTab);
-        this._bindDiscoverTab(discoverTab);
-        this._bindSearchTab(searchTab);
+        this.bindYourListTab(yourListTab);
+        this.bindDiscoverTab(discoverTab);
+        this.bindSearchTab(searchTab);
+
+        /** @type {HTMLDivElement} */
+        // @ts-ignore
+        const swrlerLaterTab = document.getElementById('swrlerLaterTab');
+
+        /** @type {HTMLDivElement} */
+        // @ts-ignore
+        const swrlerLovedTab = document.getElementById('swrlerLovedTab');
+
+        /** @type {HTMLDivElement} */
+        // @ts-ignore
+        const swrlerDoneTab = document.getElementById('swrlerDoneTab');
+
+        this.bindSwrlerTab(swrlerLaterTab, this.swrlerLaterView);
+        this.bindSwrlerTab(swrlerLovedTab, this.swrlerLovedView);
+        this.bindSwrlerTab(swrlerDoneTab, this.swrlerDoneView);
 
         //bind the section category clicks
         Categories.forEach(
@@ -251,13 +275,16 @@ export class StateController {
                 const whereFilter = whereFilterFromId(parseInt(tf.value));
                 if (whereFilter) this.currentState.typeFilter = whereFilter;
             })
-            if (this.currentState.view.screen === this.listScreen) {
+            if (this.currentState.view.screen === this.listScreen ||
+                this.currentState.view.screen === this.swrlerListScreen) {
+
                 const refreshState = new State(this.currentState.view);
                 refreshState.selectedCategory = this.currentState.selectedCategory;
                 refreshState.searchTerms = this.currentState.searchTerms;
                 refreshState.sort = this.currentState.sort;
                 refreshState.filters = this.currentState.filters;
                 refreshState.typeFilter = this.currentState.typeFilter;
+                refreshState.swrler = this.currentState.swrler;
                 this.changeState(refreshState);
             }
         };
@@ -294,7 +321,7 @@ export class StateController {
      * 
      * @param {HTMLElement} yourListTab 
      */
-    _bindYourListTab(yourListTab) {
+    bindYourListTab(yourListTab) {
         yourListTab.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -310,7 +337,7 @@ export class StateController {
     /**
      * @param {HTMLElement} discoverTab 
      */
-    _bindDiscoverTab(discoverTab) {
+    bindDiscoverTab(discoverTab) {
         discoverTab.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -326,7 +353,7 @@ export class StateController {
     /**
      * @param {HTMLElement} searchTab 
      */
-    _bindSearchTab(searchTab) {
+    bindSearchTab(searchTab) {
         searchTab.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -337,6 +364,23 @@ export class StateController {
             searchState.typeFilter = this.currentState.typeFilter;
             searchState.filters = this.currentState.filters
             this.changeState(searchState);
+        });
+    }
+
+    /**
+     * @param {HTMLElement} searchTab
+     * @param {UIView} view
+     */
+    bindSwrlerTab(searchTab, view) {
+        searchTab.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const state = new State(view)
+            state.swrler = this.currentState.swrler;
+            state.sort = this.currentState.sort;
+            state.typeFilter = this.currentState.typeFilter;
+            state.filters = this.currentState.filters
+            this.changeState(state);
         });
     }
 

@@ -105,7 +105,7 @@ async function showSwrlFullPage(stateController) {
             addRecommendButton(swrlFullPageView, currentSwrl, stateController);
             addDoneButton(swrlFullPageView, currentSwrl, firestore, null, FULL_PAGE);
 
-            renderSocialCards(currentSwrl, swrlPageCardTemplate, swrlPageSubCardTemplate, firestore);
+            renderSocialCards(currentSwrl, swrlPageCardTemplate, swrlPageSubCardTemplate, firestore, stateController);
             updateDetails(swrl, swrlExists, firestore, stateController);
 
         })
@@ -119,7 +119,7 @@ async function showSwrlFullPage(stateController) {
             addLoveButton(FULL_PAGE, swrl, swrlFullPageView, firestore, null);
             addRecommendButton(swrlFullPageView, swrl, stateController);
             addDoneButton(swrlFullPageView, swrl, firestore, null, FULL_PAGE);
-            renderSocialCards(swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, firestore);
+            renderSocialCards(swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, firestore, stateController);
             updateDetails(swrl, swrlExists, firestore, stateController);
         })
 
@@ -133,8 +133,9 @@ async function showSwrlFullPage(stateController) {
  * @param {HTMLTemplateElement} swrlPageCardTemplate 
  * @param {HTMLTemplateElement} swrlPageSubCardTemplate 
  * @param {firebase.firestore.Firestore} firestore 
+ * @param {StateController} stateController
  */
-const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, firestore) => {
+const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, firestore, stateController) => {
     try {
         if (swrl.isRecommended.some(id => id === swrlUser.uid)
             || swrl.recommendations.some(id => recommendationsSentCache.hasOwnProperty(id))) {
@@ -167,7 +168,7 @@ const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, 
                     try {
                         const fromSwrler = await getSwrler(recommendation.from, firestore);
                         if (fromSwrler) {
-                            const recommender = getSwrlerSmall(fromSwrler);
+                            const recommender = getSwrlerSmall(fromSwrler, stateController);
                             if (subSectionDiv) {
                                 subSectionDiv.querySelector('.cardContent').appendChild(recommender);
                                 const recommendationMessageTemplate = document.getElementById('recommendationMessage');
@@ -282,7 +283,7 @@ const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, 
                     try {
                         const swrler = await getSwrler(uid, firestore);
                         if (laterSubSectionDiv) {
-                            const swrlerElement = getSwrlerSmall(swrler);
+                            const swrlerElement = getSwrlerSmall(swrler, stateController);
                             laterSubSectionDiv.querySelector('.cardContent').appendChild(swrlerElement);
                         }
                     }
@@ -310,7 +311,7 @@ const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, 
                     try {
                         const swrler = await getSwrler(uid, firestore);
                         if (doneSubSectionDiv) {
-                            const swrlerElement = getSwrlerSmall(swrler);
+                            const swrlerElement = getSwrlerSmall(swrler, stateController);
                             doneSubSectionDiv.querySelector('.cardContent').appendChild(swrlerElement);
                         }
                     }
@@ -338,7 +339,7 @@ const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, 
                     try {
                         const swrler = await getSwrler(uid, firestore);
                         if (lovedSubSectionDiv) {
-                            const swrlerElement = getSwrlerSmall(swrler);
+                            const swrlerElement = getSwrlerSmall(swrler, stateController);
                             lovedSubSectionDiv.querySelector('.cardContent').appendChild(swrlerElement);
                         }
                     }
@@ -647,8 +648,9 @@ function destroyDetailCards() {
 
 /**
  * @param {firebase.User} swrler
+ * @param {StateController} stateController
  */
-function getSwrlerSmall(swrler) {
+function getSwrlerSmall(swrler, stateController) {
     var swrlerSmallTemplate = document.getElementById('swrlerSmall');
     // @ts-ignore
     var swrlerSmall = swrlerSmallTemplate.content.cloneNode(true);
@@ -667,5 +669,20 @@ function getSwrlerSmall(swrler) {
             }
         });
     $swrlerSmall('.swrlerSmallText').innerText = swrler.displayName;
+    const div = $swrlerSmall('div');
+
+
+    div.addEventListener('click',
+        /**
+         * @param {Event} e
+         */
+        (e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            const swrlerList = new State(stateController.swrlerLaterView);
+            swrlerList.swrler = swrler;
+            stateController.changeState(swrlerList);
+        })
+
     return swrlerSmall;
 }

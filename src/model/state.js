@@ -22,6 +22,9 @@ export class State {
     filters = [];
     /** @type {WhereFilter} */
     typeFilter = undefined;
+    
+    /** @type {firebase.User} */
+    swrler;
 
     /**
      * @param {UIView} view

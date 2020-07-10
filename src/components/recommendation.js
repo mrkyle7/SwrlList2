@@ -107,6 +107,18 @@ export const renderRecommendation = async (stateController, view, recommendation
                         }
                     });
                 $recommender('.recommenderName').innerText = recommendation.fromSwrler.displayName;
+                const div = $recommender('div');
+                div.addEventListener('click',
+                    /**
+                     * @param {Event} e
+                     */
+                    (e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        const swrlerList = new State(stateController.swrlerLaterView);
+                        swrlerList.swrler = recommendation.fromSwrler;
+                        stateController.changeState(swrlerList);
+                    })
                 recommendationDiv.appendChild(recommenderFragment);
             }
         } else if (view === SENT) {

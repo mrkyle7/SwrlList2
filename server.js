@@ -30,6 +30,25 @@ app.get('/swrl/:id', function (req, res){
   res.sendFile(path.join(__dirname + '/platforms/browser/www/index.html'))
 })
 
+app.use('/swrler/img', express.static('platforms/browser/www/img'))
+app.use('/swrler/css', express.static('platforms/browser/www/css'))
+app.use('/swrler/fonts', express.static('platforms/browser/www/fonts'))
+app.use('/swrler/plugins', express.static('platforms/browser/www/plugins'))
+app.use('/swrler/cordova-js-src', express.static('platforms/browser/www/cordova-js-src'))
+
+app.get('/swrler/bundle.js', function (req, res){
+  res.sendFile(path.join(__dirname + '/platforms/browser/www/bundle.js'))
+})
+app.get('/swrler/cordova.js', function (req, res){
+  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova.js'))
+})
+app.get('/swrler/cordova_plugins.js', function (req, res){
+  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova_plugins.js'))
+})
+app.get('/swrler/:id', function (req, res){
+  res.sendFile(path.join(__dirname + '/platforms/browser/www/index.html'))
+})
+
 
 app.use('/recommend/img', express.static('platforms/browser/www/img'))
 app.use('/recommend/css', express.static('platforms/browser/www/css'))
