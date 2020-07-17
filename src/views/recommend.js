@@ -128,6 +128,7 @@ function bindRecommendSendButton(stateController, swrl, firestore) {
                         const updateRecommendations = swrl.toPartialFireStoreData();
                         updateRecommendations.updated = firebase.firestore.FieldValue.serverTimestamp();
                         updateRecommendations.recommendations = firebase.firestore.FieldValue.arrayUnion(id);
+                        // updateRecommendations.recommenders = firebase.firestore.FieldValue.arrayUnion(fromSwrler);
                         updateRecommendations.isRecommended = firebase.firestore.FieldValue.arrayUnion.apply(this, toSwrlers)
 
                         firestore.collection(Collection.SWRLS).doc(swrlID).set(updateRecommendations,
