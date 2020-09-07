@@ -1,0 +1,24 @@
+7/9/2020
+- click on your user in the menu to see your swrls
+
+17/7/2020
+- Fix Bug when TV show is missing actors and not loading
+
+10/7/2020
+- Click on a user to see what else they have swrled!
+
+9/7/2020
+- fix bug with images not loading
+
+8/7/2020
+- Performance improvements on load of inbox
+
+5/7/2020
+- Filters are saved when going back and between tabs
+
+4/7/2020
+- You can now filter to a specific type of Swrl, eg TV!
+
+2/7/2020
+- fix bug with filters
+- you can filter to swrls recommended to you!

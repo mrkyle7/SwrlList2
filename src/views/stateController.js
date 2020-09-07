@@ -307,6 +307,20 @@ export class StateController {
         }
         savedSearchMenuItem.addEventListener('click', openSavedSearch);
         savedSearchMenuItem.addEventListener('touchstart', openSavedSearch);
+        
+        const currentUserMenuItem = document.getElementById('currentUserMenu');
+        const openCurrentUserScreen = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            this._closeMenu();
+            if (swrlUser && !swrlUser.isAnonymous) {
+                const swrlerState = new State(this.swrlerLaterView);
+                swrlerState.swrler = swrlUser;
+                this.changeState(swrlerState);
+            }
+        }
+        currentUserMenuItem.addEventListener('click', openCurrentUserScreen);
+        currentUserMenuItem.addEventListener('touchstart', openCurrentUserScreen);
     }
 
     _closeMenu() {
