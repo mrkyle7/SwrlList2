@@ -38,7 +38,18 @@ export class HomeScreen extends Screen {
         } else {
             window.history.replaceState(state, title, url);
         }
-
         document.title = title;
+
+
+        // @ts-ignore
+        document.querySelector('meta[property="og:title"]').content = title;
+        // @ts-ignore
+        document.querySelector('meta[name="description"]').content = 'Remember and recommend things you Should Watch Read or Listen to';
+        // @ts-ignore
+        document.querySelector('meta[property="og:description"]').content = 'Remember and recommend things you Should Watch Read or Listen to';
+        // @ts-ignore
+        document.querySelector('meta[property="og:url"]').content = `https://swrl-list.herokuapp.com${window.location.pathname}`;
+        // @ts-ignore
+        document.querySelector('meta[property="og:image"]').content = 'https://swrl-list.herokuapp.com/img/logo.png';
     }
 }

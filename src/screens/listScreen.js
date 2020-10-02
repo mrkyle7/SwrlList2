@@ -45,5 +45,17 @@ export class ListScreen extends Screen {
         }
 
         document.title = title;
+
+        // @ts-ignore
+        document.querySelector('meta[property="og:title"]').content = title;
+        // @ts-ignore
+        document.querySelector('meta[name="description"]').content = `Your ${this.stateController.currentState.selectedCategory.name} list`;
+       // @ts-ignore
+        document.querySelector('meta[property="og:description"]').content = `Your ${this.stateController.currentState.selectedCategory.name} list`;
+        // @ts-ignore
+        document.querySelector('meta[property="og:url"]').content = `https://swrl-list.herokuapp.com${window.location.pathname}`;
+        // @ts-ignore
+        document.querySelector('meta[property="og:image"]').content = 'https://swrl-list.herokuapp.com/img/logo.png';
+   
     }
 }

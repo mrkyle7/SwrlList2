@@ -44,5 +44,17 @@ export class RecommendScreen extends Screen {
         }
 
         document.title = title;
+
+         // @ts-ignore
+        document.querySelector('meta[property="og:title"]').content = title;
+        // @ts-ignore
+        document.querySelector('meta[name="description"]').content = `Recommend ${this.stateController.currentState.swrl.category.name} the ${this.stateController.currentState.swrl.type.displayName}: ${title}`;
+        // @ts-ignore
+        document.querySelector('meta[property="og:description"]').content = `Recommend ${this.stateController.currentState.swrl.category.name} the ${this.stateController.currentState.swrl.type.displayName}: ${title}`;
+        // @ts-ignore
+        document.querySelector('meta[property="og:url"]').content = `https://swrl-list.herokuapp.com${window.location.pathname}`;
+        // @ts-ignore
+        document.querySelector('meta[property="og:image"]').content = this.stateController.currentState.swrl.details.imageUrl;
+   
     }
 }
