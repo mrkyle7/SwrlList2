@@ -16,9 +16,9 @@
     "license": "Apache-2.0",
     "dependencies": {
         "abortcontroller-polyfill": "^1.2.6",
-        "cordova-android": "^7.1.4",
-        "cordova-browser": "^5.0.4",
-        "cordova-ios": "^4.5.5",
+        "cordova-android": "^11.0.0",
+        "cordova-browser": "^6.0.0",
+        "cordova-ios": "^6.2.0",
         "cordova-plugin-browsertab": "0.2.0",
         "cordova-plugin-buildinfo": "2.0.2",
         "cordova-plugin-compat": "1.2.0",
