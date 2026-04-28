@@ -65,29 +65,149 @@ Resolve before starting that phase.
 Establish what currently works, so later phases have a reference for "did I
 break this?"
 
-- [ ] Tag the current commit: `git tag pre-migration-baseline`
-- [ ] Run `npx tsc --allowJs --noEmit` → record errors (expect some, this is
+- [x] Tag the current commit: `git tag pre-migration-baseline`
+- [x] Run `npx tsc --allowJs --noEmit` → record errors (expect some, this is
       the baseline)
-- [ ] Run `npx cypress run` → record passing/failing tests
-- [ ] Try `npm install` on a clean clone with Node 11.7.0 (via `nvm`) to
+- [x] Run `npx cypress run` → record passing/failing tests
+- [x] Try `npm install` on a clean clone with Node 11.7.0 (via `nvm`) to
       confirm the *current* state of the lockfile builds
-- [ ] Try `npm start` and verify the local browser app loads at
+- [x] Try `npm start` and verify the local browser app loads at
       `http://localhost:8000`
-- [ ] Search the codebase for hard-coded `swrl-list.herokuapp.com` and list
+- [x] Search the codebase for hard-coded `swrl-list.herokuapp.com` and list
       every occurrence in **Handoff Notes** below
 - [ ] Confirm the GCP project to use, and that `gcloud` CLI access is set up
       (this is a user task; flag it for them)
 
 ### Phase 0 handoff notes
 
-_Fill in before stopping:_
+**Environment used for this baseline (read first):** the available sandbox
+runs Node 22.22.2 + npm 10.9.7. `nvm` is not installed and the
+`engines.node = 11.7.0` declaration cannot be honoured here. Findings below
+are therefore from running the *current* lockfile and source against a
+modern Node, with the workarounds noted. Treat them as "baseline on Node
+22" rather than "baseline on Node 11" — re-run on Node 11 if/when that
+becomes possible.
 
-- Cypress baseline:
-- Type-check baseline (count of errors):
-- Local `npm start` works? Y/N:
-- All hard-coded `herokuapp.com` references (file:line):
-- GCP project + region confirmed?
-- Anything surprising:
+- **Cypress baseline:** could not run. The `cypress@4.5.0` postinstall
+  tries to download the Cypress App binary from
+  `https://download.cypress.io/desktop/4.5.0?platform=linux&arch=x64`,
+  which the sandbox returns `403 Forbidden` for.
+  - Workaround used to make `npm install` complete:
+    `CYPRESS_INSTALL_BINARY=0 npm install --include=dev`.
+  - Without the binary, `npx cypress run` exits 1 with
+    `Cypress executable not found at: /root/.cache/Cypress/4.5.0/Cypress/Cypress`.
+  - Test files exist (`cypress/integration/model/recommendation_test.js`,
+    `cypress/integration/model/swrl_test.js`) so the baseline pass/fail
+    count is **unknown — needs a host where the Cypress 4.5 binary can be
+    fetched** (or, faster, defer the real baseline to Phase 6 when Cypress
+    is upgraded to a version whose binary is reachable).
+- **Type-check baseline (count of errors): 837 errors.**
+  - No local `typescript` is in `devDependencies`, so `npx tsc` resolved to
+    TypeScript **6.0.2**.
+  - On TS 6, `tsconfig.json`'s `"moduleResolution": "node"` is now a hard
+    error (`error TS5107`), so a bare `npx tsc --allowJs --noEmit` fails
+    fast with a *single* config error and never reaches `src/`.
+  - To get an actual source-code baseline, ran:
+    `npx tsc --allowJs --noEmit --ignoreDeprecations 6.0` →
+    **837 `error TS…` lines, exit 2**. Full log at `/tmp/tsc-baseline2.log`
+    (not committed). Errors are dominated by `TS2339: Property X does not
+    exist on type 'Object'` (JSDoc typing of Firestore docs as `Object`)
+    and `TS2531: Object is possibly 'null'`.
+  - Phase 2 / Phase 6 should pin `typescript` in `devDependencies` and
+    either fix the `moduleResolution` value to `"node10"` / `"bundler"` or
+    add `"ignoreDeprecations": "6.0"` so `npx tsc` works without a flag.
+- **Local `npm start` works? Y — once the following workarounds are
+  applied** (this is the *real* baseline state — `npm start` does **not**
+  work on this stack out of the box):
+  1. `npm install --include=dev` is required. A plain `npm install`
+     with `npm@10` against this lockfile produces a `node_modules/`
+     missing `babel-loader` (and probably others), causing the webpack
+     build to fail with
+     `Error: Can't resolve 'babel-loader' in '/home/user/SwrlList2'`.
+  2. `cordova` must be installed globally (`npm install -g cordova@8.1.2`)
+     because `npm start` runs `cordova prepare browser` and there's no
+     local cordova binary.
+  3. Node 17+ requires `NODE_OPTIONS=--openssl-legacy-provider` for the
+     bundled webpack 4.43 (otherwise webpack dies with
+     `error:0308010C:digital envelope routines::unsupported`).
+  4. With (1)–(3) in place: `cordova prepare browser` succeeds and
+     produces `platforms/browser/www/bundle.js` (~812 KB) on the first
+     run — the "3× prepare" workaround in `heroku-postbuild` was not
+     needed here, possibly because of the newer cordova-fetch /
+     install order on Node 22. Leaving it in `heroku-postbuild` is still
+     correct per `CLAUDE.md` guidance.
+  5. `node server.js` then serves on port 8000 and all deep-link routes
+     return HTTP 200:
+     - `/api/v1/health` → 200 `{"isAvailable":true}`
+     - `/swrl/bundle.js` → 200 (812 613 bytes)
+     - `/swrl/foo`, `/swrler/foo`, `/recommend/foo`, `/recommendations`,
+       `/savedsearches`, `/watch`, `/read`, `/listen`, `/play` → all 200
+       (serving `index.html`)
+  6. *Functional* in-app behaviour (Firestore reads, login flow, FCM)
+     was **not** exercised — that needs a real browser session and
+     Firebase auth credentials. Static serving is verified; runtime
+     correctness is not.
+- **All hard-coded `herokuapp.com` references (file:line):**
+  - `config.xml:7` — `<author href="https://swrl-list.herokuapp.com/">`
+  - `functions/index.js:72` — notification `icon`
+  - `functions/index.js:73` — notification `click_action`
+  - `src/screens/homeScreen.js:51` — `og:url`
+  - `src/screens/homeScreen.js:53` — `og:image`
+  - `src/screens/listScreen.js:56` — `og:url`
+  - `src/screens/listScreen.js:58` — `og:image`
+  - `src/screens/recommendationsScreen.js:55` — `og:url`
+  - `src/screens/recommendationsScreen.js:57` — `og:image`
+  - `src/screens/recommendScreen.js:55` — `og:url`
+  - `src/screens/savedSearchesScreen.js:53` — `og:url`
+  - `src/screens/savedSearchesScreen.js:55` — `og:image`
+  - `src/screens/swrlerListScreen.js:54` — `og:url`
+  - `src/screens/swrlerListScreen.js:56` — `og:image`
+  - `src/screens/swrlScreen.js:53` — `og:url`
+  - (Self-references in this `MIGRATION_PLAN.md` excluded.)
+  - **13 source occurrences total**, across 8 files (7 view modules + 1
+    Cloud Function + `config.xml`). Phase 8 needs to swap these for the
+    new domain — a single `og:url` / `og:image` helper would also be a
+    cheap follow-up.
+- **GCP project + region confirmed?** No — **user action required**
+  before Phase 1 can deploy. See the `[!]` decisions section above for
+  the open questions:
+  - Reuse `swrl-1118` for Cloud Run, or new project?
+  - Region (`europe-west1` vs `europe-west2`)?
+  - Custom domain or `*.run.app` to start?
+  - Confirm `gcloud` CLI is installed and authenticated locally.
+- **Anything surprising:**
+  - Plain `npm install` on `npm@10` silently omits dev deps for this
+    lockfile — `--include=dev` is mandatory. This is worth fixing even
+    before Phase 2 because every contributor on a modern Node will hit
+    it. Likely root cause: the lockfile was generated by a very old
+    `npm@6.x` whose `dev`/`optional` markers don't round-trip cleanly
+    through `npm@10`'s lockfile-version-3 upgrade ("npm warn old
+    lockfile … This is a one-time fix-up").
+  - The Cypress 4.5 binary URL is effectively dead from any sandboxed
+    environment (and possibly soon from anywhere — Cypress have removed
+    older binaries before). Phase 6's Cypress upgrade may have to come
+    earlier than planned if we want a working CI baseline before the
+    Cloud Run cutover.
+  - `cordova prepare browser` emits a warning while installing
+    `cordova-plugin-device`:
+    `Failed to restore plugin "cordova-plugin-device" from config.xml.
+     You might need to try adding it again. Error: code: engine.platform
+     or engine.scriptSrc is not defined in custom engine "cordova-electron"
+     from plugin "cordova-plugin-device" for browser warn`.
+    The plugin still installs on the second pass, so this is non-fatal,
+    but it's another data point for Phase 4's "Cordova is dead" decision.
+  - 837 type errors is *not* a count of distinct bugs — the same
+    "JSDoc-typed-as-Object" pattern recurs across most of `actions/` and
+    `views/`. Real, novel errors are a much smaller subset. Phase 2
+    should re-baseline on a pinned TS version before treating this as a
+    target to drive down.
+  - Branch divergence: `MIGRATION_PLAN.md` names the active branch as
+    `claude/heroku-to-cloudrun-migration-bwAEL`, but PR #36 (the merge
+    commit at HEAD, `c65bf51`) merged that branch into `master`. This
+    Phase 0 work was done on `claude/start-migration-step-one-z89HD`
+    per session instructions; future sessions should pick the correct
+    long-lived branch and update the "Active branch" line at the top of
+    this file.
 
 ---
 
