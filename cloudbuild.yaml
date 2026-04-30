@@ -1,0 +1,62 @@
+# Cloud Build pipeline for Swrl List 2 — Phase 1 of the Heroku → Cloud Run
+# migration. Builds the Docker image, pushes it to Artifact Registry, and
+# deploys it to Cloud Run.
+#
+# First-time setup (user, one-off):
+#   1. Pick a GCP project and enable: Cloud Build, Cloud Run, Artifact Registry
+#   2. Create the Artifact Registry repo:
+#        gcloud artifacts repositories create swrllist2 \
+#          --repository-format=docker \
+#          --location=${_REGION}
+#   3. Grant the Cloud Build service account the `Cloud Run Admin` and
+#      `Service Account User` roles (so the deploy step can publish).
+#
+# Manual run:
+#   gcloud builds submit \
+#     --config=cloudbuild.yaml \
+#     --substitutions=_REGION=europe-west1,_SERVICE=swrllist2,_REPO=swrllist2
+#
+# Or wire it to a Cloud Build trigger on push to `master` (Phase 7).
+
+substitutions:
+  _REGION: europe-west1
+  _SERVICE: swrllist2
+  _REPO: swrllist2
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:latest
+      - .
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - --all-tags
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --port=8080
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:latest
+
+options:
+  logging: CLOUD_LOGGING_ONLY
