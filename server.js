@@ -4,7 +4,7 @@ const path = require('path');
 
 
 app.use(express.static('platforms/browser/www'));
-app.set('port', process.env.PORT || 8000);
+app.set('port', process.env.PORT || 8080);
 app.get('/api/v1/health', function (req, res){
   res.setHeader('Content-Type', 'application/json');
   res.send(JSON.stringify({isAvailable: true}));

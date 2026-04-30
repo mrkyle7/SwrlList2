@@ -1,0 +1,31 @@
+# Build artefacts and platform output — regenerated inside the image.
+node_modules
+platforms
+plugins
+www/bundle.js
+www/bundlepretty.js
+
+# Test output.
+cypress/videos
+cypress/screenshots
+
+# VCS / editor / OS noise.
+.git
+.gitignore
+.vscode
+.DS_Store
+
+# Secrets and local-only files.
+play-store-keys.json
+fastlane/.env
+
+# Mobile-only tooling not needed for the browser build.
+fastlane
+ul_web_hooks
+
+# Lockfile backup left behind from previous experiments.
+package-lock.json-bkp
+
+# The Dockerfile itself doesn't need to be in the image.
+Dockerfile
+.dockerignore

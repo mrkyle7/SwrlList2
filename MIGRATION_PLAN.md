@@ -12,8 +12,10 @@ unchecked box in the active phase and continue from there. Each phase ends
 with a **Handoff Notes** block — fill it in before stopping so the next
 session has everything it needs.
 
-> Active branch: `claude/heroku-to-cloudrun-migration-bwAEL`
-> Always commit work-in-progress to this branch.
+> Active branch: `claude/continue-migration-steps-fRNCV`
+> Always commit work-in-progress to this branch. (Earlier sessions used
+> `claude/heroku-to-cloudrun-migration-bwAEL` and
+> `claude/start-migration-step-one-z89HD`; both have since been merged.)
 
 ---
 
@@ -216,7 +218,7 @@ becomes possible.
 The fastest path off Heroku. We keep Node 11 and Cordova 8 for now.
 Goal: a `gcloud run deploy` that works.
 
-- [ ] Add `Dockerfile` at repo root that:
+- [x] Add `Dockerfile` at repo root that:
       - Uses `node:11.7.0` base image (yes, ancient, intentional for this
         phase)
       - Runs `npm install -g cordova@8.1.2`
@@ -225,23 +227,28 @@ Goal: a `gcloud run deploy` that works.
         three times (mirrors `heroku-postbuild`)
       - Exposes port 8080 (Cloud Run default)
       - `CMD ["node", "server.js"]`
-- [ ] Add `.dockerignore` covering `node_modules`, `platforms`, `plugins`,
+- [x] Add `.dockerignore` covering `node_modules`, `platforms`, `plugins`,
       `cypress/videos`, `cypress/screenshots`, `.git`
-- [ ] Update `server.js` to default to `process.env.PORT || 8080` (Cloud Run
+- [x] Update `server.js` to default to `process.env.PORT || 8080` (Cloud Run
       injects `PORT=8080`)
-- [ ] Add `cloudbuild.yaml` (or document the `gcloud builds submit` /
+- [x] Add `cloudbuild.yaml` (or document the `gcloud builds submit` /
       `gcloud run deploy --source` flow) for the deploy
-- [ ] Build the image locally: `docker build -t swrllist2:test .`
-- [ ] Run it locally: `docker run -p 8080:8080 swrllist2:test` and verify
-      `/api/v1/health` returns `{"isAvailable":true}`
-- [ ] Verify a representative deep-link route (e.g. `/swrl/<id>`) serves
-      `index.html`
-- [ ] Push image to Artifact Registry (user runs `gcloud` commands)
-- [ ] Deploy to Cloud Run, confirm public URL responds
+- [!] Build the image locally: `docker build -t swrllist2:test .` — sandbox
+      has the docker CLI but no daemon socket, so this could not be run.
+      **User action:** run on a machine with Docker (or in Cloud Build) to
+      verify before deploy. See Phase 1 handoff notes.
+- [!] Run it locally: `docker run -p 8080:8080 swrllist2:test` and verify
+      `/api/v1/health` returns `{"isAvailable":true}` — same blocker.
+- [!] Verify a representative deep-link route (e.g. `/swrl/<id>`) serves
+      `index.html` — same blocker.
+- [!] Push image to Artifact Registry (user runs `gcloud` commands) — needs
+      the Phase 0 GCP-project decision first.
+- [!] Deploy to Cloud Run, confirm public URL responds — needs the Phase 0
+      GCP-project + region decisions first.
 - [ ] Update `src/firebase/init.js` `authDomain` and any other URLs only if
       the domain changes (otherwise leave Firebase config untouched)
 - [ ] **Do not** delete `Procfile` or `heroku-postbuild` yet — keep them as a
-      fallback until Phase 8
+      fallback until Phase 8 *(left in place — confirmed)*
 
 ### Phase 1 acceptance criteria
 
@@ -254,6 +261,71 @@ Goal: a `gcloud run deploy` that works.
 - Cypress status unchanged from Phase 0 baseline
 
 ### Phase 1 handoff notes
+
+**What landed this session (files added / changed):**
+
+- `Dockerfile` — single-stage, `FROM node:11.7.0`. Sets
+  `CYPRESS_INSTALL_BINARY=0` so `npm ci` doesn't try to fetch the dead
+  Cypress 4.5 binary (matches the Phase 0 finding). Installs `cordova@8.1.2`
+  globally, runs `npm ci` (full deps — devDependencies are needed at build
+  time because `cordova-plugin-webpack` pulls babel-loader and the
+  css/sass/style/file loaders), then `cordova platform add browser` followed
+  by `cordova prepare browser` three times. `EXPOSE 8080` and
+  `CMD ["node", "server.js"]`.
+- `.dockerignore` — excludes `node_modules`, `platforms`, `plugins`,
+  `www/bundle.js`, `www/bundlepretty.js`, `cypress/videos`,
+  `cypress/screenshots`, `.git*`, editor / OS noise, secrets
+  (`play-store-keys.json`, `fastlane/.env`), Cordova mobile-only directories
+  (`fastlane`, `ul_web_hooks`), `package-lock.json-bkp`, and the Dockerfile
+  itself.
+- `server.js` — default port changed from `8000` → `8080` to match Cloud
+  Run's `PORT` injection. No other changes; deep-link route table untouched.
+- `cloudbuild.yaml` — three steps (`docker build`, `docker push`,
+  `gcloud run deploy`) parameterised by `_REGION`, `_SERVICE`, `_REPO`
+  substitutions, defaulting to `europe-west1` / `swrllist2` / `swrllist2`.
+  Includes the one-off Artifact Registry create command and the IAM grants
+  the Cloud Build service account needs in a header comment. Pushes both
+  `:$SHORT_SHA` and `:latest` tags.
+- `Procfile` and `heroku-postbuild` are intentionally **not** deleted yet
+  (Phase 8).
+
+**What this session could NOT do:**
+
+- **Local `docker build` and `docker run` were not executed.** This sandbox
+  has the docker CLI at `/usr/bin/docker` but no daemon socket
+  (`/var/run/docker.sock` does not exist), so `docker build` exits with
+  `failed to connect to the docker API`. **User action required:** on a
+  machine with Docker (or via a no-deploy `gcloud builds submit --config
+  cloudbuild.yaml --no-source` smoke test pointed at the build step only),
+  run:
+    ```
+    docker build -t swrllist2:test .
+    docker run --rm -p 8080:8080 swrllist2:test
+    # then in another shell:
+    curl -fsS http://localhost:8080/api/v1/health   # expect {"isAvailable":true}
+    curl -fsSI http://localhost:8080/swrl/foo       # expect 200
+    curl -fsSI http://localhost:8080/swrl/bundle.js # expect 200, ~812 KB
+    ```
+  Treat these three curls as the Phase 1 acceptance gate before pushing
+  to Cloud Run. If `npm ci` fails inside the image because the lockfile is
+  npm@6-era (Node 11.7.0 ships with npm 6.5.0, so this *should* work), fall
+  back to swapping `npm ci` for `npm install` in the Dockerfile.
+- **GCP decisions are still open** (project, region, custom domain). All
+  deploy-stage Phase 1 boxes are marked `[!]` until those are answered —
+  they are the Phase 0 `[!]` items, repeated here for visibility:
+  - Reuse `swrl-1118` for Cloud Run, or new project?
+  - Region (`europe-west1` vs `europe-west2`)?
+  - Custom domain or stick with `*.run.app` to start?
+  - Confirm `gcloud` CLI is installed and authenticated locally.
+
+**Why the Dockerfile uses `npm ci` (not `npm install --include=dev`):**
+
+The Phase 0 `--include=dev` workaround is specific to `npm@10` mishandling
+this old lockfile; inside the `node:11.7.0` image, npm is `6.x` and
+respects the lockfile correctly, so `npm ci` is the right call. If a future
+Node bump (Phase 2) breaks this, switch to `npm install --include=dev`.
+
+**To fill in once the user has run the deploy:**
 
 - Cloud Run service name:
 - Cloud Run URL:
