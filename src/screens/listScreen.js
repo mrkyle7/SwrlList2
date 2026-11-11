@@ -53,9 +53,9 @@ export class ListScreen extends Screen {
        // @ts-ignore
         document.querySelector('meta[property="og:description"]').content = `Your ${this.stateController.currentState.selectedCategory.name} list`;
         // @ts-ignore
-        document.querySelector('meta[property="og:url"]').content = `https://swrl-list.herokuapp.com${window.location.pathname}`;
+        document.querySelector('meta[property="og:url"]').content = `https://swrl-list.com${window.location.pathname}`;
         // @ts-ignore
-        document.querySelector('meta[property="og:image"]').content = 'https://swrl-list.herokuapp.com/img/logo.png';
+        document.querySelector('meta[property="og:image"]').content = 'https://swrl-list.com/img/logo.png';
    
     }
 }

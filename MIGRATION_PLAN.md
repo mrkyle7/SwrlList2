@@ -12,8 +12,8 @@ unchecked box in the active phase and continue from there. Each phase ends
 with a **Handoff Notes** block — fill it in before stopping so the next
 session has everything it needs.
 
-> Active branch: `claude/heroku-to-cloudrun-migration-bwAEL`
-> Always commit work-in-progress to this branch.
+> Work happens on per-session branches merged to `master` by PR; there is no
+> long-lived migration branch.
 
 ---
 
@@ -46,14 +46,13 @@ Resolve before starting that phase.
       better long-term bet (active maintenance, modern plugin ecosystem) but
       it's a port, not an upgrade. Cordova 12 is a smaller leap but the
       ecosystem is mostly dead.
-- [!] **GCP project name** for Cloud Run. Reuse `swrl-1118` (the Firebase
-      project) or a separate one?
-- [!] **Cloud Run region.** Default suggestion: `europe-west1` (Belgium) or
-      `europe-west2` (London) given the existing `.firebaserc` and author
-      timezone. Confirm with user.
-- [!] **Domain.** `swrl-list.herokuapp.com` is hard-coded in
-      `functions/index.js`, `config.xml`, and elsewhere. New domain? Custom
-      domain on Cloud Run, or `*.run.app`?
+- [x] **GCP project name** for Cloud Run: reuse `swrl-1118` (user decision).
+- [x] **Cloud Run region:** `europe-west1`. Not `europe-west2` — Cloud Run
+      domain mappings (needed for the custom domain + managed certificate)
+      are not offered in London.
+- [x] **Domain:** `swrl-list.com` (user decision), as a Cloud Run domain
+      mapping with a Cloud DNS zone. **The domain was not registered** when
+      Phase 1 was written (NXDOMAIN, no registry record) — see Phase 1 notes.
 - [!] **Whether Cloud Functions are still in use in production.** Per
       `CLAUDE.md`, this is unknown. If yes, Phase 5 is required; if no,
       Phase 5 can become "delete `functions/`".
@@ -216,32 +215,35 @@ becomes possible.
 The fastest path off Heroku. We keep Node 11 and Cordova 8 for now.
 Goal: a `gcloud run deploy` that works.
 
-- [ ] Add `Dockerfile` at repo root that:
-      - Uses `node:11.7.0` base image (yes, ancient, intentional for this
-        phase)
-      - Runs `npm install -g cordova@8.1.2`
-      - Runs `npm ci` (or `npm install` if lockfile is incompatible)
-      - Runs `cordova platform add browser` then `cordova prepare browser`
-        three times (mirrors `heroku-postbuild`)
-      - Exposes port 8080 (Cloud Run default)
-      - `CMD ["node", "server.js"]`
-- [ ] Add `.dockerignore` covering `node_modules`, `platforms`, `plugins`,
-      `cypress/videos`, `cypress/screenshots`, `.git`
-- [ ] Update `server.js` to default to `process.env.PORT || 8080` (Cloud Run
-      injects `PORT=8080`)
-- [ ] Add `cloudbuild.yaml` (or document the `gcloud builds submit` /
-      `gcloud run deploy --source` flow) for the deploy
-- [ ] Build the image locally: `docker build -t swrllist2:test .`
-- [ ] Run it locally: `docker run -p 8080:8080 swrllist2:test` and verify
-      `/api/v1/health` returns `{"isAvailable":true}`
-- [ ] Verify a representative deep-link route (e.g. `/swrl/<id>`) serves
-      `index.html`
-- [ ] Push image to Artifact Registry (user runs `gcloud` commands)
+- [x] Add `Dockerfile` at repo root. **Deviates from the original plan:** the
+      build stage is Node 22, not `node:11.7.0` — see handoff notes.
+- [x] Add `.dockerignore` (and `.gcloudignore` for `gcloud run deploy --source`)
+- [x] Update `server.js` to default to `process.env.PORT || 8080`
+- [x] Document the deploy flow: `scripts/deploy-cloudrun.sh` (wraps
+      `gcloud run deploy --source .`, Firebase Auth authorised domains, Cloud
+      DNS + domain mapping)
+- [x] Build the image locally
+- [x] Run it locally and verify `/api/v1/health` returns `{"isAvailable":true}`
+- [x] Verify every deep-link route serves `index.html`, and the app boots,
+      in headless Chromium
 - [ ] Deploy to Cloud Run, confirm public URL responds
-- [ ] Update `src/firebase/init.js` `authDomain` and any other URLs only if
-      the domain changes (otherwise leave Firebase config untouched)
-- [ ] **Do not** delete `Procfile` or `heroku-postbuild` yet — keep them as a
-      fallback until Phase 8
+      (`scripts/deploy-cloudrun.sh deploy` — **blocked: no GCP credentials
+      in the agent session**)
+- [ ] Add the Cloud Run + `swrl-list.com` hosts to Firebase Auth authorised
+      domains (`scripts/deploy-cloudrun.sh auth-domains`)
+- [ ] Register `swrl-list.com`, then `scripts/deploy-cloudrun.sh domain`
+- [x] `src/firebase/init.js` left untouched (`authDomain` stays
+      `swrl-1118.firebaseapp.com`); browser sign-in switched from redirect to
+      popup so it works off the Firebase domain
+- [x] `Procfile` / `heroku-postbuild` kept until Phase 8
+
+Done alongside Phase 1 (user request, outside the original plan):
+
+- [x] PWA: `www/manifest.webmanifest`, icons, `www/sw.js`, registration in
+      `src/index.js` (browser only)
+- [x] `swrl-list.herokuapp.com` → `swrl-list.com` everywhere (pulled forward
+      from Phase 8)
+- [x] Integrations: Open Library search, BoardGameGeek (server proxy + token)
 
 ### Phase 1 acceptance criteria
 
@@ -255,10 +257,49 @@ Goal: a `gcloud run deploy` that works.
 
 ### Phase 1 handoff notes
 
-- Cloud Run service name:
-- Cloud Run URL:
-- Image registry path:
-- Anything that needed to be patched to make Node 11 build in Docker:
+- **Cloud Run service name:** `swrl-list` (project `swrl-1118`, region
+  `europe-west1`) — *not yet deployed*.
+- **Cloud Run URL:** n/a until first deploy.
+- **Image registry path:** `gcloud run deploy --source` puts it in Artifact
+  Registry repo `cloud-run-source-deploy` in `europe-west1`.
+- **Why the build is not on Node 11:** on `node:11.7.0`, `cordova platform add
+  browser` dies in `cordova-universal-links-plugin`'s `after_prepare` hook
+  with `SyntaxError: Unexpected token export` — the plugin installs the latest
+  `plist`, now ESM-only. This is very likely what broke the Heroku build too.
+  Node 22 loads it. Needed on Node 22: `NODE_OPTIONS=--openssl-legacy-provider`
+  (webpack 4) and `npm_config_include=dev` (Cordova's `npm install
+  --production` otherwise prunes `babel-loader`).
+- **`cordova-plugin-device` pinned to `2.0.3`** (the lockfile version). `^2.0.3`
+  resolved to 2.1.0, whose `cordova-electron` engine entry Cordova 8 cannot
+  parse: the plugin was skipped (on every prepare pass, not just the first),
+  `cordova platform add` exited 1 with no message, and the app would have
+  thrown on `device.platform`. The Dockerfile now asserts the plugin is present.
+- **Runtime stage** is `node:22-slim` + `server/package.json` (Express only),
+  so the public server is not on an EOL Node and the image is ~340 MB.
+- **Verified locally (Docker + headless Chromium, Firebase network blocked):**
+  all routes; manifest; service worker registers and controls the page;
+  offline reload of a deep link; Watch / Read / Listen searches against the
+  live APIs; Play search against stubbed BGG XML.
+- **Not verified:** anything needing GCP or a Google login — the deploy itself,
+  popup sign-in, Firestore, FCM; and the BGG proxy with a real token (with a
+  dummy token BGG answers 401 and the proxy returns 502 as designed).
+- **Type-check:** identical before/after on TypeScript 5.4 (3 errors, none in
+  touched code). The "837 errors" Phase 0 figure was TypeScript 6 with no
+  `node_modules` installed. Cypress still cannot run here (binary download).
+- **Integration findings:**
+  - Open Library `search.json` stopped returning `isbn` by default → book
+    search silently returned nothing. Fixed with `fields=`.
+  - BoardGameGeek returns 401 without a registered application's bearer
+    token. Calls now go via `server.js` `/api/v1/geek/*` with `BGG_API_TOKEN`
+    (Secret Manager secret `bgg-api-token`). **User must register an app at
+    https://boardgamegeek.com/applications.** The old getter also resolved
+    with title "Unknown" on a failed lookup, and the Swrl page writes getter
+    results back to Firestore — so saved games opened while BGG was failing
+    may have had their details overwritten. The getter now rejects instead.
+  - TMDB, OMDB and iTunes all work unchanged.
+  - **Still broken, not addressed:** Cloud Functions (Node 8 runtime, FCM
+    `sendToDevice` legacy API was shut down in 2024) — recommendation push
+    notifications cannot be working. That is Phase 5.
 
 ---
 

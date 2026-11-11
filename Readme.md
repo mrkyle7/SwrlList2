@@ -45,17 +45,39 @@ npx cypress run
 
 # How to publish
 
-## Browser
+## Browser (Google Cloud Run)
 
-Setup
+The web app is a Docker image (see `Dockerfile`) running on Cloud Run in the
+`swrl-1118` project, region `europe-west1`, service `swrl-list`, served at
+https://swrl-list.com.
 
-1. Install the Heroku cli tool: [Guide](https://devcenter.heroku.com/articles/heroku-cli)
-2. Login to Heroku: `heroku login`
-3. Set up the git remote to Heroku: `heroku git:remote -a swrl-list`
+You need an authenticated `gcloud` (Cloud Shell works as-is). Then:
 
-Push
+    scripts/deploy-cloudrun.sh deploy        # build with Cloud Build + deploy
+    scripts/deploy-cloudrun.sh auth-domains  # once: allow the hosts in Firebase Auth
+    scripts/deploy-cloudrun.sh domain        # once: Cloud DNS zone + HTTPS domain mapping
+    scripts/deploy-cloudrun.sh status        # service URL, mapping + certificate state
 
-Simply run `git push heroku master`
+One-off setup the script cannot do for you:
+
+1. **Register `swrl-list.com`** (e.g. `gcloud domains registrations register swrl-list.com`
+   or any registrar) and point its name servers at the ones `domain` prints.
+2. **BoardGameGeek token.** BGG's API only answers registered applications.
+   Register at https://boardgamegeek.com/applications, then store the token:
+   `printf '%s' '<token>' | gcloud --project swrl-1118 secrets create bgg-api-token --data-file=-`
+   and re-run `deploy`. Without it board game / video game search returns an error.
+
+To try the image locally:
+
+    docker build -t swrllist2 . && docker run -p 8080:8080 swrllist2
+
+### PWA
+
+The browser build is installable: `www/manifest.webmanifest` + `www/sw.js`
+(network-first app-shell cache, so the app opens offline and Firestore's
+persistence supplies the data). Push notifications stay in
+`www/firebase-messaging-sw.js`. Bump `CACHE` in `sw.js` if the shell file list
+changes.
 
 ## iOS and Android
 

@@ -19,8 +19,14 @@ export class OpenLibraryBookDetailGetter extends DetailGetter {
 
             try {
                 const response = await fetch(url, { signal });
+                if (!response.ok) {
+                    throw new Error(`Open Library responded with HTTP ${response.status}`);
+                }
                 const json = await response.json();
                 const data = json['ISBN:' + id];
+                if (!data) {
+                    throw new Error('Open Library has no details for ISBN: ' + id);
+                }
 
                 const links = [
                     new Link(data.url, 'Open Library', 'img/openlibrary-logo.svg')
@@ -32,7 +38,7 @@ export class OpenLibraryBookDetailGetter extends DetailGetter {
                     })
                 }
 
-                const title = data.title.replace(/'\r\n/g, ' ').replace(/\s\s*/g, ' ');
+                const title = (data.title || '').replace(/'\r\n/g, ' ').replace(/\s\s*/g, ' ');
 
                 resolve(
                     {
@@ -67,7 +73,7 @@ export class OpenLibraryBookDetailGetter extends DetailGetter {
                     }
                 )
             } catch (err) {
-                console.error('Error getting details from TMDB for movie ID: ' + id);
+                console.error('Error getting details from Open Library for ISBN: ' + id);
                 console.error(err);
                 reject(err);
             }

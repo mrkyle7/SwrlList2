@@ -3,9 +3,8 @@ import { Type, BOARDGAME, VIDEOGAME } from '../constants/Type';
 import { PLAY } from '../constants/Category';
 import { Search } from './search';
 import { Swrl } from '../model/swrl';
-import { Details } from '../model/details';
-import { Link } from '../model/link';
-import { GeekDetailGetter } from '../detailGetters/geekDetailGetter';
+import { fetchGeekItems, fetchGeekXml, detailsFromGeekItem } from '../detailGetters/geekDetailGetter';
+import { apiBase } from '../constants/Site';
 
 export class PlaySearch extends Search {
 
@@ -25,14 +24,22 @@ export class PlaySearch extends Search {
             const encodedQuery = encodeURIComponent(query);
 
             const searches = [boardgameSearch(encodedQuery, signal), videoGameSearch(encodedQuery, signal)];
-            Promise.all(searches)
-                .then(function ([boardGameResults, videoGameResults]) {
-                    resolve({ id: id, results: zip(boardGameResults, videoGameResults) });
-                })
-                .catch(function (error) {
-                    console.error('Error getting other results: ' + JSON.stringify(error))
-                    console.error(error);
-                    resolve({ id: id, results: [] })
+            Promise.all(searches.map(search => search.then(
+                results => ({ results: results, error: undefined }),
+                error => ({ results: [], error: error }))))
+                .then(function ([boardGames, videoGames]) {
+                    // One type failing should not hide the other's results,
+                    // but if both fail the user should see an error.
+                    if (signal && signal.aborted) {
+                        // Superseded by a newer search; the caller ignores stale ids.
+                        resolve({ id: id, results: [] });
+                    } else if (boardGames.error && videoGames.error) {
+                        console.error('Error getting play results');
+                        console.error(boardGames.error);
+                        reject(boardGames.error);
+                    } else {
+                        resolve({ id: id, results: zip(boardGames.results, videoGames.results) });
+                    }
                 })
         });
     }
@@ -62,27 +69,20 @@ function videoGameSearch(query, signal) {
  * @param {AbortSignal} signal
  * @return {Promise<Swrl[]>} 
  */
-function geekSearch(type, query, signal) {
-    return new Promise(async function (resolve, reject) {
-        const url = "https://api.geekdo.com/xmlapi2/search?type=" + type.geekType + "&query=" + query;
-        const response = await fetch(url, { signal });
-        const xmlData = await response.text();
-        const parser = new DOMParser();
-        const xmlResults = parser.parseFromString(xmlData, 'application/xml');
-        const items = xmlResults.getElementsByTagName('item');
-        const maxResults = items.length < 20 ? items.length : 20;
-        const results = [];
-        const detailGetter = new GeekDetailGetter(type.geekType);
-        for (let index = 0; index < maxResults; index++) {
-            const item = items[index];
-            const id = item.getAttribute('id');
-            const getterResponse = await detailGetter.get(id, signal, 0);
-            const details = getterResponse.details;
-            
-            results.push(
-                new Swrl(type, PLAY, 'GEEK' + type.geekType + '_' + id, details)
-            )
-        }
-        resolve(results);
-    });
+async function geekSearch(type, query, signal) {
+    const url = `${apiBase()}/api/v1/geek/search?type=${type.geekType}&query=${query}`;
+    const xmlResults = await fetchGeekXml(url, signal);
+    const ids = Array.from(xmlResults.getElementsByTagName('item'))
+        .slice(0, 20)
+        .map(item => item.getAttribute('id'));
+    // One batched details request instead of one request per result.
+    const items = await fetchGeekItems(ids, signal);
+    /** @type {Object<string, Element>} */
+    const itemsById = {};
+    items.forEach(item => itemsById[item.getAttribute('id')] = item);
+    // Keep the search's relevance order; skip anything BGG returned no details for.
+    return ids
+        .filter(id => itemsById[id] !== undefined)
+        .map(id => new Swrl(type, PLAY, 'GEEK' + type.geekType + '_' + id,
+            detailsFromGeekItem(itemsById[id], type.geekType)));
 }

@@ -1,9 +1,9 @@
 ---
 name: swrl-cordova-build
-description: Use when running or debugging Cordova, Heroku, Xcode, or Fastlane builds. Covers the local dev server, the browser deploy pipeline, Android release via Fastlane, and known gotchas with the ancient Cordova 8 toolchain.
+description: Use when running or debugging Cordova, Cloud Run, Xcode, or Fastlane builds. Covers the local dev server, the browser deploy pipeline, Android release via Fastlane, and known gotchas with the ancient Cordova 8 toolchain.
 ---
 
-# Cordova / Heroku / Fastlane builds
+# Cordova / Cloud Run / Fastlane builds
 
 ## Environment expectations
 
@@ -24,12 +24,12 @@ npm start
 ```
 
 This runs `cordova prepare browser && node server.js`. The app is served on
-`http://localhost:8000` (or `PORT`). `server.js` wires up two URL prefixes:
+`http://localhost:8080` (or `PORT`). `server.js` serves the deep-link prefixes
+(`/swrl/*`, `/swrler/*`, `/recommend/*`, `/watch`, `/read`, `/listen`, `/play`,
+`/recommendations`, `/savedsearches`) and the BoardGameGeek proxy
+(`/api/v1/geek/*`, needs `BGG_API_TOKEN`).
 
-- `/swrl/*` → deep-link to a specific swrl
-- `/swrler/*` → deep-link to a user profile
-
-Both fall through to `platforms/browser/www/index.html` for client-side routing.
+Deep links fall through to `platforms/browser/www/index.html` for client-side routing.
 
 ## Local native dev
 
@@ -45,26 +45,34 @@ After _any_ source change for native, run `cordova prepare <platform>` to
 re-bundle into `platforms/`. The webpack plugin is wired into Cordova's
 build hooks.
 
-## Heroku browser deploy
+## Cloud Run browser deploy
 
 ```bash
-heroku git:remote -a swrl-list     # one-time
-git push heroku master
+scripts/deploy-cloudrun.sh deploy   # gcloud run deploy --source . (Cloud Build)
+scripts/deploy-cloudrun.sh status
 ```
 
-`heroku-postbuild` in `package.json`:
+Project `swrl-1118`, region `europe-west1`, service `swrl-list`, domain
+`swrl-list.com` (Cloud Run domain mapping + Cloud DNS zone `swrl-list-com`).
 
-```json
-"heroku-postbuild": "npm install -g cordova@8.1.2 && cordova platform add browser && cordova prepare browser && echo prepare1 && cordova prepare browser && echo prepare2 && cordova prepare browser && echo prepare3"
-```
+The `Dockerfile` is two stages:
 
-**The triple `cordova prepare browser` is deliberate.** The first run doesn't
-produce a complete bundle on Heroku's build image; the third one does. Leave
-it alone unless you're also debugging the build.
+1. **build** — Node 22 + `cordova@8.1.2`, `cordova platform add browser` then
+   three `cordova prepare browser` runs. The repeat is a known workaround
+   inherited from the Heroku build; leave it. Two things in that stage are
+   load-bearing:
+   - `NODE_OPTIONS=--openssl-legacy-provider` — webpack 4 on Node 17+.
+   - `npm_config_include=dev` — Cordova installs plugins with
+     `npm install --production`, which on npm 7+ prunes `babel-loader` and
+     friends and leaves you with no `bundle.js`.
+2. **runtime** — `node:22-slim` with only `server/package.json` (Express)
+   and `platforms/browser/www`.
 
-`scripts/afterAddBrowserTabPlugin.js` is a Cordova hook that patches the
-`cordova-plugin-browsertab` gradle file — needed because the plugin is
-unmaintained.
+Node 11 cannot run this build any more: `cordova-universal-links-plugin`
+pulls the latest `plist`, which is ESM-only (`Unexpected token export`).
+
+The old `Procfile` / `heroku-postbuild` are still in the repo and are dead;
+they go in the migration plan's cleanup phase.
 
 ## Android release via Fastlane
 
@@ -99,7 +107,7 @@ Never commit changes in those paths. If a build is misbehaving:
 ## Known gotchas
 
 - `cordova platform add browser` sometimes fails on first run — the
-  `heroku-postbuild` works around it with the triple prepare. Locally, just
+  the `Dockerfile` works around it with the triple prepare. Locally, just
   re-run the command if it fails.
 - The `cordova-universal-links-plugin` is a git dependency
   (`walteram/cordova-universal-links-plugin`). If the git host is

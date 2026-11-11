@@ -15,7 +15,8 @@ knowledge in the skills.
 - Cypress 4.5 for integration tests
 - Type-checking via `tsc --allowJs --noEmit` driven by `tsconfig.json` /
   `jsconfig.json` + JSDoc
-- Express + Heroku for the browser deploy; Fastlane for Android; Xcode for iOS
+- Express on Google Cloud Run (Docker) for the browser deploy, which is also an
+  installable PWA; Fastlane for Android; Xcode for iOS
 
 Any dependency bump is a real project, not a drive-by. Ask before upgrading.
 
@@ -26,7 +27,7 @@ Any dependency bump is a real project, not a drive-by. Ask before upgrading.
 | Run browser dev server | `npm start` (triggers `cordova prepare browser`) |
 | Run integration tests | `npx cypress run` |
 | Type-check | `npx tsc --allowJs --noEmit` |
-| Deploy browser | `git push heroku master` |
+| Deploy browser | `scripts/deploy-cloudrun.sh deploy` (needs authenticated `gcloud`) |
 | Deploy Android | `bundle exec fastlane android deploy` |
 
 ## Source map
@@ -50,7 +51,9 @@ functions/        Firebase Cloud Functions
 cypress/          integration tests (currently model-level only)
 fastlane/         Android store metadata + lanes
 scripts/          build helpers (e.g. post-add-browsertab fix)
-server.js         Express server used on Heroku
+server.js         Express server used on Cloud Run (static app + BoardGameGeek proxy)
+server/           runtime-only package.json for the Cloud Run image
+Dockerfile        Cloud Run image: Cordova browser build → Express
 ```
 
 **Pipeline:** user input → `actions/*` → Firestore write → `listeners/*`
@@ -64,7 +67,7 @@ server.js         Express server used on Heroku
 | Adding/modifying a screen, view, or the state pipeline | `swrl-architecture` |
 | Touching Firestore, auth, messaging, or Cloud Functions | `swrl-firebase` |
 | Adding a new content source (new Type or 3rd-party API) | `swrl-detail-getters` |
-| Running or debugging Cordova / Heroku / Fastlane builds | `swrl-cordova-build` |
+| Running or debugging Cordova / Cloud Run / Fastlane builds | `swrl-cordova-build` |
 | Writing or running Cypress tests | `swrl-cypress` |
 | Building a user-visible feature end-to-end | launch the `swrl-feature-builder` agent |
 
@@ -80,8 +83,16 @@ server.js         Express server used on Heroku
   suspect the Node version first, not the code.
 - **Firebase SDK is v7 (compat).** Do _not_ reach for modular v9 imports
   (`firebase/app` namespaced imports are required here).
-- **Cordova's `heroku-postbuild` calls `cordova prepare browser` three times
-  on purpose** — a known workaround. Don't "tidy" it away.
+- **The `Dockerfile` calls `cordova prepare browser` three times on purpose** —
+  a known workaround carried over from Heroku. Don't "tidy" it away. It also
+  builds on Node 22, not 11: a Cordova plugin dependency no longer loads on
+  Node 11 (details in the Dockerfile header).
+- **`cordova-plugin-device` is pinned to exactly 2.0.3.** 2.1.0+ declares an
+  engine Cordova 8 cannot parse; the plugin then silently fails to install and
+  the app dies on `device.platform`.
+- **BoardGameGeek calls go through `server.js`** (`/api/v1/geek/*`) because BGG
+  requires a bearer token (`BGG_API_TOKEN`, from Secret Manager). Never put
+  that token in `src/`.
 - Raw DOM rendering, no framework. No React/Vue/Svelte. Don't import one.
 
 ## Unknowns worth asking about

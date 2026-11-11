@@ -77,13 +77,13 @@ that's how the `later`/`done`/`loved` uid arrays end up on a single shared doc.
 | `detailGetters/tmdbFilmDetailGetter.js` | TMDB + OMDB | Uses hardcoded API keys (client-side). Merges IMDB rating via OMDB. |
 | `detailGetters/tmdbTVDetailGetter.js` | TMDB | Same key as film getter. |
 | `detailGetters/openLibraryBookDetailGetter.js` | OpenLibrary | No key. |
-| `detailGetters/geekDetailGetter.js` | BoardGameGeek XML API | Both boardgame and videogame go through this. |
+| `detailGetters/geekDetailGetter.js` | BoardGameGeek XML API, via `server.js` `/api/v1/geek/*` | Both boardgame and videogame go through this. BGG needs a bearer token, held server-side. |
 | `detailGetters/itunesAlbumGetter.js` | iTunes Search | No key. |
 | `detailGetters/itunesPodcastGetter.js` | iTunes Search | No key. |
 | `search/watchSearch.js` | TMDB multi-search | Handles both film + TV, plus `personID:` syntax. |
-| `search/readSearch.js` | OpenLibrary | |
+| `search/readSearch.js` | OpenLibrary | Must request `fields=...,isbn` — search no longer returns ISBNs by default. |
 | `search/listenSearch.js` | iTunes | Album + podcast combined. |
-| `search/playSearch.js` | BGG | Boardgame + videogame combined. |
+| `search/playSearch.js` | BGG via `/api/v1/geek/*` | Boardgame + videogame combined; details fetched in one batched `thing` call. |
 
 ## Adding a new Type
 
@@ -130,6 +130,9 @@ _secret_ key, route it through a Cloud Function instead of embedding it.
   the caller can discard out-of-order responses.
 - **Image URLs expire / change.** Build them from a constant prefix +
   source id; don't store full CDN URLs if the API gives you a path.
+- **A getter must reject when the source has no data** — never resolve with
+  placeholder details. `swrlFullPage` writes whatever a getter resolves with
+  over the saved Swrl in Firestore.
 - **BGG returns XML**, not JSON — see `geekDetailGetter.js` for the DOM-parsing
   pattern.
 - **iTunes ratings / review counts are not in the search endpoint** — the

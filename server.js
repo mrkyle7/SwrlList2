@@ -1,189 +1,171 @@
 const express = require('express');
-const app = express();
+const https = require('https');
 const path = require('path');
+const querystring = require('querystring');
 
+const app = express();
+const www = path.join(__dirname, 'platforms/browser/www');
+const indexHtml = path.join(www, 'index.html');
 
-app.use(express.static('platforms/browser/www'));
-app.set('port', process.env.PORT || 8000);
-app.get('/api/v1/health', function (req, res){
-  res.setHeader('Content-Type', 'application/json');
-  res.send(JSON.stringify({isAvailable: true}));
-  console.log('Deployed successfully');
-})
+// Cloud Run terminates TLS in front of us and injects PORT (8080).
+app.set('trust proxy', true);
+app.set('port', process.env.PORT || 8080);
 
-app.use('/swrl/img', express.static('platforms/browser/www/img'))
-app.use('/swrl/css', express.static('platforms/browser/www/css'))
-app.use('/swrl/fonts', express.static('platforms/browser/www/fonts'))
-app.use('/swrl/plugins', express.static('platforms/browser/www/plugins'))
-app.use('/swrl/cordova-js-src', express.static('platforms/browser/www/cordova-js-src'))
+const staticOptions = {
+  index: false,
+  // Without this, /watch would 301 to /watch/ instead of reaching the app route.
+  redirect: false,
+  setHeaders: function (res, filePath) {
+    const name = path.basename(filePath);
+    if (name === 'sw.js' || name === 'firebase-messaging-sw.js') {
+      // Service workers must always be revalidated or updates never ship.
+      res.setHeader('Cache-Control', 'no-cache');
+    } else if (name === 'manifest.webmanifest') {
+      res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+    }
+  }
+};
 
-app.get('/swrl/bundle.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/bundle.js'))
-})
-app.get('/swrl/cordova.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova.js'))
-})
-app.get('/swrl/cordova_plugins.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova_plugins.js'))
-})
-app.get('/swrl/:id', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/index.html'))
-})
+app.get('/api/v1/health', function (req, res) {
+  res.json({ isAvailable: true });
+});
 
-app.use('/swrler/img', express.static('platforms/browser/www/img'))
-app.use('/swrler/css', express.static('platforms/browser/www/css'))
-app.use('/swrler/fonts', express.static('platforms/browser/www/fonts'))
-app.use('/swrler/plugins', express.static('platforms/browser/www/plugins'))
-app.use('/swrler/cordova-js-src', express.static('platforms/browser/www/cordova-js-src'))
+// ---------------------------------------------------------------------------
+// BoardGameGeek proxy.
+//
+// BGG's XML API rejects anonymous requests (HTTP 401) - every call needs the
+// bearer token of an application registered at
+// https://boardgamegeek.com/applications. A bearer token cannot live in the
+// client bundle, so the browser and the mobile apps call these two routes and
+// the token stays in the BGG_API_TOKEN environment variable (Secret Manager on
+// Cloud Run).
+// ---------------------------------------------------------------------------
+const BGG_HOST = 'boardgamegeek.com';
+const BGG_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+const BGG_CACHE_MAX_ENTRIES = 500;
+const GEEK_TYPES = ['boardgame', 'videogame'];
+/** @type {Map<string, {expires: number, body: string}>} */
+const bggCache = new Map();
 
-app.get('/swrler/bundle.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/bundle.js'))
-})
-app.get('/swrler/cordova.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova.js'))
-})
-app.get('/swrler/cordova_plugins.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova_plugins.js'))
-})
-app.get('/swrler/:id', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/index.html'))
-})
+/**
+ * @param {string} resource
+ * @param {Object} query
+ * @returns {string | undefined} the upstream path, or undefined if the query is invalid
+ */
+function bggPath(resource, query) {
+  if (resource === 'search') {
+    const term = typeof query.query === 'string' ? query.query.trim() : '';
+    if (GEEK_TYPES.indexOf(query.type) === -1 || term.length === 0 || term.length > 200) {
+      return undefined;
+    }
+    return '/xmlapi2/search?' + querystring.stringify({ type: query.type, query: term });
+  }
+  if (resource === 'thing') {
+    const ids = typeof query.id === 'string' ? query.id : '';
+    // BGG accepts at most 20 comma separated ids per request.
+    if (!/^\d+(,\d+){0,19}$/.test(ids)) {
+      return undefined;
+    }
+    return '/xmlapi2/thing?id=' + ids;
+  }
+  return undefined;
+}
 
+app.get('/api/v1/geek/:resource', function (req, res) {
+  // The Android / iOS apps load from file://, so they call this cross-origin.
+  res.setHeader('Access-Control-Allow-Origin', '*');
 
-app.use('/recommend/img', express.static('platforms/browser/www/img'))
-app.use('/recommend/css', express.static('platforms/browser/www/css'))
-app.use('/recommend/fonts', express.static('platforms/browser/www/fonts'))
-app.use('/recommend/plugins', express.static('platforms/browser/www/plugins'))
-app.use('/recommend/cordova-js-src', express.static('platforms/browser/www/cordova-js-src'))
+  const upstreamPath = bggPath(req.params.resource, req.query);
+  if (!upstreamPath) {
+    return res.status(400).json({ error: 'Invalid BoardGameGeek request' });
+  }
+  const token = process.env.BGG_API_TOKEN;
+  if (!token) {
+    return res.status(503).json({ error: 'BGG_API_TOKEN is not configured on the server' });
+  }
 
-app.get('/recommend/bundle.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/bundle.js'))
-})
-app.get('/recommend/cordova.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova.js'))
-})
-app.get('/recommend/cordova_plugins.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova_plugins.js'))
-})
-app.get('/recommend/:id', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/index.html'))
-})
+  const cached = bggCache.get(upstreamPath);
+  if (cached && cached.expires > Date.now()) {
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    return res.type('application/xml').send(cached.body);
+  }
 
+  const upstream = https.get({
+    host: BGG_HOST,
+    path: upstreamPath,
+    headers: {
+      'Authorization': 'Bearer ' + token,
+      'Accept': 'application/xml',
+      'User-Agent': 'SwrlList/2 (+https://swrl-list.com)'
+    },
+    timeout: 20000
+  }, function (upstreamRes) {
+    const chunks = [];
+    upstreamRes.on('data', function (chunk) { chunks.push(chunk); });
+    upstreamRes.on('end', function () {
+      const body = Buffer.concat(chunks).toString('utf8');
+      if (upstreamRes.statusCode === 200) {
+        if (bggCache.size >= BGG_CACHE_MAX_ENTRIES) {
+          bggCache.delete(bggCache.keys().next().value);
+        }
+        bggCache.set(upstreamPath, { expires: Date.now() + BGG_CACHE_TTL_MS, body: body });
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.type('application/xml').send(body);
+      }
+      console.error('BoardGameGeek responded ' + upstreamRes.statusCode + ' for ' + upstreamPath);
+      // Never relay a 401 as-is: it is our token that was refused, not the caller's.
+      const status = upstreamRes.statusCode === 429 || upstreamRes.statusCode === 202
+        ? 503 : 502;
+      res.status(status).json({ error: 'BoardGameGeek responded ' + upstreamRes.statusCode });
+    });
+  });
+  upstream.on('timeout', function () { upstream.abort(); });
+  upstream.on('error', function (err) {
+    console.error('BoardGameGeek request failed', err);
+    if (!res.headersSent) {
+      res.status(502).json({ error: 'BoardGameGeek request failed' });
+    }
+  });
+});
 
-app.use('/savedsearches/img', express.static('platforms/browser/www/img'))
-app.use('/savedsearches/css', express.static('platforms/browser/www/css'))
-app.use('/savedsearches/fonts', express.static('platforms/browser/www/fonts'))
-app.use('/savedsearches/plugins', express.static('platforms/browser/www/plugins'))
-app.use('/savedsearches/cordova-js-src', express.static('platforms/browser/www/cordova-js-src'))
+app.use('/api', function (req, res) {
+  res.status(404).json({ error: 'Not found' });
+});
 
-app.get('/savedsearches/bundle.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/bundle.js'))
-})
-app.get('/savedsearches/cordova.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova.js'))
-})
-app.get('/savedsearches/cordova_plugins.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova_plugins.js'))
-})
-app.get('/savedsearches', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/index.html'))
-})
+// ---------------------------------------------------------------------------
+// The app itself.
+//
+// index.html references its assets with relative URLs because the same file
+// is loaded from file:// inside the Android / iOS apps. A deep link such as
+// /swrl/<id> therefore asks for /swrl/bundle.js, /swrl/img/..., so the static
+// root is mounted again under every deep-link prefix.
+// ---------------------------------------------------------------------------
+const deepLinksWithId = ['swrl', 'swrler', 'recommend'];
+const deepLinksWithoutId = ['savedsearches', 'recommendations', 'watch', 'listen', 'read', 'play'];
 
-app.use('/recommendations/img', express.static('platforms/browser/www/img'))
-app.use('/recommendations/css', express.static('platforms/browser/www/css'))
-app.use('/recommendations/fonts', express.static('platforms/browser/www/fonts'))
-app.use('/recommendations/plugins', express.static('platforms/browser/www/plugins'))
-app.use('/recommendations/cordova-js-src', express.static('platforms/browser/www/cordova-js-src'))
+function sendIndex(req, res) {
+  res.setHeader('Cache-Control', 'no-cache');
+  res.sendFile(indexHtml);
+}
 
-app.get('/recommendations/bundle.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/bundle.js'))
-})
-app.get('/recommendations/cordova.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova.js'))
-})
-app.get('/recommendations/cordova_plugins.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova_plugins.js'))
-})
-app.get('/recommendations', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/index.html'))
-})
+app.get('/', sendIndex);
+app.use(express.static(www, staticOptions));
 
-app.use('/watch/img', express.static('platforms/browser/www/img'))
-app.use('/watch/css', express.static('platforms/browser/www/css'))
-app.use('/watch/fonts', express.static('platforms/browser/www/fonts'))
-app.use('/watch/plugins', express.static('platforms/browser/www/plugins'))
-app.use('/watch/cordova-js-src', express.static('platforms/browser/www/cordova-js-src'))
+deepLinksWithId.forEach(function (prefix) {
+  app.use('/' + prefix, express.static(www, staticOptions));
+  app.get('/' + prefix + '/:id', sendIndex);
+});
 
-app.get('/watch/bundle.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/bundle.js'))
-})
-app.get('/watch/cordova.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova.js'))
-})
-app.get('/watch/cordova_plugins.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova_plugins.js'))
-})
-app.get('/watch', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/index.html'))
-})
+deepLinksWithoutId.forEach(function (prefix) {
+  app.use('/' + prefix, express.static(www, staticOptions));
+  app.get('/' + prefix, sendIndex);
+});
 
-app.use('/listen/img', express.static('platforms/browser/www/img'))
-app.use('/listen/css', express.static('platforms/browser/www/css'))
-app.use('/listen/fonts', express.static('platforms/browser/www/fonts'))
-app.use('/listen/plugins', express.static('platforms/browser/www/plugins'))
-app.use('/listen/cordova-js-src', express.static('platforms/browser/www/cordova-js-src'))
-
-app.get('/listen/bundle.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/bundle.js'))
-})
-app.get('/listen/cordova.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova.js'))
-})
-app.get('/listen/cordova_plugins.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova_plugins.js'))
-})
-app.get('/listen', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/index.html'))
-})
-
-app.use('/read/img', express.static('platforms/browser/www/img'))
-app.use('/read/css', express.static('platforms/browser/www/css'))
-app.use('/read/fonts', express.static('platforms/browser/www/fonts'))
-app.use('/read/plugins', express.static('platforms/browser/www/plugins'))
-app.use('/read/cordova-js-src', express.static('platforms/browser/www/cordova-js-src'))
-
-app.get('/read/bundle.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/bundle.js'))
-})
-app.get('/read/cordova.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova.js'))
-})
-app.get('/read/cordova_plugins.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova_plugins.js'))
-})
-app.get('/read', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/index.html'))
-})
-
-app.use('/play/img', express.static('platforms/browser/www/img'))
-app.use('/play/css', express.static('platforms/browser/www/css'))
-app.use('/play/fonts', express.static('platforms/browser/www/fonts'))
-app.use('/play/plugins', express.static('platforms/browser/www/plugins'))
-app.use('/play/cordova-js-src', express.static('platforms/browser/www/cordova-js-src'))
-
-app.get('/play/bundle.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/bundle.js'))
-})
-app.get('/play/cordova.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova.js'))
-})
-app.get('/play/cordova_plugins.js', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/cordova_plugins.js'))
-})
-app.get('/play', function (req, res){
-  res.sendFile(path.join(__dirname + '/platforms/browser/www/index.html'))
-})
-
-app.listen(app.get('port'), function () {
+const server = app.listen(app.get('port'), function () {
   console.log('Express server listening on port ' + app.get('port'));
+});
+
+// Cloud Run sends SIGTERM before stopping an instance.
+process.on('SIGTERM', function () {
+  server.close(function () { process.exit(0); });
 });

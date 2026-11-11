@@ -56,7 +56,7 @@ this (no CI config is present) — it's a local gate.
 You'll need to:
 
 1. Serve the app first (`npm start` in another process).
-2. Set `baseUrl` in `cypress.json` to `http://localhost:8000`.
+2. Set `baseUrl` in `cypress.json` to `http://localhost:8080`.
 3. Stub Firestore — do **not** run tests against the live `swrl-1118`
    project. Either use the Firebase emulator suite or mock at the listener
    boundary.

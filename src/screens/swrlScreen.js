@@ -50,7 +50,7 @@ export class SwrlScreen extends Screen {
         // @ts-ignore
         document.querySelector('meta[property="og:description"]').content = `You should ${this.stateController.currentState.swrl.category.name} the ${this.stateController.currentState.swrl.type.displayName}: ${title}`;
         // @ts-ignore
-        document.querySelector('meta[property="og:url"]').content = `https://swrl-list.herokuapp.com${window.location.pathname}`;
+        document.querySelector('meta[property="og:url"]').content = `https://swrl-list.com${window.location.pathname}`;
         // @ts-ignore
         document.querySelector('meta[property="og:image"]').content = this.stateController.currentState.swrl.details.imageUrl;
     }

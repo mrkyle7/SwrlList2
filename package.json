@@ -23,7 +23,7 @@
         "cordova-plugin-buildinfo": "2.0.2",
         "cordova-plugin-compat": "1.2.0",
         "cordova-plugin-customurlscheme": "4.3.0",
-        "cordova-plugin-device": "^2.0.3",
+        "cordova-plugin-device": "2.0.3",
         "cordova-plugin-inappbrowser": "^3.2.0",
         "cordova-plugin-network-information": "^2.0.2",
         "cordova-plugin-webpack": "0.0.2",
