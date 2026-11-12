@@ -30,7 +30,7 @@ variable "dns_zone" {
 
 variable "map_domain" {
   type        = bool
-  default     = false
+  default     = true
   description = <<-EOT
     Map domain_name (and www) onto the service. Leave false until the domain is
     registered, its name servers point at the Cloud DNS zone, and
