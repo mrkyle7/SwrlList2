@@ -1,7 +1,8 @@
 name: Deploy
 
-# Pull requests: build and smoke-test the image, check the terraform and post
-# its plan. Merges to master: apply the terraform, then ship the app.
+# Pull requests: run the tests, smoke-test the image, check the terraform and
+# post its plan. Merges to master: apply the terraform, ship the app, then
+# deploy the Cloud Functions.
 
 on:
   push:
@@ -41,6 +42,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Type-check and unit tests
+        run: |
+          npm ci
+          npm test
+
+      - name: Cloud Functions tests
+        working-directory: functions
+        run: |
+          npm ci
+          npm test
+
       - name: Container builds, starts and serves the app
         run: |
           docker build -t app:ci .
@@ -48,7 +65,7 @@ jobs:
           for i in $(seq 1 20); do
             if curl -fsS http://localhost:8080/api/v1/health | grep -q '"isAvailable":true' \
               && curl -fsS http://localhost:8080/watch | grep -qF "$PAGE_MARKER" \
-              && curl -fsS -o /dev/null http://localhost:8080/swrl/bundle.js \
+              && curl -fsS -o /dev/null http://localhost:8080/bundle.js \
               && curl -fsS -o /dev/null http://localhost:8080/sw.js \
               && curl -fsS -o /dev/null http://localhost:8080/manifest.webmanifest; then
               exit 0
@@ -230,18 +247,21 @@ jobs:
           docker push $IMAGE_URI
 
       # Copies each GitHub Actions secret into the Secret Manager secret
-      # terraform made for it (terraform/app.tf), when it is set and differs.
-      # Superseded versions are destroyed: only six active versions are free.
-      # One line per entry of var.secrets in terraform/variables.tf.
+      # terraform made for it, when it is set and differs. Superseded versions
+      # are destroyed: only six active versions are free.
+      # One line per entry of var.secrets (web app, terraform/app.tf: stored as
+      # swrl-list-<name>) and var.function_secrets (Cloud Functions,
+      # terraform/functions.tf: stored under the same name).
       - name: Sync secrets to Secret Manager
         env:
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
           OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
           BGG_API_TOKEN: ${{ secrets.BGG_API_TOKEN }}
+          PUSHOVER_TOKEN: ${{ secrets.PUSHOVER_TOKEN }}
+          PUSHOVER_USER: ${{ secrets.PUSHOVER_USER }}
         run: |
           sync() {
-            local name="$1" value="$2"
-            local secret="$SERVICE_NAME-$(echo "$name" | tr 'A-Z_' 'a-z-')"
+            local name="$1" secret="$2" value="${!1}"
             if [ -z "$value" ]; then
               echo "::warning::GitHub secret $name is not set; $secret keeps its current value."
               return
@@ -265,9 +285,11 @@ jobs:
               fi
             done
           }
-          sync TMDB_API_KEY "$TMDB_API_KEY"
-          sync OMDB_API_KEY "$OMDB_API_KEY"
-          sync BGG_API_TOKEN "$BGG_API_TOKEN"
+          sync TMDB_API_KEY "$SERVICE_NAME-tmdb-api-key"
+          sync OMDB_API_KEY "$SERVICE_NAME-omdb-api-key"
+          sync BGG_API_TOKEN "$SERVICE_NAME-bgg-api-token"
+          sync PUSHOVER_TOKEN PUSHOVER_TOKEN
+          sync PUSHOVER_USER PUSHOVER_USER
 
       # A new revision is what picks up a changed secret, so this runs after
       # the sync.
@@ -306,3 +328,30 @@ jobs:
           echo "Rolling back to $PREV_REV"
           gcloud run services update-traffic $SERVICE_NAME --region="$REGION" --project="$PROJECT_ID" \
             --to-revisions="$PREV_REV=100"
+
+  deploy-functions:
+    name: Deploy Cloud Functions
+    # After the app: its job is the one that syncs the secrets the functions read.
+    needs: deploy
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-functions
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.SERVICE_ACCOUNT }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+        working-directory: functions
+
+      # --force: non-interactive, and removes functions no longer in functions/.
+      - name: Deploy
+        run: npx --yes firebase-tools@15 deploy --only functions --project "$PROJECT_ID" --non-interactive --force

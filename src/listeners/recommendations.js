@@ -1,3 +1,4 @@
+import firebase from 'firebase/compat/app';
 import { Collection } from '../constants/Collection';
 import { swrlUser, showLoginButtons } from '../firebase/login';
 import { Recommendation } from '../model/recommendation';
@@ -41,11 +42,11 @@ export function setUpRecommendationsListener(firestore) {
                                 delete recommendationsInboxCache[recommendation.id];
                                 break;
                         }
-                        resolve();
+                        resolve(undefined);
                     } catch (error) {
                         console.error("Couldn't process recommendation from inbox listener: ", docChange.doc.id, docChange.doc.data());
                         console.error(error);
-                        resolve();
+                        resolve(undefined);
                         return;
                     }
                 }))
@@ -121,7 +122,7 @@ export function cancelRecommendationsListener() {
 }
 
 const updateInboxCount = () => {
-    //Object.values isn't supported in cordova browser
+    //Object.values wasn't supported in the old Cordova browser
     let recommendations = [];
     Object.keys(recommendationsInboxCache).forEach(i => recommendations.push(recommendationsInboxCache[i]));
 

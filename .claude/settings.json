@@ -25,11 +25,11 @@
       "Bash(npm ls:*)",
       "Bash(npm run test)",
       "Bash(npm test)",
-      "Bash(npx tsc --allowJs --noEmit)",
-      "Bash(npx tsc --noEmit:*)",
-      "Bash(npx cypress run)",
-      "Bash(npx cypress run:*)",
-      "Bash(cordova --version)"
+      "Bash(npm run typecheck)",
+      "Bash(npm run build)",
+      "Bash(npx tsc)",
+      "Bash(npx vitest run)",
+      "Bash(npx vitest run:*)"
     ]
   }
 }

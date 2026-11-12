@@ -1,4 +1,3 @@
-import { apiBase } from "../constants/Site";
 import { DetailGetter } from "./detailGetter";
 import { Details } from "../model/details";
 import { Link } from "../model/link";
@@ -22,14 +21,14 @@ export class TmdbFilmDetailGetter extends DetailGetter {
     get(id, signal, searchId) {
         // to be overidden
         return new Promise(async (resolve, reject) => {
-            const url = `${apiBase()}/api/v1/tmdb/movie/${id}`;
+            const url = `/api/v1/tmdb/movie/${id}`;
             try {
                 const response = await fetch(url, { signal });
                 if (!response.ok) {
                     throw new Error(`TMDB request failed with HTTP ${response.status}`);
                 }
                 const data = await response.json();
-                const omdbUrl = `${apiBase()}/api/v1/omdb?i=${data.imdb_id}`;
+                const omdbUrl = `/api/v1/omdb?i=${data.imdb_id}`;
                 let omdbData = undefined;
                 try {
                     // OMDb only adds ratings and a plot; the film still works without it.
@@ -76,7 +75,6 @@ export class TmdbFilmDetailGetter extends DetailGetter {
                 data.credits.crew.forEach(
                     /**
                     * @param {any} person
-                    * @param {number} number
                     */
                     (person) => {
                         if (person.job === 'Director') {

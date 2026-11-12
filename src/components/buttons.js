@@ -1,3 +1,4 @@
+import firebase from 'firebase/compat/app';
 export default { addLoveButton, addAddButton, addRecommendButton };
 
 import { swrlUser } from '../firebase/login';

@@ -1,8 +1,7 @@
 import { DetailGetter } from "./detailGetter";
 import { Details } from "../model/details";
 import { Link } from "../model/link";
-import { apiBase } from "../constants/Site";
-const Entities = require('html-entities').XmlEntities;
+import { decode } from 'html-entities';
 
 export class GeekDetailGetter extends DetailGetter {
     /**
@@ -51,7 +50,7 @@ export async function fetchGeekItems(ids, signal) {
     if (ids.length === 0) {
         return [];
     }
-    const url = `${apiBase()}/api/v1/geek/thing?id=${ids.join(',')}`;
+    const url = `/api/v1/geek/thing?id=${ids.join(',')}`;
     return Array.from(await fetchGeekXml(url, signal).then(xml => xml.getElementsByTagName('item')));
 }
 
@@ -82,7 +81,7 @@ export function detailsFromGeekItem(data, type) {
     const names = data.getElementsByTagName('name');
     const descriptions = data.getElementsByTagName('description');
     const overview = descriptions.length > 0
-        ? new Entities().decode(descriptions[0].textContent)
+        ? decode(descriptions[0].textContent, { level: 'xml' })
         : undefined;
     const links = [new Link(`https://${type}geek.com/${type}/${id}`,
         'Geek URL', 'img/bgg.svg')];

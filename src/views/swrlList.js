@@ -1,3 +1,4 @@
+import firebase from 'firebase/compat/app';
 export default { showList, destroyList };
 
 import { YOUR_LIST, DISCOVER } from '../constants/View';

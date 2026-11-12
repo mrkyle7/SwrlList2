@@ -1,3 +1,4 @@
+import firebase from 'firebase/compat/app';
 import { Home } from "./homePage";
 import { State } from "../model/state";
 import { InboxRecommendations, SentRecommendations } from "./recommendations";
@@ -70,10 +71,7 @@ export class StateController {
             }
         }
         this.currentState = newState;
-        //@ts-ignore
-        if (device.platform === 'browser') {
-            newState.view.screen.updateLocationHistory(newScreen);
-        }
+        newState.view.screen.updateLocationHistory(newScreen);
         newState.view.show();
         this._updateTitleBar();
     }
@@ -119,12 +117,7 @@ export class StateController {
             e.stopPropagation();
             e.preventDefault();
             this.hidefilters();
-            //@ts-ignore
-            if (device.platform === 'browser') {
-                window.history.back();
-            } else {
-                this.showPreviousScreen();
-            }
+            window.history.back();
         })
 
         this._initMenuItems();

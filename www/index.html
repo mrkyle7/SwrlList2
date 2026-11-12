@@ -3,6 +3,9 @@
 
 <head>
   <meta charset="utf-8" />
+  <!-- Every asset URL in this page and in the scripts is relative; this makes
+       them resolve from the root on deep links such as /swrl/<id>. -->
+  <base href="/" />
   <meta name="format-detection" content="telephone=no" />
   <meta name="viewport"
     content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height viewport-fit=cover" />
@@ -386,8 +389,7 @@
   <template id="showMoreSwrls">
     <div class="showMoreSwrls">Show more Swrls</div>
   </template>
-  <script type="text/javascript" src="cordova.js"></script>
-  <script type="text/javascript" src="bundle.js"></script>
+  <script src="bundle.js"></script>
 </body>
 
 </html>

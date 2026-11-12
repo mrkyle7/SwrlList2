@@ -1,4 +1,4 @@
-const firebase = require("firebase/app");
+import firebase from 'firebase/compat/app';
 import { Collection } from '../constants/Collection';
 import { swrlUser } from '../firebase/login';
 import { Recommendation } from '../model/recommendation';

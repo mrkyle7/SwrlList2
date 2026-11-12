@@ -1,3 +1,4 @@
+import firebase from 'firebase/compat/app';
 import { UIView } from './UIView';
 import { StateController } from './stateController';
 import { Collection } from '../constants/Collection';

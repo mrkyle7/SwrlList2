@@ -16,6 +16,9 @@ resource "google_project_service" "required" {
     "secretmanager.googleapis.com",        # BGG_API_TOKEN
     "dns.googleapis.com",                  # the swrl-list-com zone
     "storage.googleapis.com",              # state bucket
+    "cloudfunctions.googleapis.com",       # functions/
+    "cloudbuild.googleapis.com",           # builds the functions on deploy
+    "firebase.googleapis.com",             # firebase-tools reads the project
   ])
   project            = var.project
   service            = each.value

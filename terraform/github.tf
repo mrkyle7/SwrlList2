@@ -86,6 +86,9 @@ locals {
     "roles/dns.admin",                       # the swrl-list-com zone
     "roles/serviceusage.serviceUsageAdmin",  # enabling APIs
     "roles/storage.admin",                   # terraform state
+    "roles/cloudfunctions.admin",            # deploying functions/
+    "roles/cloudbuild.builds.editor",        # the build each function deploy runs
+    "roles/firebase.admin",                  # firebase-tools: project and function config
   ]
 }
 

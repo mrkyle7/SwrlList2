@@ -1,37 +1,34 @@
 const path = require('path');
+const CopyPlugin = require('copy-webpack-plugin');
 
+// Builds the whole site into dist/: the static files from www/ plus bundle.js.
 module.exports = {
   entry: './src/index.js',
   output: {
-    path: path.resolve(__dirname, 'www'),
-    filename: 'bundle.js'
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'bundle.js',
+    publicPath: '/',
+    assetModuleFilename: 'fonts/[name][ext]',
+    clean: true
   },
   module: {
     rules: [
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        loader: "babel-loader"
-      },
       {
         test: /\.css$/,
         use: ['style-loader', 'css-loader']
       },
       {
-        test: /\.scss$/,
-        loader: 'style-loader!css-loader!sass-loader'
-      },
-      {
-        test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
-        use: [{
-          loader: 'file-loader',
-          options: {
-            name: '[name].[ext]',
-            outputPath: 'fonts/'
-          }
-        }]
+        test: /\.(woff2?|ttf|eot)$/,
+        type: 'asset/resource'
       }
     ]
   },
-  mode: 'production'
+  plugins: [
+    new CopyPlugin({ patterns: [{ from: 'www' }] })
+  ],
+  performance: {
+    // One bundle, dominated by the Firebase SDK; the service worker caches it.
+    maxAssetSize: 1500000,
+    maxEntrypointSize: 1500000
+  }
 };

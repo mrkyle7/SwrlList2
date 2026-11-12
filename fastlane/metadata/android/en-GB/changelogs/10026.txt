@@ -1,1 +1,0 @@
-Keep search results when navigation within a category

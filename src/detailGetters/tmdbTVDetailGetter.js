@@ -1,4 +1,3 @@
-import { apiBase } from "../constants/Site";
 import { DetailGetter } from "./detailGetter";
 import { Details } from "../model/details";
 import { Link } from "../model/link";
@@ -22,7 +21,7 @@ export class TmdbTVDetailGetter extends DetailGetter {
     get(id, signal, searchId) {
         // to be overidden
         return new Promise(async (resolve, reject) => {
-            const url = `${apiBase()}/api/v1/tmdb/tv/${id}`;
+            const url = `/api/v1/tmdb/tv/${id}`;
             try {
                 const response = await fetch(url, { signal });
                 if (!response.ok) {
@@ -67,7 +66,6 @@ export class TmdbTVDetailGetter extends DetailGetter {
                 data.credits.crew.forEach(
                     /**
                     * @param {any} person
-                    * @param {number} number
                     */
                     (person) => {
                         if (person.job === 'Director') {

@@ -29,6 +29,9 @@ ROLES=(
   roles/dns.admin
   roles/serviceusage.serviceUsageAdmin
   roles/storage.admin
+  roles/cloudfunctions.admin
+  roles/cloudbuild.builds.editor
+  roles/firebase.admin
 )
 
 gc() { gcloud --project "$PROJECT" "$@"; }
