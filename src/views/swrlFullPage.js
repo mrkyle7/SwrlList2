@@ -1,3 +1,4 @@
+import { showAttribution, hideAttribution } from '../components/attribution';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { UIView } from './UIView';
 import { StateController } from './stateController';
@@ -58,6 +59,7 @@ const swrlImageLarge = document.getElementById('swrlImageLarge');
 async function showSwrlFullPage(stateController) {
     swrlFullPageView.classList.remove('hidden');
     const swrl = stateController.currentState.swrl;
+    showAttribution('swrlAttribution', swrl.type.attribution);
     const firestore = stateController.firestore;
 
     swrlImageLarge.src = swrl.details.imageUrl;
@@ -624,6 +626,7 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl, 
 }
 
 function destroySwrlFullPage() {
+    hideAttribution('swrlAttribution');
     swrlFullPageView.classList.add('hidden');
     loadingbar.classList.add('hidden');
     if (detailController) {

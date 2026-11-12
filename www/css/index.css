@@ -1047,3 +1047,39 @@ body {
         font-size: 2vw;
     }
 }
+
+/* "Powered by ..." credit for third-party data (TMDB, BoardGameGeek). */
+.attribution {
+    margin: 24px 12px 16px 12px;
+    text-align: center;
+    color: #555;
+    font-size: 12px;
+}
+
+.attributionLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #555;
+    text-decoration: none;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.attributionLogo {
+    height: 36px;
+}
+
+/* Logos drawn in white, shown unaltered on the provider's own dark colour. */
+.attributionLogoOnDark {
+    background: #3f3a60;
+    padding: 6px 10px;
+    border-radius: 4px;
+    box-sizing: content-box;
+    height: 28px;
+}
+
+.attributionNotice {
+    margin: 8px 0 0 0;
+    font-size: 12px;
+}

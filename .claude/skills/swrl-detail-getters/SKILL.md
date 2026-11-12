@@ -134,6 +134,16 @@ add a keyed source:
 Keyless sources (Open Library, iTunes) are still called directly from the
 client.
 
+## Attribution
+
+TMDB and BoardGameGeek require a visible credit wherever their data is shown.
+`src/constants/Attribution.js` defines each one (logo, link, any required
+wording); a `Type` and a `Category` each take an optional `attribution`, and
+`components/attribution.js` renders it under the list, the search results and
+the Swrl page. A new source with attribution terms needs an `Attribution`
+there, passed to its `Type` (and to the `Category` if every type in it uses
+that source). Don't recolour or redraw provider logos.
+
 ## Common pitfalls
 
 - **Stale responses.** Always honour the `signal`; always return the `id` so

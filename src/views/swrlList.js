@@ -1,3 +1,4 @@
+import { showAttribution, hideAttribution } from '../components/attribution';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 export default { showList, destroyList };
 
@@ -80,6 +81,7 @@ export function showList(category, view, firestore, stateController) {
         discoverTab.classList.add('selected');
     }
     swrlsContainer.classList.remove('hidden');
+    showAttribution('listAttribution', category.attribution);
     document.getElementById('swrlListView').classList.remove('hidden');
 
     if (currentCategory !== category || currentView !== view) {
@@ -223,6 +225,7 @@ function clearList() {
 }
 
 export function destroyList() {
+    hideAttribution('listAttribution');
     const tabs = document.getElementById('tabs');
     tabs.classList.add('hidden');
     document.getElementById('swrlList').classList.add('hidden');
