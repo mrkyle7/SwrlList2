@@ -26,8 +26,9 @@ npm start
 This runs `cordova prepare browser && node server.js`. The app is served on
 `http://localhost:8080` (or `PORT`). `server.js` serves the deep-link prefixes
 (`/swrl/*`, `/swrler/*`, `/recommend/*`, `/watch`, `/read`, `/listen`, `/play`,
-`/recommendations`, `/savedsearches`) and the BoardGameGeek proxy
-(`/api/v1/geek/*`, needs `BGG_API_TOKEN`).
+`/recommendations`, `/savedsearches`) and the third-party API proxies
+(`/api/v1/tmdb/*`, `/api/v1/omdb`, `/api/v1/geek/*`), which need
+`TMDB_API_KEY`, `OMDB_API_KEY` and `BGG_API_TOKEN` in the environment.
 
 Deep links fall through to `platforms/browser/www/index.html` for client-side routing.
 

@@ -1,3 +1,4 @@
+import { apiBase } from "../constants/Site";
 import { DetailGetter } from "./detailGetter";
 import { Details } from "../model/details";
 import { Link } from "../model/link";
@@ -5,7 +6,6 @@ import { Rating } from "../model/rating";
 import { TmdbPerson } from "../model/tmdbPerson";
 
 
-const tmdbAPIKey = 'c3356e66739e40233c7870d42b30bc34';
 const imageUrlPrefix = 'https://image.tmdb.org/t/p/w500';
 
 export class TmdbFilmDetailGetter extends DetailGetter {
@@ -22,15 +22,21 @@ export class TmdbFilmDetailGetter extends DetailGetter {
     get(id, signal, searchId) {
         // to be overidden
         return new Promise(async (resolve, reject) => {
-            const url = `https://api.themoviedb.org/3/movie/${id}?api_key=${tmdbAPIKey}&append_to_response=credits`;
+            const url = `${apiBase()}/api/v1/tmdb/movie/${id}`;
             try {
                 const response = await fetch(url, { signal });
+                if (!response.ok) {
+                    throw new Error(`TMDB request failed with HTTP ${response.status}`);
+                }
                 const data = await response.json();
-                const omdbUrl = `https://www.omdbapi.com/?apikey=d33a4ae1&i=${data.imdb_id}`;
+                const omdbUrl = `${apiBase()}/api/v1/omdb?i=${data.imdb_id}`;
                 let omdbData = undefined;
                 try {
-                    const omdbresponse = await fetch(omdbUrl, { signal });
-                    omdbData = await omdbresponse.json();
+                    // OMDb only adds ratings and a plot; the film still works without it.
+                    const omdbresponse = data.imdb_id ? await fetch(omdbUrl, { signal }) : undefined;
+                    if (omdbresponse && omdbresponse.ok) {
+                        omdbData = await omdbresponse.json();
+                    }
                 } catch (err) {
                     console.error('Could not get OMDB data');
                     console.error(err);

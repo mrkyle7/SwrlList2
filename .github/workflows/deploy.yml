@@ -216,6 +216,8 @@ jobs:
       # One line per entry of var.secrets in terraform/variables.tf.
       - name: Sync secrets to Secret Manager
         env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
           BGG_API_TOKEN: ${{ secrets.BGG_API_TOKEN }}
         run: |
           sync() {
@@ -244,6 +246,8 @@ jobs:
               fi
             done
           }
+          sync TMDB_API_KEY "$TMDB_API_KEY"
+          sync OMDB_API_KEY "$OMDB_API_KEY"
           sync BGG_API_TOKEN "$BGG_API_TOKEN"
 
       # A new revision is what picks up a changed secret, so this runs after

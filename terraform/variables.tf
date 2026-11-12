@@ -41,7 +41,7 @@ variable "map_domain" {
 
 variable "secrets" {
   type        = list(string)
-  default     = ["BGG_API_TOKEN"]
+  default     = ["TMDB_API_KEY", "OMDB_API_KEY", "BGG_API_TOKEN"]
   description = <<-EOT
     Secret environment variables for the container. Each becomes a Secret
     Manager secret (BGG_API_TOKEN -> swrl-list-bgg-api-token) that the deploy

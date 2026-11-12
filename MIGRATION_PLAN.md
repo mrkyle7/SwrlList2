@@ -296,7 +296,11 @@ Done alongside Phase 1 (user request, outside the original plan):
     with title "Unknown" on a failed lookup, and the Swrl page writes getter
     results back to Firestore — so saved games opened while BGG was failing
     may have had their details overwritten. The getter now rejects instead.
-  - TMDB, OMDB and iTunes all work unchanged.
+  - TMDB and OMDb worked, but their keys were hardcoded in `src/`. They now
+    go through `server.js` (`/api/v1/tmdb/*`, `/api/v1/omdb`) with
+    `TMDB_API_KEY` / `OMDB_API_KEY` from GitHub secrets → Secret Manager. The
+    old keys remain in git history: **user to rotate them.**
+  - iTunes works unchanged.
   - **Still broken, not addressed:** Cloud Functions (Node 8 runtime, FCM
     `sendToDevice` legacy API was shut down in 2024) — recommendation push
     notifications cannot be working. That is Phase 5.

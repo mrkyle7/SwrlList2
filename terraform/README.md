@@ -32,7 +32,17 @@ No Google credentials are stored in GitHub: the workflow signs in with OIDC.
 
 | GitHub Actions secret | Copied into Secret Manager as | Used for |
 | --- | --- | --- |
-| `BGG_API_TOKEN` | `swrl-list-bgg-api-token` | BoardGameGeek API (board game / video game search). Get one by registering an application at https://boardgamegeek.com/applications. Optional: without it Play search returns an error and everything else works. |
+| `TMDB_API_KEY` | `swrl-list-tmdb-api-key` | The Movie Database "API Key (v3 auth)", from https://www.themoviedb.org/settings/api. Film and TV search and details. |
+| `OMDB_API_KEY` | `swrl-list-omdb-api-key` | OMDb key, from https://www.omdbapi.com/apikey.aspx. Adds IMDb / Rotten Tomatoes / Metacritic ratings and the plot to films; films still work without it. |
+| `BGG_API_TOKEN` | `swrl-list-bgg-api-token` | BoardGameGeek application token, from https://boardgamegeek.com/applications. Board game and video game search and details. |
+
+Each is optional in the sense that the deploy succeeds without it: that
+category's search just returns an error until it is set. All three are only
+ever used by `server.js` (`/api/v1/tmdb`, `/api/v1/omdb`, `/api/v1/geek`); the
+client bundle contains no keys.
+
+The TMDB and OMDb keys that used to be hardcoded in `src/` are still in git
+history, so treat them as public: rotate them and set the new ones here.
 
 Terraform creates each secret with a `not-set` placeholder and wires it into
 the service; the deploy job fills in the real value, so no secret value is in
@@ -51,7 +61,7 @@ step in the workflow.
    It enables the APIs terraform needs to start, and creates the state bucket
    `gs://swrl-1118-tfstate`, the `github-terraform` service account and the
    GitHub sign-in pool. `github.tf` adopts the pool with `import` blocks.
-2. Add the `BGG_API_TOKEN` secret in GitHub (Settings → Secrets and variables →
+2. Add the secrets above in GitHub (Settings → Secrets and variables →
    Actions).
 3. Merge to `master`. The first run creates everything and deploys; the app is
    then live on the `cloud_run_url` output (shown at the end of the apply log).

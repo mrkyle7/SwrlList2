@@ -55,9 +55,13 @@ terraform in `terraform/`, builds the image and ships it. Setup, the GitHub
 secrets to set, and how to switch on `swrl-list.com` are in
 [terraform/README.md](terraform/README.md).
 
-To try the image locally:
+To try the image locally (searches need the API keys; see
+[terraform/README.md](terraform/README.md#github-secrets)):
 
-    docker build -t swrllist2 . && docker run -p 8080:8080 swrllist2
+    docker build -t swrllist2 .
+    docker run -p 8080:8080 -e TMDB_API_KEY=... -e OMDB_API_KEY=... -e BGG_API_TOKEN=... swrllist2
+
+`npm start` reads the same three environment variables.
 
 ### PWA
 

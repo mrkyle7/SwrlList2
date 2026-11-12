@@ -51,7 +51,7 @@ functions/        Firebase Cloud Functions
 cypress/          integration tests (currently model-level only)
 fastlane/         Android store metadata + lanes
 scripts/          build helpers (e.g. post-add-browsertab fix)
-server.js         Express server used on Cloud Run (static app + BoardGameGeek proxy)
+server.js         Express server used on Cloud Run (static app + third-party API proxies)
 server/           runtime-only package.json for the Cloud Run image
 Dockerfile        Cloud Run image: Cordova browser build → Express
 terraform/        all GCP infrastructure, applied by GitHub Actions (see terraform/README.md)
@@ -91,9 +91,11 @@ terraform/        all GCP infrastructure, applied by GitHub Actions (see terrafo
 - **`cordova-plugin-device` is pinned to exactly 2.0.3.** 2.1.0+ declares an
   engine Cordova 8 cannot parse; the plugin then silently fails to install and
   the app dies on `device.platform`.
-- **BoardGameGeek calls go through `server.js`** (`/api/v1/geek/*`) because BGG
-  requires a bearer token (`BGG_API_TOKEN`, from Secret Manager). Never put
-  that token in `src/`.
+- **TMDB, OMDb and BoardGameGeek calls go through `server.js`**
+  (`/api/v1/tmdb/*`, `/api/v1/omdb`, `/api/v1/geek/*`), which holds
+  `TMDB_API_KEY`, `OMDB_API_KEY` and `BGG_API_TOKEN` (from Secret Manager).
+  Never put an API key in `src/`; local runs need them as environment
+  variables.
 - **Infrastructure changes go through `terraform/`**, not `gcloud` by hand —
   the next apply undoes manual changes. Secret values never go in terraform:
   GitHub Actions secrets are copied into Secret Manager by the deploy job.
