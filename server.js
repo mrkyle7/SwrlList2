@@ -247,6 +247,50 @@ app.use('/api', function (req, res) {
 });
 
 // ---------------------------------------------------------------------------
+// Firebase Auth helper pages, served from our own domain.
+//
+// Sign-in opens <authDomain>/__/auth/handler. With authDomain set to this
+// site (src/firebase/init.js) instead of swrl-1118.firebaseapp.com, Google's
+// sign-in screen names swrl-list.com, and the helper shares our origin, so
+// browser storage partitioning cannot break it. The pages themselves still
+// live on Firebase Hosting; this passes them through unchanged.
+// ---------------------------------------------------------------------------
+const FIREBASE_AUTH_HOST = 'swrl-1118.firebaseapp.com';
+
+app.use('/__', function (req, res) {
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    return res.status(405).end();
+  }
+  const upstream = https.request({
+    host: FIREBASE_AUTH_HOST,
+    path: '/__' + req.url,
+    method: req.method,
+    headers: {
+      'Accept': req.headers.accept || '*/*',
+      'Accept-Language': req.headers['accept-language'] || 'en',
+      'User-Agent': req.headers['user-agent'] || 'SwrlList/2'
+    },
+    timeout: 20000
+  }, function (upstreamRes) {
+    res.status(upstreamRes.statusCode);
+    ['content-type', 'cache-control', 'etag', 'last-modified'].forEach(function (name) {
+      if (upstreamRes.headers[name]) {
+        res.setHeader(name, upstreamRes.headers[name]);
+      }
+    });
+    upstreamRes.pipe(res);
+  });
+  upstream.on('timeout', function () { upstream.destroy(new Error('timed out')); });
+  upstream.on('error', function (err) {
+    console.error('Firebase auth helper request failed', err);
+    if (!res.headersSent) {
+      res.status(502).end();
+    }
+  });
+  upstream.end();
+});
+
+// ---------------------------------------------------------------------------
 // The app itself: static files, and index.html for every client-side route.
 // ---------------------------------------------------------------------------
 const appRoutes = [
