@@ -1,3 +1,4 @@
+import { showAttribution, hideAttribution } from '../components/attribution';
 import { collection, doc, getDocs, addDoc, deleteDoc, query, where } from 'firebase/firestore';
 import { Category } from '../constants/Category';
 import { SEARCH } from '../constants/View';
@@ -70,6 +71,7 @@ let currentSearchController;
  */
 function showSearch(category, searchText, firestore, stateController) {
     searchView.classList.remove('hidden');
+    showAttribution('searchAttribution', category.attribution);
     tabs.classList.remove('hidden');
     searchBar.classList.remove('hidden');
     searchTab.classList.add('selected');
@@ -178,6 +180,7 @@ function renderSavedSearches(querySnapshot, firestore, stateController) {
 }
 
 function destroySearch() {
+    hideAttribution('searchAttribution');
     searchView.classList.remove('hidden');
     searchBar.classList.add('hidden');
     tabs.classList.add('hidden');

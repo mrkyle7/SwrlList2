@@ -3,6 +3,7 @@ import { ReadSearch } from '../search/readSearch';
 import { ListenSearch } from '../search/listenSearch';
 import { PlaySearch } from '../search/playSearch';
 import { Constant } from './Constant';
+import { Attribution, TMDB_ATTRIBUTION, BGG_ATTRIBUTION } from './Attribution';
 import { Search } from '../search/search';
 import { WhereFilter, FILM_FILTER, TV_FILTER, BOOK_FILTER, ALBUM_FILTER, PODCAST_FILTER, BOARDGAME_FILTER, VIDEOGAME_FILTER } from './WhereFilter';
 
@@ -19,9 +20,10 @@ export class Category extends Constant {
      * @param {string} colour
      * @param {string} image
      * @param {WhereFilter[]} typeFilters
+     * @param {Attribution} [attribution] credit the category's data source requires
      */
     constructor(id, name, displayName, noSwrlsMessage, noSwrlsDiscoverMessage,
-         searchMessage, searchPlaceholder, search, colour, image, typeFilters) {
+         searchMessage, searchPlaceholder, search, colour, image, typeFilters, attribution) {
         super(id);
         this.name = name;
         this.displayName = displayName;
@@ -33,6 +35,7 @@ export class Category extends Constant {
         this.colour = colour;
         this.image = image;
         this.typeFilters = typeFilters;
+        this.attribution = attribution;
         Object.freeze(this);
     }
 }
@@ -48,7 +51,8 @@ export const WATCH = new Category(
     new WatchSearch(),
     '#3EB283',
     'img/movie-24px.svg',
-    [FILM_FILTER, TV_FILTER]);
+    [FILM_FILTER, TV_FILTER],
+    TMDB_ATTRIBUTION);
 
 export const READ = new Category(
     2,
@@ -87,7 +91,8 @@ export const PLAY = new Category(
     new PlaySearch(),
     '#71A8D6',
     'img/videogame_asset-24px.svg',
-    [BOARDGAME_FILTER, VIDEOGAME_FILTER]);
+    [BOARDGAME_FILTER, VIDEOGAME_FILTER],
+    BGG_ATTRIBUTION);
 
 export const Categories = Object.freeze([WATCH, READ, LISTEN, PLAY]);
 
