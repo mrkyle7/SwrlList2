@@ -10,9 +10,10 @@
 #   request
 # ---------------------------------------------------------------------------
 
-# The pool, provider and github-terraform account are created by
-# terraform/bootstrap.sh so that the very first apply can already run from
-# GitHub Actions. These blocks adopt the pool and provider into the state.
+# The pool, provider and both service accounts are created by
+# terraform/bootstrap.sh so that the very first plan and apply can already run
+# from GitHub Actions. These blocks adopt them into the state (github-terraform
+# itself stays outside terraform; only its roles are managed here).
 import {
   to = google_iam_workload_identity_pool.github
   id = "projects/${var.project}/locations/global/workloadIdentityPools/github-pool"
@@ -21,6 +22,11 @@ import {
 import {
   to = google_iam_workload_identity_pool_provider.github
   id = "projects/${var.project}/locations/global/workloadIdentityPools/github-pool/providers/github-provider"
+}
+
+import {
+  to = google_service_account.terraform_plan
+  id = "projects/${var.project}/serviceAccounts/github-terraform-plan@${var.project}.iam.gserviceaccount.com"
 }
 
 resource "google_iam_workload_identity_pool" "github" {

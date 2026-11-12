@@ -4,8 +4,9 @@
 #   terraform/bootstrap.sh
 #
 # It creates only what must exist before GitHub Actions can run the terraform:
-# two APIs, the state bucket, the github-terraform service account, and the
-# Workload Identity pool that lets this repo's master branch act as it.
+# a few APIs, the state bucket, the github-terraform service account (applies,
+# master only), the github-terraform-plan account (read-only plans on pull
+# requests), and the Workload Identity pool that lets this repo act as them.
 # Everything else - and from then on these too - is managed by terraform/*.tf,
 # applied by .github/workflows/deploy.yml. Safe to re-run.
 set -euo pipefail
@@ -69,6 +70,24 @@ POOL="projects/${NUMBER}/locations/global/workloadIdentityPools/github-pool"
 gc iam service-accounts add-iam-policy-binding "$SA" \
   --role roles/iam.workloadIdentityUser \
   --member "principalSet://iam.googleapis.com/${POOL}/attribute.repository_ref/${REPO}@refs/heads/${BRANCH}" >/dev/null
+
+# The read-only account pull requests plan as. It has to exist before the first
+# pull request, which is before the first apply, so it is made here and adopted
+# by github.tf like the pool.
+PLAN_SA="github-terraform-plan@${PROJECT}.iam.gserviceaccount.com"
+if ! gc iam service-accounts describe "$PLAN_SA" >/dev/null 2>&1; then
+  gc iam service-accounts create github-terraform-plan \
+    --display-name "Read-only Terraform plans for ${REPO} pull requests"
+fi
+for role in roles/viewer roles/iam.securityReviewer roles/iam.workloadIdentityPoolViewer; do
+  gc projects add-iam-policy-binding "$PROJECT" --member "serviceAccount:${PLAN_SA}" \
+    --role "$role" --condition None >/dev/null
+done
+gcloud storage buckets add-iam-policy-binding "gs://${BUCKET}" \
+  --member "serviceAccount:${PLAN_SA}" --role roles/storage.objectViewer >/dev/null
+gc iam service-accounts add-iam-policy-binding "$PLAN_SA" \
+  --role roles/iam.workloadIdentityUser \
+  --member "principalSet://iam.googleapis.com/${POOL}/attribute.repository/${REPO}" >/dev/null
 
 echo
 echo "Done. WIF_PROVIDER in .github/workflows/deploy.yml must be:"

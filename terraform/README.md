@@ -59,8 +59,9 @@ step in the workflow.
    ```
 
    It enables the APIs terraform needs to start, and creates the state bucket
-   `gs://swrl-1118-tfstate`, the `github-terraform` service account and the
-   GitHub sign-in pool. `github.tf` adopts the pool with `import` blocks.
+   `gs://swrl-1118-tfstate`, the `github-terraform` and
+   `github-terraform-plan` service accounts and the GitHub sign-in pool.
+   `github.tf` adopts them with `import` blocks. Safe to re-run.
 2. Add the secrets above in GitHub (Settings → Secrets and variables →
    Actions).
 3. Merge to `master`. The first run creates everything and deploys; the app is
