@@ -51,6 +51,19 @@ the tests, an image smoke test and a terraform plan. See `terraform/README.md`.
 
 Project `swrl-1118`, region `us-east1`, service `swrl-list`.
 
+## Dependency updates
+
+`.github/dependabot.yml` raises weekly pull requests: grouped minor/patch
+updates for the app, `functions/`, the GitHub Actions and the terraform
+providers, and separate ones for majors. They go through the same checks as
+any pull request. The Node version is bumped by hand, in step, in the
+`Dockerfile`, `package.json` `engines`, the workflow's `setup-node` and
+`firebase.json`.
+
+`package.json` has an `overrides` entry for `@grpc/grpc-js` (a patched
+release the Firebase SDK does not yet allow). Drop it once `npm audit` is
+clean without it.
+
 ## Gotchas
 
 - The `Build and smoke-test the image` job name is a required status check
