@@ -1,4 +1,3 @@
-import firebase from 'firebase/compat/app';
 export default { addLoveButton, addAddButton, addRecommendButton };
 
 import { swrlUser } from '../firebase/login';
@@ -22,7 +21,7 @@ import unmarkASwrlAsDone from '../actions/unmarkASwrlAsDone';
  * @param {Constant} view
  * @param {Swrl} swrl
  * @param {HTMLElement} div
- * @param {firebase.firestore.Firestore} firestore
+ * @param {import('firebase/firestore').Firestore} firestore
  * @param {Recommendation} [recommendation]
  */
 export function addLoveButton(view, swrl, div, firestore, recommendation) {
@@ -83,7 +82,7 @@ export function addLoveButton(view, swrl, div, firestore, recommendation) {
  * @param {Constant} view
  * @param {HTMLElement} div
  * @param {Swrl} swrl
- * @param {firebase.firestore.Firestore} firestore
+ * @param {import('firebase/firestore').Firestore} firestore
  * @param {HTMLElement} swrlsContainer
  * @param {Recommendation} [recommendation]
  */
@@ -195,7 +194,7 @@ export function addRecommendButton(div, swrl, stateController) {
  * 
  * @param {HTMLElement} swrlDiv 
  * @param {Swrl} swrl 
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {import('firebase/firestore').Firestore} firestore 
  * @param {HTMLElement} swrlsContainer 
  * @param {Constant} view
  * 

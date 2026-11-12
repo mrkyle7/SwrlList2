@@ -20,20 +20,21 @@ checks it serves the app.
 - `test/*.test.js` - Vitest unit tests for the model classes
   (`Swrl.fromFirestore`, `Recommendation.fromFirestore`). They import from
   `src/model/*` and build fake Firestore docs by hand:
-  `{ id, data: () => ({...}) }`, with `firebase.firestore.Timestamp` for
-  dates. No live Firestore.
+  `{ id, data: () => ({...}) }`, with `Timestamp` from `firebase/firestore`
+  for dates. No live Firestore.
 - `functions/test/*.test.js` - tests for the pure helpers in
   `functions/messages.js`.
 - The type-check must pass with zero errors. `tsconfig.json` checks the JS
-  through JSDoc (`checkJs`, not `strict`). A file that mentions
-  `firebase.firestore.X` in JSDoc needs
-  `import firebase from 'firebase/compat/app';`.
+  through JSDoc (`checkJs`, not `strict`). Firebase types are written as
+  `import('firebase/firestore').Firestore` etc.
 
 ## What does not
 
 There are no browser / end-to-end tests in the repo. If you add some:
 
 1. Serve a build (`npm run build && npm start`).
-2. Block or stub Firebase - do **not** run tests against the live
-   `swrl-1118` project.
+2. Use the Firebase emulators (`npm run build:emulators`, see the
+   `swrl-firebase` skill) or block Firebase - do **not** run tests against
+   the live `swrl-1118` project. The Auth emulator's sign-in popup can be
+   driven from Playwright.
 3. Stub `/api/v1/*` rather than calling the real third-party APIs.

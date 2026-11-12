@@ -1,4 +1,3 @@
-import firebase from 'firebase/compat/app';
 import { Category } from "../constants/Category";
 import { UIView } from "../views/UIView";
 import { Swrl } from "./swrl";
@@ -24,7 +23,7 @@ export class State {
     /** @type {WhereFilter} */
     typeFilter = undefined;
     
-    /** @type {firebase.User} */
+    /** @type {import('firebase/auth').User} */
     swrler;
 
     /**

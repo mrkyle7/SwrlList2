@@ -1,29 +1,32 @@
-/** @type {firebase.User} */
+/** @type {import('firebase/auth').User} */
 export let swrlUser;
 export default { swrlUser, setUpLogin };
 
+import {
+    getAuth, GoogleAuthProvider, onAuthStateChanged, signInAnonymously, signInWithPopup, signOut
+} from 'firebase/auth';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { Collection } from '../constants/Collection';
 import { setUpRecommendationsListener, cancelRecommendationsListener } from '../listeners/recommendations';
 import swrl from '../components/swrl';
 import { updateDeviceToken } from './messaging';
-import firebase from 'firebase/compat/app';
-/** @type {firebase.app.App} */
-let myFirebase;
+/** @type {import('firebase/auth').Auth} */
+let auth;
 const loggingInView = document.getElementById('loggingInView');
 const loggingInAnonymousView = document.getElementById('loggingInAnonymousView');
 
 export let initialisedLogin = false;
 
 /**
- * @param {firebase.app.App} firebaseInstance
- * @param {firebase.firestore.Firestore} firestore
+ * @param {import('firebase/app').FirebaseApp} firebaseApp
+ * @param {import('firebase/firestore').Firestore} firestore
  */
-export function setUpLogin(firebaseInstance, firestore) {
-    myFirebase = firebaseInstance;
+export function setUpLogin(firebaseApp, firestore) {
+    auth = getAuth(firebaseApp);
     document.querySelector("#logout").addEventListener("click", logout);
     document.querySelector("#logout").addEventListener("touchstart", logout);
     document.querySelector("#login").addEventListener("click", () => login(firestore));
-    myFirebase.auth().onAuthStateChanged((user) => {
+    onAuthStateChanged(auth, (user) => {
         if (user) {
             // User is signed in.
             swrlUser = user;
@@ -53,7 +56,7 @@ function loginAnonymously() {
     loggingInAnonymousView.classList.remove('hidden');
 
     try {
-        myFirebase.auth().signInAnonymously()
+        signInAnonymously(auth)
             .then(() => {
                 loggingInView.classList.add('hidden');
                 loggingInAnonymousView.classList.add('hidden');
@@ -76,16 +79,16 @@ function loginAnonymously() {
 }
 
 function logout() {
-    myFirebase.auth().signOut();
+    signOut(auth);
     /** @type {HTMLInputElement} */
     const openSidebarMenuElement = document.querySelector("#openSidebarMenu");
     openSidebarMenuElement.checked = false;
     handleLogout();
 }
 
-/** @param {firebase.firestore.Firestore} firestore */
+/** @param {import('firebase/firestore').Firestore} firestore */
 function login(firestore) {
-    const provider = new firebase.auth.GoogleAuthProvider();
+    const provider = new GoogleAuthProvider();
 
     loggingInView.classList.remove('hidden');
     loggingInAnonymousView.classList.add('hidden');
@@ -94,7 +97,7 @@ function login(firestore) {
     // Firebase auth domain reading storage from inside our page, and browsers
     // now partition that storage per site, so the redirect comes back with no
     // user on any domain other than *.firebaseapp.com.
-    myFirebase.auth().signInWithPopup(provider)
+    signInWithPopup(auth, provider)
         .then(function (result) {
             swrlUser = result.user;
             console.log("firebase user from popup: " + swrlUser.displayName);
@@ -112,7 +115,7 @@ function login(firestore) {
 }
 
 /**
-* @param {firebase.firestore.Firestore} firestore 
+* @param {import('firebase/firestore').Firestore} firestore 
 */
 function handleLoginSuccess(firestore) {
     loggingInView.classList.add('hidden');
@@ -145,7 +148,7 @@ function handleLoginSuccess(firestore) {
 }
 
 /**
- * @param {firebase.firestore.Firestore} firestore
+ * @param {import('firebase/firestore').Firestore} firestore
  */
 function updateSwrlerDetails(firestore) {
     var swrler = {
@@ -153,9 +156,9 @@ function updateSwrlerDetails(firestore) {
         displayName: swrlUser.displayName,
         email: swrlUser.email,
         photoURL: swrlUser.photoURL,
-        lastLoginTime: firebase.firestore.FieldValue.serverTimestamp()
+        lastLoginTime: serverTimestamp()
     }
-    firestore.collection(Collection.SWRLERS).doc(swrlUser.uid).set(swrler, { merge: true });
+    setDoc(doc(firestore, Collection.SWRLERS, swrlUser.uid), swrler, { merge: true });
 }
 
 function handleAnonymous() {

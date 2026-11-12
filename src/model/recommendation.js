@@ -1,5 +1,4 @@
 import { Swrl } from "./swrl";
-import firebase from "firebase/compat/app";
 import { Collection } from "../constants/Collection";
 
 export class Recommendation {
@@ -7,7 +6,7 @@ export class Recommendation {
     /** @type {Swrl} */
     swrl = undefined;
 
-    /** @type {firebase.User} */
+    /** @type {import('firebase/auth').User} */
     fromSwrler = undefined;
 
     /** @type {string[]} */
@@ -35,13 +34,12 @@ export class Recommendation {
     }
 
     /**
-     * @param {firebase.firestore.QueryDocumentSnapshot} doc
-     * @param {firebase.firestore.Firestore} firestore
+     * @param {import('firebase/firestore').QueryDocumentSnapshot} doc
+     * @param {import('firebase/firestore').Firestore} firestore
      * @return {Recommendation}
      */
     static fromFirestore(doc, firestore) {
         const data = doc.data();
-        // const swrlDoc = await firestore.collection(Collection.SWRLS).doc(data.swrlID).get();
         return new Recommendation(doc.id, data.from, data.to, data.message, data.swrlID,
             data.created !== undefined && data.created != null ? data.created.toDate() : undefined,
             data.read,

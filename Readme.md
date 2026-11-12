@@ -45,5 +45,6 @@ the GitHub secrets to set are in [terraform/README.md](terraform/README.md).
 
 `www/manifest.webmanifest` + `www/sw.js` (network-first app-shell cache, so
 the app opens offline and Firestore's persistence supplies the data). Push
-notifications are handled by `www/firebase-messaging-sw.js`. Bump `CACHE` in
+notifications are handled by `src/firebase/messaging-sw.js` (built to
+`/firebase-messaging-sw.js`). Bump `CACHE` in
 `sw.js` if the shell file list changes.

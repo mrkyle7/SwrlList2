@@ -1,7 +1,11 @@
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
-import 'firebase/compat/firestore';
-import 'firebase/compat/messaging';
+import { initializeApp } from 'firebase/app';
+import { connectAuthEmulator, getAuth } from 'firebase/auth';
+import {
+    CACHE_SIZE_UNLIMITED, connectFirestoreEmulator, initializeFirestore,
+    persistentLocalCache, persistentMultipleTabManager
+} from 'firebase/firestore';
+import { firebaseConfig } from './config';
+
 // Hosts where server.js serves Firebase's sign-in helper pages (/__/auth/*)
 // itself, so sign-in happens on our own domain. Each needs
 // https://<host>/__/auth/handler among the Google OAuth client's authorised
@@ -10,37 +14,29 @@ import 'firebase/compat/messaging';
 const OWN_AUTH_DOMAINS = ['swrl-list.com', 'www.swrl-list.com'];
 
 /**
- *  @returns {firebase.app.App}
+ * @returns {{app: import('firebase/app').FirebaseApp, firestore: import('firebase/firestore').Firestore}}
  */
 export default function initialiseFirebase() {
-    var config = {
-        apiKey: "AIzaSyAWAhzSXf6M_dhxNS4SI830qWNy-zF51wk",
+    const app = initializeApp(Object.assign({}, firebaseConfig, {
         authDomain: OWN_AUTH_DOMAINS.includes(window.location.hostname)
             ? window.location.hostname
-            : "swrl-1118.firebaseapp.com",
-        databaseURL: "https://swrl-1118.firebaseio.com",
-        projectId: "swrl-1118",
-        storageBucket: "swrl-1118.appspot.com",
-        messagingSenderId: "443237991407",
-        appId: "1:443237991407:web:6d2fabfd1673e2e541ac1a"
-    };
-    const myFirebase = firebase.initializeApp(config);
+            : firebaseConfig.authDomain
+    }));
 
-    myFirebase.firestore().settings({
-        cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
-    });
-    myFirebase.firestore().enablePersistence({ synchronizeTabs: true })
-        .then(() => {
-            console.log('Firestore Persistence enabled');
+    // Offline cache in IndexedDB, shared between tabs, never evicted.
+    const firestore = initializeFirestore(app, {
+        localCache: persistentLocalCache({
+            tabManager: persistentMultipleTabManager(),
+            cacheSizeBytes: CACHE_SIZE_UNLIMITED
         })
-        .catch(function (err) {
-            console.error(err);
-            if (err.code == 'failed-precondition') {
-                console.error('multiple tabs opened');
-            } else if (err.code == 'unimplemented') {
-                console.error('browser not supported');
-            }
-        });
+    });
 
-    return myFirebase;
+    // Set by `npm run build:emulators` only; in a normal build this is `false`
+    // and the block is removed.
+    if (USE_FIREBASE_EMULATORS) {
+        connectFirestoreEmulator(firestore, 'localhost', 8085);
+        connectAuthEmulator(getAuth(app), 'http://localhost:9099', { disableWarnings: true });
+    }
+
+    return { app, firestore };
 }

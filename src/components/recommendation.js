@@ -1,4 +1,4 @@
-import firebase from 'firebase/compat/app';
+import { doc, getDoc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { INBOX, SENT } from '../constants/View';
 import { swrlUser } from '../firebase/login';
 import { addStats } from './stats';
@@ -18,7 +18,7 @@ import { Swrl } from '../model/swrl';
  * @param {StateController} stateController
  * @param {Constant} view 
  * @param {Recommendation} recommendation 
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {import('firebase/firestore').Firestore} firestore 
  * @param {HTMLElement} container 
  * @return {Promise<HTMLElement>}
  */
@@ -35,7 +35,7 @@ export const renderRecommendation = async (stateController, view, recommendation
 
         if (!recommendation.swrl) {
             console.log('Getting Swrl for recommendation')
-            const swrlDoc = await firestore.collection(Collection.SWRLS).doc(recommendation.swrlID).get();
+            const swrlDoc = await getDoc(doc(firestore, Collection.SWRLS, recommendation.swrlID));
             const swrl = Swrl.fromFirestore(swrlDoc.data())
             recommendation.swrl = swrl;
         }
@@ -185,8 +185,8 @@ export const renderRecommendation = async (stateController, view, recommendation
                 (e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    firestore.collection(Collection.RECOMMENDATIONS).doc(recommendation.id).set({
-                        dismissed: firebase.firestore.FieldValue.arrayUnion(swrlUser.uid)
+                    setDoc(doc(firestore, Collection.RECOMMENDATIONS, recommendation.id), {
+                        dismissed: arrayUnion(swrlUser.uid)
                     }, { merge: true });
                     if (recommendationDiv) {
                         container.removeChild(recommendationDiv);
@@ -207,8 +207,8 @@ export const renderRecommendation = async (stateController, view, recommendation
                 (e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    firestore.collection(Collection.RECOMMENDATIONS).doc(recommendation.id).set({
-                        read: firebase.firestore.FieldValue.arrayRemove(swrlUser.uid)
+                    setDoc(doc(firestore, Collection.RECOMMENDATIONS, recommendation.id), {
+                        read: arrayRemove(swrlUser.uid)
                     }, { merge: true });
                     if (recommendationDiv) {
                         recommendationDiv.classList.add('unread');

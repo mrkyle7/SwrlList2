@@ -10,7 +10,9 @@
         "node": ">=24"
     },
     "scripts": {
-        "build": "webpack --mode production",
+        "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
+        "build": "npm run clean && webpack --mode production",
+        "build:emulators": "npm run clean && webpack --mode production --env emulators",
         "dev": "webpack --mode development --watch",
         "start": "node server.js",
         "typecheck": "tsc",
@@ -30,5 +32,8 @@
         "vitest": "^5.1.0",
         "webpack": "^5.112.2",
         "webpack-cli": "^7.3.1"
+    },
+    "overrides": {
+        "@grpc/grpc-js": "^1.14.7"
     }
 }

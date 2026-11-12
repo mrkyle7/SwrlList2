@@ -1,6 +1,7 @@
+import { doc, setDoc } from 'firebase/firestore';
+import { getMessaging, getToken, isSupported, onMessage } from 'firebase/messaging';
 import { Collection } from "../constants/Collection";
 import { swrlUser } from "./login";
-import firebase from 'firebase/compat/app';
 
 const VAPID_KEY = 'BCbFUNHtZXs8mHOyZkkBL8rtiLIf0E4ND4WtZMp5eMxj-KFTS2D16bfjEj45ARiwt5hVecwtxGNQNAWs0U8rq2c';
 
@@ -8,46 +9,45 @@ const VAPID_KEY = 'BCbFUNHtZXs8mHOyZkkBL8rtiLIf0E4ND4WtZMp5eMxj-KFTS2D16bfjEj45A
 export let deviceToken;
 
 /**
- * @param {firebase.app.App} myfirebase
- * @param {firebase.firestore.Firestore} firestore
+ * @param {import('firebase/app').FirebaseApp} firebaseApp
+ * @param {import('firebase/firestore').Firestore} firestore
  */
-export const initMessaging = (myfirebase, firestore) => {
-    if (!firebase.messaging.isSupported() || !('Notification' in window)) {
-        console.log('Push messaging is not supported in this browser');
-        return;
-    }
-    const messaging = myfirebase.messaging();
-    Notification.requestPermission().then((permission) => {
-        if (permission !== 'granted') {
+export const initMessaging = async (firebaseApp, firestore) => {
+    try {
+        if (!('Notification' in window) || !(await isSupported())) {
+            console.log('Push messaging is not supported in this browser');
+            return;
+        }
+        const messaging = getMessaging(firebaseApp);
+        onMessage(messaging, (payload) => {
+            console.log('Message received while the app is open. ', payload);
+        });
+        if (await Notification.requestPermission() !== 'granted') {
             console.log('Unable to get permission to notify.');
             return;
         }
         // The token is refreshed by the SDK; asking again on each start is how
         // a new one reaches Firestore.
-        return messaging.getToken({ vapidKey: VAPID_KEY }).then((currentToken) => {
-            if (currentToken) {
-                deviceToken = currentToken;
-                updateDeviceToken(firestore);
-            } else {
-                console.log('No messaging token available.');
-            }
-        });
-    }).catch((err) => {
-        console.log('An error occurred while retrieving the messaging token. ', err);
-    });
-    messaging.onMessage((payload) => {
-        console.log('Message received while the app is open. ', payload);
-    });
+        const currentToken = await getToken(messaging, { vapidKey: VAPID_KEY });
+        if (currentToken) {
+            deviceToken = currentToken;
+            updateDeviceToken(firestore);
+        } else {
+            console.log('No messaging token available.');
+        }
+    } catch (err) {
+        console.log('An error occurred while setting up push messaging. ', err);
+    }
 }
 
 /**
- * @param {firebase.firestore.Firestore} firestore
+ * @param {import('firebase/firestore').Firestore} firestore
  */
 export const updateDeviceToken = (firestore) => {
     if (swrlUser !== undefined && !swrlUser.isAnonymous && deviceToken !== undefined) {
-        firestore.collection(Collection.MESSAGINGTOKENS).doc(deviceToken).set({
+        setDoc(doc(firestore, Collection.MESSAGINGTOKENS, deviceToken), {
             uid: swrlUser.uid,
             token: deviceToken
-        })
+        });
     }
 }

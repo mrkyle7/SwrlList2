@@ -1,7 +1,7 @@
+import { collection, doc, getDocs, setDoc, addDoc, serverTimestamp, arrayUnion } from 'firebase/firestore';
 export default { showRecommend, destroyRecommend };
 
 // @ts-ignore
-import firebase from 'firebase/compat/app';
 // @ts-ignore
 import { RECOMMEND } from '../constants/View';
 // @ts-ignore
@@ -66,7 +66,7 @@ export function showRecommend(stateController) {
 
     bindRecommendSendButton(stateController, swrl, firestore);
 
-    firestore.collection(Collection.SWRLERS).get()
+    getDocs(collection(firestore, Collection.SWRLERS))
         .then(function (querySnapshot) {
             if (!querySnapshot.empty) {
                 swrlers = [];
@@ -92,7 +92,7 @@ export function showRecommend(stateController) {
 /**
  * @param {StateController} stateController
  * @param {Swrl} swrl
- * @param {firebase.firestore.Firestore} firestore
+ * @param {import('firebase/firestore').Firestore} firestore
  */
 function bindRecommendSendButton(stateController, swrl, firestore) {
     //remove the old event listeners by replacing the button
@@ -115,23 +115,23 @@ function bindRecommendSendButton(stateController, swrl, firestore) {
                 let fromSwrler = swrlUser.uid;
                 let message = recommendMessage.value;
                 let swrlID = swrl.swrlID;
-                firestore.collection(Collection.RECOMMENDATIONS).add({
+                addDoc(collection(firestore, Collection.RECOMMENDATIONS), {
                     from: fromSwrler,
                     to: toSwrlers,
                     message: message,
                     swrlID: swrlID,
-                    created: firebase.firestore.FieldValue.serverTimestamp()
+                    created: serverTimestamp()
                 })
                     .then(function (docRef) {
                         const id = docRef.id;
                         console.log("Recommendation written with ID: ", id);
                         const updateRecommendations = swrl.toPartialFireStoreData();
-                        updateRecommendations.updated = firebase.firestore.FieldValue.serverTimestamp();
-                        updateRecommendations.recommendations = firebase.firestore.FieldValue.arrayUnion(id);
-                        // updateRecommendations.recommenders = firebase.firestore.FieldValue.arrayUnion(fromSwrler);
-                        updateRecommendations.isRecommended = firebase.firestore.FieldValue.arrayUnion.apply(this, toSwrlers)
+                        updateRecommendations.updated = serverTimestamp();
+                        updateRecommendations.recommendations = arrayUnion(id);
+                        // updateRecommendations.recommenders = arrayUnion(fromSwrler);
+                        updateRecommendations.isRecommended = arrayUnion(...toSwrlers)
 
-                        firestore.collection(Collection.SWRLS).doc(swrlID).set(updateRecommendations,
+                        setDoc(doc(firestore, Collection.SWRLS, swrlID), updateRecommendations,
                             { merge: true })
                             .catch(e => console.error(e));
                     })
@@ -175,7 +175,7 @@ function clearSelectedSwrlers() {
 /**
  * 
  * @param {StateController} stateController
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {import('firebase/firestore').Firestore} firestore 
  */
 function recommendFailAndAbort(stateController, firestore) {
     window.alert("You need to be online to use recommendations, sorry!");
@@ -311,7 +311,7 @@ function closeAllLists() {
 }
 
 /**
- * @param {firebase.User} swrler
+ * @param {import('firebase/auth').User} swrler
  * @param {boolean} showDeleteButton
  */
 function getSwrlerSmall(swrler, showDeleteButton) {

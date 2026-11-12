@@ -14,6 +14,7 @@ npm ci
 npm run build      # webpack: www/ + src/ -> dist/
 npm start          # node server.js on http://localhost:8080 (or PORT)
 npm run dev        # webpack in watch mode; run `npm start` alongside
+npm run build:emulators   # same build, pointed at local Firebase emulators
 ```
 
 `server.js` serves `dist/`, returns `index.html` for the client-side routes
@@ -29,16 +30,16 @@ it.
 
 ## Build pieces
 
-- `webpack.config.js` - no Babel; the source is plain modern JS. CSS via
+- `webpack.config.js` - two builds: the app (`bundle.js`) and the push
+  service worker (`firebase-messaging-sw.js`). No Babel; the source is plain
+  modern JS. CSS via
   `style-loader`/`css-loader`, fonts (`@fontsource/raleway`) emitted to
   `dist/fonts/`, `www/` copied as-is.
 - `Dockerfile` - stage 1 `npm ci && npm run build`; stage 2 is
   `node:24-slim` with only the runtime dependency (`express`) and `dist/`.
   Everything else in `package.json` is a devDependency because it is bundled.
 - `www/sw.js` - app-shell service worker (network first). Bump `CACHE` if
-  the shell file list changes. `www/firebase-messaging-sw.js` loads the
-  Firebase SDK from gstatic: keep its version in step with `firebase` in
-  `package.json`.
+  the shell file list changes.
 
 ## Deploy
 

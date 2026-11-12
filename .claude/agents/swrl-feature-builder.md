@@ -15,7 +15,7 @@ Read these in order, then decide on an approach:
 2. `.claude/skills/swrl-architecture/SKILL.md` — the action → listener →
    state → view pipeline
 3. `.claude/skills/swrl-firebase/SKILL.md` — Firestore collection shapes,
-   compat API rules
+   modular API conventions
 4. `.claude/skills/swrl-detail-getters/SKILL.md` — only if the feature touches
    content sources or types
 5. `.claude/skills/swrl-testing/SKILL.md` — the test harness you'll extend
@@ -46,7 +46,7 @@ via the AskUserQuestion tool, with concrete options.
 
 ## House rules
 
-- **Never** use Firebase v9 modular imports — this repo uses v7 compat.
+- **Always** use the Firebase modular API — never `firebase/compat/*`.
 - **Never** read-modify-write Firestore array fields — use `FieldValue.arrayUnion` /
   `arrayRemove` keyed by `swrlUser.uid`.
 - **Never** edit `platforms/`, `www/bundle.js`, `node_modules/`, or anything

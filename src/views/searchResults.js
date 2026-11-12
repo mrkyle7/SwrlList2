@@ -1,4 +1,4 @@
-import firebase from 'firebase/compat/app';
+import { collection, doc, getDocs, addDoc, deleteDoc, query, where } from 'firebase/firestore';
 import { Category } from '../constants/Category';
 import { SEARCH } from '../constants/View';
 import { renderSwrl } from '../components/swrl';
@@ -65,7 +65,7 @@ let currentSearchController;
 /**
  * @param {Category} category
  * @param {string} searchText
- * @param {firebase.firestore.Firestore} firestore
+ * @param {import('firebase/firestore').Firestore} firestore
  * @param {StateController} stateController
  */
 function showSearch(category, searchText, firestore, stateController) {
@@ -95,15 +95,14 @@ function showSearch(category, searchText, firestore, stateController) {
 
 /**
  * 
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {import('firebase/firestore').Firestore} firestore 
  * @param {StateController} stateController 
  */
 function showSavedSearchesOrSearchMessage(firestore, stateController) {
     showMessage(currentCategory.searchMessage);
-    firestore.collection(Collection.SAVEDSEARCHES)
-        .where("uid", "==", swrlUser.uid)
-        .where("category", "==", currentCategory.id)
-        .get()
+    getDocs(query(collection(firestore, Collection.SAVEDSEARCHES),
+        where("uid", "==", swrlUser.uid),
+        where("category", "==", currentCategory.id)))
         .then(querySnapshot => {
             if (!querySnapshot.empty && searchBar.value.length === 0) {
                 hideAllMessages();
@@ -122,17 +121,17 @@ function savedSearchesExist() {
 
 /**
  * 
- * @param {firebase.firestore.QuerySnapshot} querySnapshot 
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {import('firebase/firestore').QuerySnapshot} querySnapshot 
+ * @param {import('firebase/firestore').Firestore} firestore 
  * @param {StateController} stateController 
  */
 function renderSavedSearches(querySnapshot, firestore, stateController) {
     while (savedSearches.firstChild) {
         savedSearches.removeChild(savedSearches.firstChild);
     }
-    querySnapshot.forEach(doc => {
-        const data = doc.data();
-        const id = doc.id;
+    querySnapshot.forEach(docSnapshot => {
+        const data = docSnapshot.data();
+        const id = docSnapshot.id;
         try {
             const savedSearch = SavedSearch.fromJson(data);
             /** @type {HTMLElement} */
@@ -152,7 +151,7 @@ function renderSavedSearches(querySnapshot, firestore, stateController) {
                 if (div) {
                     savedSearches.removeChild(div);
                 }
-                firestore.collection(Collection.SAVEDSEARCHES).doc(id).delete();
+                deleteDoc(doc(firestore, Collection.SAVEDSEARCHES, id));
                 if (!savedSearchesExist()) {
                     console.log('No more saved searches');
                     showMessage(currentCategory.searchMessage);
@@ -167,7 +166,7 @@ function renderSavedSearches(querySnapshot, firestore, stateController) {
                 searchView.selectedCategory = savedSearch.category;
                 searchView.searchTerms = savedSearch.searchText;
                 stateController.changeState(searchView);
-                firestore.collection(Collection.SAVEDSEARCHES).doc(id).delete();
+                deleteDoc(doc(firestore, Collection.SAVEDSEARCHES, id));
             });
             savedSearches.appendChild(fragment);
         }
@@ -197,12 +196,12 @@ function hideAllMessages() {
 }
 
 /**
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {import('firebase/firestore').Firestore} firestore 
  * @param {StateController} stateController 
  */
 export function initSearchBar(firestore, stateController) {
     addToSavedSearch.addEventListener('click', () => {
-        firestore.collection(Collection.SAVEDSEARCHES).add({
+        addDoc(collection(firestore, Collection.SAVEDSEARCHES), {
             uid: swrlUser.uid,
             searchText: searchBar.value,
             category: currentCategory.id
@@ -249,7 +248,7 @@ function showMessage(text) {
 /**
  * 
  * @param {StateController} stateController 
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {import('firebase/firestore').Firestore} firestore 
  */
 function runSearch(stateController, firestore) {
     cancelCurrentSearch();
@@ -317,7 +316,7 @@ function clearResults() {
 
 /**
  * @param {Swrl[]} results
- * @param {firebase.firestore.Firestore} firestore
+ * @param {import('firebase/firestore').Firestore} firestore
  * @param {string} searchText
  * @param {StateController} stateController
  */

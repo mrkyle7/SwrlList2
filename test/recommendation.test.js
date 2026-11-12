@@ -1,8 +1,7 @@
 import { describe, it, expect, assert } from 'vitest';
 // @ts-check
 
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/firestore';
+import { Timestamp } from 'firebase/firestore';
 import { Swrl } from '../src/model/swrl';
 import { ALBUM } from '../src/constants/Type';
 import { LISTEN } from '../src/constants/Category';
@@ -31,7 +30,7 @@ describe('Can translate Firestore data to a recommendation', function () {
                         from: 'user1',
                         to: ['user2', 'user3'],
                         message: 'is great',
-                        created: new firebase.firestore.Timestamp(1568452504, 0),
+                        created: new Timestamp(1568452504, 0),
                         swrlID: 'ITUNESALBUM_ABC123'
                     }
                 }
@@ -96,7 +95,7 @@ describe('Can translate Firestore data to a recommendation', function () {
                                                             done: [],
                                                             deleted: ['user1'],
                                                             loved: [],
-                                                            added: new firebase.firestore.Timestamp(1568452504, 0),
+                                                            added: new Timestamp(1568452504, 0),
                                                             type: 5, //ALBUM
                                                             category: 3, //LISTEN
                                                             swrlID: 'ITUNESALBUM_ABC123'
@@ -138,7 +137,7 @@ describe('Can translate Firestore data to a recommendation', function () {
                         from: 'user1',
                         to: ['user2', 'user3'],
                         message: 'is great',
-                        created: new firebase.firestore.Timestamp(1568452504, 0),
+                        created: new Timestamp(1568452504, 0),
                         swrlID: 'ITUNESALBUM_ABC123',
                         read: ['user2'],
                         dismissed: ['user3']
@@ -205,7 +204,7 @@ describe('Can translate Firestore data to a recommendation', function () {
                                                             done: [],
                                                             deleted: ['user1'],
                                                             loved: [],
-                                                            added: new firebase.firestore.Timestamp(1568452504, 0),
+                                                            added: new Timestamp(1568452504, 0),
                                                             type: 5, //ALBUM
                                                             category: 3, //LISTEN
                                                             swrlID: 'ITUNESALBUM_ABC123'

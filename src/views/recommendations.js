@@ -1,4 +1,3 @@
-import firebase from 'firebase/compat/app';
 import { INBOX, SENT } from '../constants/View';
 import { recommendationsInboxCache, recommendationsSentCache, inboxReady } from '../listeners/recommendations';
 import { Collection } from '../constants/Collection';
@@ -59,7 +58,7 @@ export let currentRenderID;
 /**
  * @param {StateController} stateController
  * @param {Constant} view 
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {import('firebase/firestore').Firestore} firestore 
  */
 const showRecommendations = async (stateController, view, firestore) => {
     recommendationTabs.classList.remove('hidden');
@@ -98,7 +97,7 @@ const clearList = () => {
  * 
  * @param {StateController} stateController
  * @param {Constant} view
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {import('firebase/firestore').Firestore} firestore 
  * @param {number} renderID
  */
 const showInboxFromCache = (stateController, view, firestore, renderID) => {
@@ -113,7 +112,7 @@ const showInboxFromCache = (stateController, view, firestore, renderID) => {
  * 
  * @param {StateController} stateController
  * @param {Constant} view  
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {import('firebase/firestore').Firestore} firestore 
  * @param {number} renderID
  */
 const showSentFromCache = (stateController, view, firestore, renderID) => {
@@ -129,7 +128,7 @@ const showSentFromCache = (stateController, view, firestore, renderID) => {
  * @param {StateController} stateController
  * @param {Recommendation[]} recommendations 
  * @param {Constant} view  
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {import('firebase/firestore').Firestore} firestore 
  * @param {number} renderID
  */
 const renderRecommendations = async (stateController, recommendations, view, firestore, renderID) => {

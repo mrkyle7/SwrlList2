@@ -1,4 +1,4 @@
-import firebase from 'firebase/compat/app';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { Collection } from '../constants/Collection';
 import { swrlUser, showLoginButtons } from '../firebase/login';
 import { Recommendation } from '../model/recommendation';
@@ -16,12 +16,12 @@ let errorCountSent = 0;
 export let inboxReady = false;
 
 /**
-* @param {firebase.firestore.Firestore} firestore 
+* @param {import('firebase/firestore').Firestore} firestore 
 */
 export function setUpRecommendationsListener(firestore) {
-    currentInboxListener = firestore.collection(Collection.RECOMMENDATIONS)
-        .where("to", "array-contains", swrlUser.uid)
-        .onSnapshot(querySnapshot => {
+    currentInboxListener = onSnapshot(query(collection(firestore, Collection.RECOMMENDATIONS),
+        where("to", "array-contains", swrlUser.uid)),
+        querySnapshot => {
             errorCountInbox = 0; //reset the error count to avoid long term errors bubbling
             /**  @type {Promise[]} */
             const inboxUpdates = [];
@@ -69,9 +69,9 @@ export function setUpRecommendationsListener(firestore) {
                 inboxReady = true;
             }
         })
-    currentSentListener = firestore.collection(Collection.RECOMMENDATIONS)
-        .where("from", "==", swrlUser.uid)
-        .onSnapshot(async querySnapshot => {
+    currentSentListener = onSnapshot(query(collection(firestore, Collection.RECOMMENDATIONS),
+        where("from", "==", swrlUser.uid)),
+        async querySnapshot => {
             errorCountSent = 0; //reset the error count to avoid long term errors bubbling
             /**  @type {Promise[]} */
             querySnapshot.docChanges().forEach(docChange => {

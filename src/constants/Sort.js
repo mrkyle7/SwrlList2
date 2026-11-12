@@ -1,11 +1,10 @@
-import firebase from 'firebase/compat/app';
 import { Constant } from "./Constant";
 
 export class Sort extends Constant {
     /**
      * @param {number} id
      * @param {string} column
-     * @param {firebase.firestore.OrderByDirection} direction
+     * @param {import('firebase/firestore').OrderByDirection} direction
      */
     constructor(id, column, direction) {
         super(id)

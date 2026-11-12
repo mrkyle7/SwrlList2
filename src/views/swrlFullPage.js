@@ -1,4 +1,4 @@
-import firebase from 'firebase/compat/app';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { UIView } from './UIView';
 import { StateController } from './stateController';
 import { State } from '../model/state';
@@ -83,12 +83,12 @@ async function showSwrlFullPage(stateController) {
 
     let swrlExists = false;
 
-    firestore.collection(Collection.SWRLS).doc(swrl.swrlID).get()
-        .then(doc => {
+    getDoc(doc(firestore, Collection.SWRLS, swrl.swrlID))
+        .then(docSnapshot => {
             let currentSwrl = swrl;
-            if (doc.exists) {
+            if (docSnapshot.exists()) {
                 try {
-                    const data = doc.data();
+                    const data = docSnapshot.data();
                     currentSwrl = Swrl.fromFirestore(data);
                     swrlExists = true;
                 } catch (err) {
@@ -132,7 +132,7 @@ async function showSwrlFullPage(stateController) {
  * @param {Swrl} swrl 
  * @param {HTMLTemplateElement} swrlPageCardTemplate 
  * @param {HTMLTemplateElement} swrlPageSubCardTemplate 
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {import('firebase/firestore').Firestore} firestore 
  * @param {StateController} stateController
  */
 const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, firestore, stateController) => {
@@ -377,7 +377,7 @@ function updateDetails(swrl, swrlExists, firestore, stateController) {
                     swrlImageLarge.src = updatedSwrl.details.imageUrl;
                     if (swrlExists) {
                         const firestoreData = updatedSwrl.toPartialFireStoreData();
-                        firestore.collection(Collection.SWRLS).doc(updatedSwrl.swrlID).set(firestoreData,
+                        setDoc(doc(firestore, Collection.SWRLS, updatedSwrl.swrlID), firestoreData,
                             { merge: true });
                     }
                     destroyDetailCards();
@@ -647,7 +647,7 @@ function destroyDetailCards() {
 }
 
 /**
- * @param {firebase.User} swrler
+ * @param {import('firebase/auth').User} swrler
  * @param {StateController} stateController
  */
 function getSwrlerSmall(swrler, stateController) {
