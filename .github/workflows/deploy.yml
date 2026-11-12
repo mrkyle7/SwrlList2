@@ -191,7 +191,10 @@ jobs:
         env:
           ALLOW_DESTROY: ${{ github.event.inputs.allow_destroy }}
         run: |
-          DELETES=$(terraform show -json tfplan | jq -r '.resource_changes[]? | select(.change.actions | index("delete")) | .address')
+          # A tainted resource is one whose creation failed part way (Cloud Run
+          # does this when its API was only just switched on). Replacing it
+          # finishes the job rather than removing anything that worked.
+          DELETES=$(terraform show -json tfplan | jq -r '.resource_changes[]? | select(.change.actions | index("delete")) | select(.action_reason != "replace_because_tainted") | .address')
           if [ -n "$DELETES" ] && [ "$ALLOW_DESTROY" != "true" ]; then
             echo "This plan deletes or replaces:"
             echo "$DELETES"
