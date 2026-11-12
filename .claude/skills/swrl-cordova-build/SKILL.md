@@ -47,13 +47,13 @@ build hooks.
 
 ## Cloud Run browser deploy
 
-```bash
-scripts/deploy-cloudrun.sh deploy   # gcloud run deploy --source . (Cloud Build)
-scripts/deploy-cloudrun.sh status
-```
+Merging to `master` deploys: `.github/workflows/deploy.yml` applies
+`terraform/`, builds the image, copies GitHub secrets into Secret Manager,
+deploys and verifies (rolling back on failure). Pull requests get an image
+smoke test and a terraform plan. See `terraform/README.md`.
 
-Project `swrl-1118`, region `europe-west1`, service `swrl-list`, domain
-`swrl-list.com` (Cloud Run domain mapping + Cloud DNS zone `swrl-list-com`).
+Project `swrl-1118`, region `us-east1`, service `swrl-list`. `swrl-list.com`
+is mapped only once `map_domain` is true in `terraform/variables.tf`.
 
 The `Dockerfile` is two stages:
 

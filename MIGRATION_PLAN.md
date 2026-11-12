@@ -47,9 +47,8 @@ Resolve before starting that phase.
       it's a port, not an upgrade. Cordova 12 is a smaller leap but the
       ecosystem is mostly dead.
 - [x] **GCP project name** for Cloud Run: reuse `swrl-1118` (user decision).
-- [x] **Cloud Run region:** `europe-west1`. Not `europe-west2` — Cloud Run
-      domain mappings (needed for the custom domain + managed certificate)
-      are not offered in London.
+- [x] **Cloud Run region:** `us-east1` (user decision: same as
+      cheetahmoongames; tier 1 pricing and supports domain mappings).
 - [x] **Domain:** `swrl-list.com` (user decision), as a Cloud Run domain
       mapping with a Cloud DNS zone. **The domain was not registered** when
       Phase 1 was written (NXDOMAIN, no registry record) — see Phase 1 notes.
@@ -217,21 +216,20 @@ Goal: a `gcloud run deploy` that works.
 
 - [x] Add `Dockerfile` at repo root. **Deviates from the original plan:** the
       build stage is Node 22, not `node:11.7.0` — see handoff notes.
-- [x] Add `.dockerignore` (and `.gcloudignore` for `gcloud run deploy --source`)
+- [x] Add `.dockerignore`
 - [x] Update `server.js` to default to `process.env.PORT || 8080`
-- [x] Document the deploy flow: `scripts/deploy-cloudrun.sh` (wraps
-      `gcloud run deploy --source .`, Firebase Auth authorised domains, Cloud
-      DNS + domain mapping)
+- [x] Deploy flow: terraform in `terraform/` + `.github/workflows/deploy.yml`,
+      modelled on mrkyle7/cheetahmoongames (this also covers Phase 7, on
+      GitHub Actions instead of Cloud Build)
 - [x] Build the image locally
 - [x] Run it locally and verify `/api/v1/health` returns `{"isAvailable":true}`
 - [x] Verify every deep-link route serves `index.html`, and the app boots,
       in headless Chromium
-- [ ] Deploy to Cloud Run, confirm public URL responds
-      (`scripts/deploy-cloudrun.sh deploy` — **blocked: no GCP credentials
-      in the agent session**)
+- [ ] User: run `terraform/bootstrap.sh` once, set the `BGG_API_TOKEN` GitHub
+      secret, merge to `master` — first deploy (see `terraform/README.md`)
 - [ ] Add the Cloud Run + `swrl-list.com` hosts to Firebase Auth authorised
-      domains (`scripts/deploy-cloudrun.sh auth-domains`)
-- [ ] Register `swrl-list.com`, then `scripts/deploy-cloudrun.sh domain`
+      domains (`scripts/firebase-auth-domains.sh`)
+- [ ] Register `swrl-list.com`, verify it, then set `map_domain = true`
 - [x] `src/firebase/init.js` left untouched (`authDomain` stays
       `swrl-1118.firebaseapp.com`); browser sign-in switched from redirect to
       popup so it works off the Firebase domain
@@ -258,10 +256,11 @@ Done alongside Phase 1 (user request, outside the original plan):
 ### Phase 1 handoff notes
 
 - **Cloud Run service name:** `swrl-list` (project `swrl-1118`, region
-  `europe-west1`) — *not yet deployed*.
+  `us-east1`) — *not yet deployed*.
 - **Cloud Run URL:** n/a until first deploy.
-- **Image registry path:** `gcloud run deploy --source` puts it in Artifact
-  Registry repo `cloud-run-source-deploy` in `europe-west1`.
+- **Image registry path:** `us-east1-docker.pkg.dev/swrl-1118/swrl-list/swrl-list`.
+- **Terraform / workflow status:** `terraform validate` passes; it has never
+  been planned or applied against the project, and the workflow has never run.
 - **Why the build is not on Node 11:** on `node:11.7.0`, `cordova platform add
   browser` dies in `cordova-universal-links-plugin`'s `after_prepare` hook
   with `SyntaxError: Unexpected token export` — the plugin installs the latest
@@ -291,7 +290,8 @@ Done alongside Phase 1 (user request, outside the original plan):
     search silently returned nothing. Fixed with `fields=`.
   - BoardGameGeek returns 401 without a registered application's bearer
     token. Calls now go via `server.js` `/api/v1/geek/*` with `BGG_API_TOKEN`
-    (Secret Manager secret `bgg-api-token`). **User must register an app at
+    (Secret Manager secret `swrl-list-bgg-api-token`, filled from the GitHub
+    secret `BGG_API_TOKEN`). **User must register an app at
     https://boardgamegeek.com/applications.** The old getter also resolved
     with title "Unknown" on a failed lookup, and the Swrl page writes getter
     results back to Firestore — so saved games opened while BGG was failing

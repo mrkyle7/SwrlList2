@@ -48,24 +48,12 @@ npx cypress run
 ## Browser (Google Cloud Run)
 
 The web app is a Docker image (see `Dockerfile`) running on Cloud Run in the
-`swrl-1118` project, region `europe-west1`, service `swrl-list`, served at
-https://swrl-list.com.
+`swrl-1118` project, region `us-east1`, service `swrl-list`.
 
-You need an authenticated `gcloud` (Cloud Shell works as-is). Then:
-
-    scripts/deploy-cloudrun.sh deploy        # build with Cloud Build + deploy
-    scripts/deploy-cloudrun.sh auth-domains  # once: allow the hosts in Firebase Auth
-    scripts/deploy-cloudrun.sh domain        # once: Cloud DNS zone + HTTPS domain mapping
-    scripts/deploy-cloudrun.sh status        # service URL, mapping + certificate state
-
-One-off setup the script cannot do for you:
-
-1. **Register `swrl-list.com`** (e.g. `gcloud domains registrations register swrl-list.com`
-   or any registrar) and point its name servers at the ones `domain` prints.
-2. **BoardGameGeek token.** BGG's API only answers registered applications.
-   Register at https://boardgamegeek.com/applications, then store the token:
-   `printf '%s' '<token>' | gcloud --project swrl-1118 secrets create bgg-api-token --data-file=-`
-   and re-run `deploy`. Without it board game / video game search returns an error.
+Merging to `master` deploys it: `.github/workflows/deploy.yml` applies the
+terraform in `terraform/`, builds the image and ships it. Setup, the GitHub
+secrets to set, and how to switch on `swrl-list.com` are in
+[terraform/README.md](terraform/README.md).
 
 To try the image locally:
 

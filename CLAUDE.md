@@ -27,7 +27,7 @@ Any dependency bump is a real project, not a drive-by. Ask before upgrading.
 | Run browser dev server | `npm start` (triggers `cordova prepare browser`) |
 | Run integration tests | `npx cypress run` |
 | Type-check | `npx tsc --allowJs --noEmit` |
-| Deploy browser | `scripts/deploy-cloudrun.sh deploy` (needs authenticated `gcloud`) |
+| Deploy browser | merge to `master` (`.github/workflows/deploy.yml`) |
 | Deploy Android | `bundle exec fastlane android deploy` |
 
 ## Source map
@@ -54,6 +54,7 @@ scripts/          build helpers (e.g. post-add-browsertab fix)
 server.js         Express server used on Cloud Run (static app + BoardGameGeek proxy)
 server/           runtime-only package.json for the Cloud Run image
 Dockerfile        Cloud Run image: Cordova browser build → Express
+terraform/        all GCP infrastructure, applied by GitHub Actions (see terraform/README.md)
 ```
 
 **Pipeline:** user input → `actions/*` → Firestore write → `listeners/*`
@@ -93,6 +94,9 @@ Dockerfile        Cloud Run image: Cordova browser build → Express
 - **BoardGameGeek calls go through `server.js`** (`/api/v1/geek/*`) because BGG
   requires a bearer token (`BGG_API_TOKEN`, from Secret Manager). Never put
   that token in `src/`.
+- **Infrastructure changes go through `terraform/`**, not `gcloud` by hand —
+  the next apply undoes manual changes. Secret values never go in terraform:
+  GitHub Actions secrets are copied into Secret Manager by the deploy job.
 - Raw DOM rendering, no framework. No React/Vue/Svelte. Don't import one.
 
 ## Unknowns worth asking about

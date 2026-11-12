@@ -13,4 +13,5 @@ play-store-keys.json
 *.md
 .claude
 cypress
-.gcloudignore
+terraform
+.github

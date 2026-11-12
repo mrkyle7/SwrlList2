@@ -80,7 +80,9 @@ app.get('/api/v1/geek/:resource', function (req, res) {
     return res.status(400).json({ error: 'Invalid BoardGameGeek request' });
   }
   const token = process.env.BGG_API_TOKEN;
-  if (!token) {
+  // "not-set" is the placeholder terraform puts in the secret until the
+  // deploy workflow copies the real token in.
+  if (!token || token === 'not-set') {
     return res.status(503).json({ error: 'BGG_API_TOKEN is not configured on the server' });
   }
 
