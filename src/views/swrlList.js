@@ -1,4 +1,4 @@
-import firebase from 'firebase/compat/app';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 export default { showList, destroyList };
 
 import { YOUR_LIST, DISCOVER } from '../constants/View';
@@ -64,7 +64,7 @@ let currentView;
 /**
  * @param {Category} category
  * @param {Constant} view
- * @param {firebase.firestore.Firestore} firestore
+ * @param {import('firebase/firestore').Firestore} firestore
  * @param {StateController} stateController
  */
 export function showList(category, view, firestore, stateController) {
@@ -92,7 +92,7 @@ export function showList(category, view, firestore, stateController) {
     }
     currentCategory = category
     currentView = view;
-    const swrlsRef = firestore.collection(Collection.SWRLS);
+    const swrlsRef = collection(firestore, Collection.SWRLS);
     if (swrlsRef) {
         runQuery(swrlsRef, category, view, stateController.currentState.sort, stateController.currentState.typeFilter)
             .then(function (querySnapshot) {
@@ -106,7 +106,7 @@ export function showList(category, view, firestore, stateController) {
                         const swrls = [];
                         querySnapshot.forEach(
                             /**
-                             * @param {firebase.firestore.QueryDocumentSnapshot} docSnapshot
+                             * @param {import('firebase/firestore').QueryDocumentSnapshot} docSnapshot
                              */
                             (docSnapshot) => {
                                 try {
@@ -169,7 +169,7 @@ function isDeleted(swrl) {
  * @param {Swrl[]} swrls
  * @param {StateController} stateController
  * @param {Constant} view
- * @param {firebase.firestore.Firestore} firestore
+ * @param {import('firebase/firestore').Firestore} firestore
  * @param {Boolean} firstLoad
  */
 function renderNextSwrls(swrls, stateController, view, firestore, firstLoad) {
@@ -194,7 +194,7 @@ function renderNextSwrls(swrls, stateController, view, firestore, firstLoad) {
 }
 
 /**
- * @param {firebase.firestore.CollectionReference} db
+ * @param {import('firebase/firestore').CollectionReference} db
  * @param {Category} category
  * @param {Constant} view
  * @return {Promise}
@@ -202,31 +202,18 @@ function renderNextSwrls(swrls, stateController, view, firestore, firstLoad) {
  * @param {WhereFilter} typeFilter
  */
 function runQuery(db, category, view, sort, typeFilter) {
-    switch (view) {
-        case YOUR_LIST:
-            if (!swrlUser || swrlUser.isAnonymous) {
-                showRequireLoginScreen('to see Swrls on your list');
-                return new Promise(function (resolve, reject) {
-                    resolve({ empty: true });
-                });
-            } else {
-                let search = db.where("category", "==", category.id)
-                    .where("later", "array-contains", swrlUser.uid)
-                    .orderBy(sort.column, sort.direction);
-                if (typeFilter) search = search.where(typeFilter.column, '==', typeFilter.value);
-                return search.get();
-            }
-        case DISCOVER:
-            let search = db.where("category", "==", category.id)
-                .orderBy(sort.column, sort.direction)
-            if (typeFilter) search = search.where(typeFilter.column, '==', typeFilter.value);
-            return search.get();
-        default:
-            let defaultSearch = db.where("category", "==", category.id)
-                .orderBy(sort.column, sort.direction)
-            if (typeFilter) defaultSearch = defaultSearch.where(typeFilter.column, '==', typeFilter.value);
-            return defaultSearch.get();
+    /** @type {import('firebase/firestore').QueryConstraint[]} */
+    const constraints = [where("category", "==", category.id)];
+    if (view === YOUR_LIST) {
+        if (!swrlUser || swrlUser.isAnonymous) {
+            showRequireLoginScreen('to see Swrls on your list');
+            return Promise.resolve({ empty: true });
+        }
+        constraints.push(where("later", "array-contains", swrlUser.uid));
     }
+    constraints.push(orderBy(sort.column, sort.direction));
+    if (typeFilter) constraints.push(where(typeFilter.column, '==', typeFilter.value));
+    return getDocs(query(db, ...constraints));
 }
 
 function clearList() {

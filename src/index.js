@@ -1,4 +1,4 @@
-import firebase from 'firebase/compat/app';
+import { disableNetwork, doc, enableNetwork, getDoc } from 'firebase/firestore';
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -48,15 +48,14 @@ const app = {
     start: async function () {
         try {
             bindMenuSwipeAction();
-            const firebase = initialiseFirebase();
-            const firestore = firebase.firestore();
-            window.addEventListener('offline', () => firestore.disableNetwork());
-            window.addEventListener('online', () => firestore.enableNetwork());
+            const { app: firebaseApp, firestore } = initialiseFirebase();
+            window.addEventListener('offline', () => disableNetwork(firestore));
+            window.addEventListener('online', () => enableNetwork(firestore));
             if (!navigator.onLine) {
-                firestore.disableNetwork();
+                disableNetwork(firestore);
             }
-            setUpLogin(firebase, firestore);
-            initMessaging(firebase, firestore);
+            setUpLogin(firebaseApp, firestore);
+            initMessaging(firebaseApp, firestore);
             stateController = new StateController(firestore);
             stateController.initialiseAllViews();
 
@@ -183,7 +182,7 @@ function savedSearchesRoute() {
 
 /**
  * @param {any[]} match
- * @param {firebase.firestore.Firestore} firestore
+ * @param {import('firebase/firestore').Firestore} firestore
  * @param {State} startState
  */
 function swrlRoute(match, firestore, startState) {
@@ -191,10 +190,10 @@ function swrlRoute(match, firestore, startState) {
     if (swrlId) {
         console.log(`Found deep link for swrl, id: ${swrlId}`);
         document.getElementById('loadingView').classList.remove('hidden');
-        firestore.collection(Collection.SWRLS).doc(swrlId).get()
-            .then(doc => {
-                if (doc.exists) {
-                    const swrl = Swrl.fromFirestore(doc.data());
+        getDoc(doc(firestore, Collection.SWRLS, swrlId))
+            .then(docSnapshot => {
+                if (docSnapshot.exists()) {
+                    const swrl = Swrl.fromFirestore(docSnapshot.data());
                     const category = swrl.category;
                     const swrlFullPage = new State(stateController.swrlView);
                     swrlFullPage.swrl = swrl;
@@ -222,7 +221,7 @@ function swrlRoute(match, firestore, startState) {
 
 /**
  * @param {any[]} match
- * @param {firebase.firestore.Firestore} firestore
+ * @param {import('firebase/firestore').Firestore} firestore
  * @param {State} startState
  */
 function swrlerRoute(match, firestore, startState) {
@@ -258,17 +257,17 @@ function swrlerRoute(match, firestore, startState) {
 
 /**
  * @param {any[]} match
- * @param {firebase.firestore.Firestore} firestore
+ * @param {import('firebase/firestore').Firestore} firestore
  */
 function recommendRoute(match, firestore) {
     const swrlId = match[2];
     if (swrlId) {
         console.log(`Found deep link for swrl, id: ${swrlId}`);
         document.getElementById('loadingView').classList.remove('hidden');
-        firestore.collection(Collection.SWRLS).doc(swrlId).get()
-            .then(doc => {
-                if (doc.exists) {
-                    const swrl = Swrl.fromFirestore(doc.data());
+        getDoc(doc(firestore, Collection.SWRLS, swrlId))
+            .then(docSnapshot => {
+                if (docSnapshot.exists()) {
+                    const swrl = Swrl.fromFirestore(docSnapshot.data());
                     const state = new State(stateController.recommendView);
                     state.swrl = swrl;
                     document.getElementById('loadingView').classList.add('hidden');

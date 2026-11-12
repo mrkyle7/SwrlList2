@@ -1,28 +1,42 @@
 ---
 name: swrl-firebase
-description: Use when touching Firestore, Firebase Auth, Cloud Messaging, or Cloud Functions. Covers the collection shapes, the compat API rules, and how auth / messaging / functions are wired up.
+description: Use when touching Firestore, Firebase Auth, Cloud Messaging, or Cloud Functions. Covers the collection shapes, the modular API conventions, the emulators, and how auth / messaging / functions are wired up.
 ---
 
 # Swrl Firebase layer
 
-## SDK version - this matters
-
-The app uses the current **Firebase JS SDK through its compat layer**
-(namespaced API). Imports look like:
+## SDK - modular API only
 
 ```js
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
-import 'firebase/compat/firestore';
-import 'firebase/compat/messaging';
+import { doc, getDoc, setDoc, serverTimestamp, arrayUnion } from 'firebase/firestore';
+
+const snapshot = await getDoc(doc(firestore, Collection.SWRLS, swrlID));
+if (snapshot.exists()) { ... }          // exists() is a method
+await setDoc(doc(firestore, Collection.SWRLS, swrlID), data, { merge: true });
 ```
 
-Do **not** mix in modular imports (`import { getFirestore } from "firebase/firestore"`)
-piecemeal: the whole codebase passes compat objects around. Moving to the
-modular API is a project of its own.
+Never import `firebase/compat/*`. The `Firestore` instance is created once in
+`src/firebase/init.js` and passed down as `firestore`; pass it as the first
+argument to `collection()` / `doc()`.
 
-`src/firebase/init.js` calls `firebase.initializeApp(config)`, enables
-unlimited Firestore cache, and turns on `enablePersistence({ synchronizeTabs: true })`.
+Watch for local variables named `doc` or `query` (e.g. `snapshot.forEach(doc => ...)`):
+they shadow the imported functions. Name them `docSnapshot` etc.
+
+In JSDoc, type things as `import('firebase/firestore').Firestore`,
+`import('firebase/auth').User`, and so on.
+
+`src/firebase/init.js` initialises the app and Firestore with a persistent,
+multi-tab, unlimited-size local cache (`persistentLocalCache`). The client
+config lives in `src/firebase/config.js`, shared with the messaging service
+worker.
+
+### Emulators
+
+`npm run build:emulators` builds the app pointed at local emulators (Firestore
+on 8085, Auth on 9099; see `firebase.json`). Start them with
+`npx firebase-tools emulators:start --only auth,firestore --project swrl-1118`
+(needs Java), then `npm start`. This is the safe way to exercise sign-in and
+data changes; never test against the live project.
 
 ## Firestore collections (`src/constants/Collection.js`)
 
@@ -75,12 +89,13 @@ it's `undefined` until `setUpLogin` resolves.
 
 ## Cloud Messaging (`src/firebase/messaging.js`)
 
-- Enabled when `firebase.messaging.isSupported()`; asks for notification
-  permission on start and calls `getToken({ vapidKey })`.
+- Enabled when `isSupported()` resolves true; asks for notification
+  permission on start and calls `getToken(messaging, { vapidKey })`.
 - Uses a hardcoded VAPID public key (safe to commit; the private key is in
   the Firebase console).
 - Stores tokens in `messagingtokens` collection against `swrlUser.uid`.
-- `www/firebase-messaging-sw.js` shows notifications while the app is closed.
+- `src/firebase/messaging-sw.js` (built to `/firebase-messaging-sw.js`) shows
+  notifications while the app is closed.
 
 ## Auth notes
 

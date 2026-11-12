@@ -1,4 +1,4 @@
-import firebase from 'firebase/compat/app';
+import { doc, getDoc } from 'firebase/firestore';
 export default { renderSwrl };
 
 import { DISCOVER, YOUR_LIST, RECOMMEND, SEARCH } from '../constants/View';
@@ -19,7 +19,7 @@ import { State } from '../model/state';
  * @param {StateController} stateController 
  * @param {Constant} view 
  * @param {Swrl} swrl 
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {import('firebase/firestore').Firestore} firestore 
  * @param {HTMLElement} swrlsContainer 
  */
 export function renderSwrl(stateController, view, swrl, firestore, swrlsContainer) {
@@ -67,15 +67,14 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
     if (view === SEARCH || view === RECOMMEND) {
         $swrl('.swrlButtonSpinner').classList.remove('hidden');
         //for these let's try get the latest swrl details for the buttons
-        const docRef = firestore.collection(Collection.SWRLS).doc(swrl.swrlID);
-        docRef.get()
-            .then(doc => {
+        getDoc(doc(firestore, Collection.SWRLS, swrl.swrlID))
+            .then(docSnapshot => {
                 let latestSwrl = swrl;
-                if (doc.exists) {
+                if (docSnapshot.exists()) {
                     try {
-                        latestSwrl = Swrl.fromFirestore(doc.data());
+                        latestSwrl = Swrl.fromFirestore(docSnapshot.data());
                     } catch (error) {
-                        console.error(`Error getting details for ${doc.id}`);
+                        console.error(`Error getting details for ${docSnapshot.id}`);
                         console.error(error);
                     }
                 }
@@ -129,7 +128,7 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
  * @param {Function} $swrl 
  * @param {HTMLElement} swrlDiv 
  * @param {Swrl} swrl 
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {import('firebase/firestore').Firestore} firestore 
  * @param {HTMLElement} swrlsContainer 
  */
 function addDeleteButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer) {

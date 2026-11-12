@@ -1,4 +1,4 @@
-import firebase from 'firebase/compat/app';
+import { collection, doc, getDocs, deleteDoc, query, where } from 'firebase/firestore';
 import { UIView } from './UIView';
 import { StateController } from './stateController';
 import { Collection } from '../constants/Collection';
@@ -33,7 +33,7 @@ const savedSearchTemplate = document.getElementById('savedSearch');
 
 /**
  * 
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {import('firebase/firestore').Firestore} firestore 
  * @param {StateController} stateController 
  * 
  */
@@ -42,9 +42,8 @@ const showSavedSearches = (firestore, stateController) => {
     clearSaved();
     showSpinner();
 
-    firestore.collection(Collection.SAVEDSEARCHES)
-        .where('uid', '==', swrlUser.uid)
-        .get()
+    getDocs(query(collection(firestore, Collection.SAVEDSEARCHES),
+        where('uid', '==', swrlUser.uid)))
         .then(querySnapshot => {
             if (querySnapshot.empty) {
                 document.getElementById('message').innerText = 'No Saved Searches';
@@ -83,9 +82,9 @@ const showSpinner = () => {
 }
 
 function renderSavedSearches(querySnapshot, firestore, stateController) {
-    querySnapshot.forEach(doc => {
-        const data = doc.data();
-        const id = doc.id;
+    querySnapshot.forEach(docSnapshot => {
+        const data = docSnapshot.data();
+        const id = docSnapshot.id;
         try {
             const savedSearch = SavedSearch.fromJson(data);
             /** @type {HTMLElement} */
@@ -105,7 +104,7 @@ function renderSavedSearches(querySnapshot, firestore, stateController) {
                 if (div) {
                     savedSearches.removeChild(div);
                 }
-                firestore.collection(Collection.SAVEDSEARCHES).doc(id).delete();
+                deleteDoc(doc(firestore, Collection.SAVEDSEARCHES, id));
             });
             // @ts-ignore
             fragment.querySelector('.runSavedSearch').addEventListener('click', (e) => {
@@ -116,7 +115,7 @@ function renderSavedSearches(querySnapshot, firestore, stateController) {
                 searchView.selectedCategory = savedSearch.category;
                 searchView.searchTerms = savedSearch.searchText;
                 stateController.changeState(searchView);
-                firestore.collection(Collection.SAVEDSEARCHES).doc(id).delete();
+                deleteDoc(doc(firestore, Collection.SAVEDSEARCHES, id));
             });
             savedSearches.appendChild(fragment);
         }

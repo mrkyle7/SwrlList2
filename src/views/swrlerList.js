@@ -1,4 +1,4 @@
-import firebase from 'firebase/compat/app';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 export default { showList, destroyList };
 
 import { SWRLER_LATER, SWRLER_LOVED, SWRLER_DONE } from '../constants/View';
@@ -82,9 +82,9 @@ let currentSwrler;
 let currentView;
 
 /**
- * @param {firebase.User} swrler
+ * @param {import('firebase/auth').User} swrler
  * @param {Constant} view
- * @param {firebase.firestore.Firestore} firestore
+ * @param {import('firebase/firestore').Firestore} firestore
  * @param {StateController} stateController
  */
 export function showList(swrler, view, firestore, stateController) {
@@ -114,7 +114,7 @@ export function showList(swrler, view, firestore, stateController) {
     }
     currentSwrler = swrler
     currentView = view;
-    const swrlsRef = firestore.collection(Collection.SWRLS);
+    const swrlsRef = collection(firestore, Collection.SWRLS);
     if (swrlsRef) {
         runQuery(swrlsRef, swrler, view, stateController.currentState.sort, stateController.currentState.typeFilter)
             .then(function (querySnapshot) {
@@ -128,7 +128,7 @@ export function showList(swrler, view, firestore, stateController) {
                         const swrls = [];
                         querySnapshot.forEach(
                             /**
-                             * @param {firebase.firestore.QueryDocumentSnapshot} docSnapshot
+                             * @param {import('firebase/firestore').QueryDocumentSnapshot} docSnapshot
                              */
                             (docSnapshot) => {
                                 try {
@@ -177,7 +177,7 @@ export function showList(swrler, view, firestore, stateController) {
  * @param {Swrl[]} swrls
  * @param {StateController} stateController
  * @param {Constant} view
- * @param {firebase.firestore.Firestore} firestore
+ * @param {import('firebase/firestore').Firestore} firestore
  * @param {Boolean} firstLoad
  */
 function renderNextSwrls(swrls, stateController, view, firestore, firstLoad) {
@@ -202,35 +202,23 @@ function renderNextSwrls(swrls, stateController, view, firestore, firstLoad) {
 }
 
 /**
- * @param {firebase.firestore.CollectionReference} db
- * @param {firebase.User} swrler
+ * @param {import('firebase/firestore').CollectionReference} db
+ * @param {import('firebase/auth').User} swrler
  * @param {Constant} view
  * @param {Sort} sort
  * @param {WhereFilter} typeFilter
  * @return {Promise}
  */
 function runQuery(db, swrler, view, sort, typeFilter) {
-    switch (view) {
-        case SWRLER_LATER:
-            let laterSearch = db.where("later", "array-contains", swrler.uid)
-                .orderBy(sort.column, sort.direction);
-            if (typeFilter) laterSearch = laterSearch.where(typeFilter.column, '==', typeFilter.value);
-            return laterSearch.get();
-        case SWRLER_LOVED:
-            let lovedSearch = db.where("loved", "array-contains", swrler.uid)
-                .orderBy(sort.column, sort.direction);
-            if (typeFilter) lovedSearch = lovedSearch.where(typeFilter.column, '==', typeFilter.value);
-            return lovedSearch.get();
-        case SWRLER_DONE:
-            let doneSearch = db.where("done", "array-contains", swrler.uid)
-                .orderBy(sort.column, sort.direction);
-            if (typeFilter) doneSearch = doneSearch.where(typeFilter.column, '==', typeFilter.value);
-            return doneSearch.get();
-        default:
-            let defaultSearch = db.orderBy(sort.column, sort.direction)
-            if (typeFilter) defaultSearch = defaultSearch.where(typeFilter.column, '==', typeFilter.value);
-            return defaultSearch.get();
+    const listFields = new Map([[SWRLER_LATER, "later"], [SWRLER_LOVED, "loved"], [SWRLER_DONE, "done"]]);
+    /** @type {import('firebase/firestore').QueryConstraint[]} */
+    const constraints = [];
+    if (listFields.has(view)) {
+        constraints.push(where(listFields.get(view), "array-contains", swrler.uid));
     }
+    constraints.push(orderBy(sort.column, sort.direction));
+    if (typeFilter) constraints.push(where(typeFilter.column, '==', typeFilter.value));
+    return getDocs(query(db, ...constraints));
 }
 
 function clearList() {

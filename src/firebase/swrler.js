@@ -1,19 +1,17 @@
-import firebase from 'firebase/compat/app';
+import { doc, getDoc } from 'firebase/firestore';
 import { Collection } from "../constants/Collection";
 
 /**
  * 
  * @param {String} uid 
- * @param {firebase.firestore.Firestore} firestore 
- * @return {Promise<firebase.User>}
+ * @param {import('firebase/firestore').Firestore} firestore 
+ * @return {Promise<import('firebase/auth').User>}
  */
 export const getSwrler = (uid, firestore) => {
     return new Promise((resolve, reject) => {
-        firestore.collection(Collection.SWRLERS)
-            .doc(uid)
-            .get()
+        getDoc(doc(firestore, Collection.SWRLERS, uid))
             .then(docRef => {
-                if (docRef.exists) {
+                if (docRef.exists()) {
                     // @ts-ignore
                     resolve(docRef.data());
                 } else {

@@ -1,4 +1,3 @@
-import firebase from 'firebase/compat/app';
 import { Home } from "./homePage";
 import { State } from "../model/state";
 import { InboxRecommendations, SentRecommendations } from "./recommendations";
@@ -24,7 +23,7 @@ import { UIView } from "./UIView";
 
 export class StateController {
     /**
-     * @param {firebase.firestore.Firestore} firestore
+     * @param {import('firebase/firestore').Firestore} firestore
      */
     constructor(firestore) {
         this.firestore = firestore;

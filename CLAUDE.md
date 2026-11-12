@@ -11,7 +11,7 @@ knowledge in the skills.
 ## Stack
 
 - Node 24, webpack 5 (no Babel), plain modern JS with JSDoc types
-- Firebase JS SDK through its **compat** (namespaced) API
+- Firebase JS SDK, **modular** API (`firebase/firestore`, `firebase/auth`, ...)
 - Express 5 on Google Cloud Run (Docker); terraform + GitHub Actions deploy
 - Vitest for unit tests; TypeScript only as a type-checker (`tsc`, `checkJs`)
 - Cloud Functions on Node 22 (`functions/`, its own `package.json`)
@@ -75,8 +75,8 @@ terraform/        all GCP infrastructure, applied by GitHub Actions (see terrafo
 - **Never commit API keys or secrets.** Firebase _web_ config in
   `src/firebase/init.js` is a public client config, not a secret — but do not
   copy it around or put it in docs.
-- **Firebase is used through the compat API** (`firebase/compat/*`). Don't mix
-  in modular imports piecemeal.
+- **Firebase is used through the modular API.** Never import
+  `firebase/compat/*`.
 - **TMDB, OMDb and BoardGameGeek calls go through `server.js`**
   (`/api/v1/tmdb/*`, `/api/v1/omdb`, `/api/v1/geek/*`), which holds
   `TMDB_API_KEY`, `OMDB_API_KEY` and `BGG_API_TOKEN` (from Secret Manager).

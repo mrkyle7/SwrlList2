@@ -1,4 +1,4 @@
-import firebase from 'firebase/compat/app';
+import { doc, setDoc, arrayUnion } from 'firebase/firestore';
 import { Collection } from '../constants/Collection';
 import { swrlUser } from '../firebase/login';
 import { Recommendation } from '../model/recommendation';
@@ -7,11 +7,11 @@ import { Recommendation } from '../model/recommendation';
  * 
  * @param {HTMLElement} recommendationDiv 
  * @param {Recommendation} recommendation 
- * @param {firebase.firestore.Firestore} firestore 
+ * @param {import('firebase/firestore').Firestore} firestore 
  */
 export const markRecommendationAsRead = (recommendationDiv, recommendation, firestore) => {
-    firestore.collection(Collection.RECOMMENDATIONS).doc(recommendation.id).set({
-        read: firebase.firestore.FieldValue.arrayUnion(swrlUser.uid)
+    setDoc(doc(firestore, Collection.RECOMMENDATIONS, recommendation.id), {
+        read: arrayUnion(swrlUser.uid)
     }, { merge: true });
     if (recommendationDiv) {
         recommendationDiv.classList.remove('unread');

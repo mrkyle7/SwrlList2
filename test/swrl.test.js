@@ -5,8 +5,7 @@ import { Swrl } from '../src/model/swrl';
 import { FILM, TV, ALBUM, BOOK } from '../src/constants/Type';
 import { WATCH, LISTEN, READ } from '../src/constants/Category';
 import { Details } from '../src/model/details';
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/firestore';
+import { Timestamp } from 'firebase/firestore';
 import { Link } from '../src/model/link';
 import { Rating } from '../src/model/rating';
 import { Network } from '../src/model/network';
@@ -98,7 +97,7 @@ describe('Can parse JSON to Swrl', function () {
                 done: [],
                 deleted: ['user1'],
                 loved: [],
-                added: new firebase.firestore.Timestamp(1568452504, 0),
+                added: new Timestamp(1568452504, 0),
                 type: 5, //ALBUM
                 category: 3, //LISTEN
                 swrlID: 'ITUNESALBUM_ABC123'
