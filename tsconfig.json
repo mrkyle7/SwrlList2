@@ -1,11 +1,17 @@
 {
     "compilerOptions": {
-        "target": "ES6",
-        "lib": ["es6", "dom", "es2017"],
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        "allowJs": true,
         "checkJs": true,
-        "moduleResolution": "node"
+        "noEmit": true,
+        "strict": false,
+        "skipLibCheck": true
     },
     "include": [
-        "src/**/*"
+        "src/**/*",
+        "test/**/*"
     ]
 }

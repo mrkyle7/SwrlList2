@@ -1,7 +1,7 @@
 export default { showRecommend, destroyRecommend };
 
 // @ts-ignore
-const firebase = require("firebase/app");
+import firebase from 'firebase/compat/app';
 // @ts-ignore
 import { RECOMMEND } from '../constants/View';
 // @ts-ignore

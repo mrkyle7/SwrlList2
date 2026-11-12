@@ -1,3 +1,4 @@
+import firebase from 'firebase/compat/app';
 import { Constant } from "./Constant";
 
 export class Sort extends Constant {

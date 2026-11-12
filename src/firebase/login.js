@@ -6,8 +6,7 @@ import { Collection } from '../constants/Collection';
 import { setUpRecommendationsListener, cancelRecommendationsListener } from '../listeners/recommendations';
 import swrl from '../components/swrl';
 import { updateDeviceToken } from './messaging';
-const firebase = require('firebase/app');
-
+import firebase from 'firebase/compat/app';
 /** @type {firebase.app.App} */
 let myFirebase;
 const loggingInView = document.getElementById('loggingInView');
@@ -86,73 +85,30 @@ function logout() {
 
 /** @param {firebase.firestore.Firestore} firestore */
 function login(firestore) {
-    var provider = new firebase.auth.GoogleAuthProvider();
+    const provider = new firebase.auth.GoogleAuthProvider();
 
     loggingInView.classList.remove('hidden');
     loggingInAnonymousView.classList.add('hidden');
 
-    // @ts-ignore
-    if (device.platform === 'browser') {
-        // signInWithRedirect relies on an iframe on the Firebase auth domain
-        // reading storage from inside our page. Browsers now partition that
-        // storage per site, so on any domain other than *.firebaseapp.com the
-        // redirect comes back with no user. The popup flow does not have that
-        // dependency.
-        myFirebase.auth().signInWithPopup(provider)
-            .then(function (result) {
-                swrlUser = result.user;
-                console.log("firebase user from popup: " + swrlUser.displayName);
-                handleLoginSuccess(firestore);
-            })
-            .catch(function (error) {
-                console.error("Popup login failed");
-                console.error(error);
-                if (error && (error.code === 'auth/popup-blocked'
-                    || error.code === 'auth/operation-not-supported-in-this-environment')) {
-                    signInWithGoogle();
-                } else if (!swrlUser) {
-                    loginAnonymously();
-                } else if (swrlUser.isAnonymous) {
-                    handleAnonymous();
-                }
-            });
-        return;
-    }
-
-    myFirebase.auth().getRedirectResult().then(
-        /** @param {firebase.auth.UserCredential} result */
-        function (result) {
-            if (result.user) {
-                swrlUser = result.user;
-                console.log("firebase user from get redirect result: " + swrlUser.displayName);
-                handleLoginSuccess(firestore);
-            } else {
-                signInWithGoogle();
-            }
-        }).catch(/**
-             * @param {Error} error
-             */
-            function (error) {
-                console.error("got redirect error");
-                console.error(error);
-                signInWithGoogle();
-            })
-
-    function signInWithGoogle() {
-        myFirebase.auth().signInWithRedirect(provider).then(function () {
-            return myFirebase.auth().getRedirectResult();
-        }).then(function (result) {
+    // Popup, not redirect: signInWithRedirect relies on an iframe on the
+    // Firebase auth domain reading storage from inside our page, and browsers
+    // now partition that storage per site, so the redirect comes back with no
+    // user on any domain other than *.firebaseapp.com.
+    myFirebase.auth().signInWithPopup(provider)
+        .then(function (result) {
             swrlUser = result.user;
-            console.log("firebase user: " + swrlUser.displayName);
+            console.log("firebase user from popup: " + swrlUser.displayName);
             handleLoginSuccess(firestore);
-        }).catch(function (error) {
+        })
+        .catch(function (error) {
             console.error("Login failed");
             console.error(error);
             if (!swrlUser) {
                 loginAnonymously();
+            } else if (swrlUser.isAnonymous) {
+                handleAnonymous();
             }
         });
-    }
 }
 
 /**

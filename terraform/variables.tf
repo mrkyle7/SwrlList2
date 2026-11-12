@@ -50,6 +50,17 @@ variable "secrets" {
   EOT
 }
 
+variable "function_secrets" {
+  type        = list(string)
+  default     = ["PUSHOVER_TOKEN", "PUSHOVER_USER"]
+  description = <<-EOT
+    Secrets read by the Cloud Functions in functions/. Firebase looks a secret
+    up by the exact name used in defineSecret(), so these are not prefixed.
+    Filled from the GitHub Actions secret of the same name by the deploy
+    workflow; keep in step with its "Sync secrets" step.
+  EOT
+}
+
 variable "github_repo" {
   type        = string
   default     = "mrkyle7/SwrlList2"

@@ -1,3 +1,4 @@
+import firebase from 'firebase/compat/app';
 import { Collection } from "../constants/Collection";
 
 /**

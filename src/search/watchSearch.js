@@ -1,4 +1,3 @@
-import { apiBase } from '../constants/Site';
 import { zip } from '../utils/zip';
 import { FILM, TV } from '../constants/Type';
 import { WATCH } from '../constants/Category';
@@ -51,7 +50,7 @@ export class WatchSearch extends Search {
      */
     _filmSearch(query, signal) {
         return new Promise(async (resolve, reject) => {
-            const url = `${apiBase()}/api/v1/tmdb/search/movie?query=${query}`;
+            const url = `/api/v1/tmdb/search/movie?query=${query}`;
             try {
                 const response = await fetch(url, { signal });
                 const data = await response.json();
@@ -70,7 +69,7 @@ export class WatchSearch extends Search {
      */
     _TVSearch(query, signal) {
         return new Promise(async (resolve, reject) => {
-            const url = `${apiBase()}/api/v1/tmdb/search/tv?query=${query}`;
+            const url = `/api/v1/tmdb/search/tv?query=${query}`;
             try {
                 const response = await fetch(url, { signal });
                 const data = await response.json();
@@ -169,7 +168,7 @@ const tmdbTVToSwrl = (result) => {
 const personSearch = async (encodedQuery, signal) => {
     try {
         const personID = encodedQuery.match('personID:([0-9]+)')[1];
-        const url = `${apiBase()}/api/v1/tmdb/person/${personID}`;
+        const url = `/api/v1/tmdb/person/${personID}`;
         const response = await fetch(url, { signal });
         const data = await response.json();
         return zip(data.movie_credits.cast.map(tmdbFilmToSwrl),

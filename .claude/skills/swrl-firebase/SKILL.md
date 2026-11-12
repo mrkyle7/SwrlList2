@@ -1,24 +1,25 @@
 ---
 name: swrl-firebase
-description: Use when touching Firestore, Firebase Auth, Cloud Messaging, or Cloud Functions. Covers the collection shapes, the v7 compat API quirks, and how auth / messaging / functions are wired up.
+description: Use when touching Firestore, Firebase Auth, Cloud Messaging, or Cloud Functions. Covers the collection shapes, the compat API rules, and how auth / messaging / functions are wired up.
 ---
 
 # Swrl Firebase layer
 
-## SDK version — this matters
+## SDK version - this matters
 
-The app uses **Firebase JS SDK v7.x** (compat / namespaced API). Imports look
-like:
+The app uses the current **Firebase JS SDK through its compat layer**
+(namespaced API). Imports look like:
 
 ```js
-const firebase = require("firebase/app");
-require("firebase/auth");
-require("firebase/firestore");
-require("firebase/messaging");
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
+import 'firebase/compat/firestore';
+import 'firebase/compat/messaging';
 ```
 
-Do **not** use modular v9 imports (`import { getFirestore } from "firebase/firestore"`).
-They will not work with this codebase and upgrading is a project in itself.
+Do **not** mix in modular imports (`import { getFirestore } from "firebase/firestore"`)
+piecemeal: the whole codebase passes compat objects around. Moving to the
+modular API is a project of its own.
 
 `src/firebase/init.js` calls `firebase.initializeApp(config)`, enables
 unlimited Firestore cache, and turns on `enablePersistence({ synchronizeTabs: true })`.
@@ -74,24 +75,36 @@ it's `undefined` until `setUpLogin` resolves.
 
 ## Cloud Messaging (`src/firebase/messaging.js`)
 
-- Only enabled on `device.platform === 'browser'` when `firebase.messaging.isSupported()`.
+- Enabled when `firebase.messaging.isSupported()`; asks for notification
+  permission on start and calls `getToken({ vapidKey })`.
 - Uses a hardcoded VAPID public key (safe to commit; the private key is in
   the Firebase console).
 - Stores tokens in `messagingtokens` collection against `swrlUser.uid`.
-- For native iOS/Android, push is wired separately via Cordova plugins —
-  don't try to use the JS SDK there.
+- `www/firebase-messaging-sw.js` shows notifications while the app is closed.
+
+## Auth notes
+
+- Google sign-in uses `signInWithPopup`. Redirect sign-in does not work off
+  the `*.firebaseapp.com` domain (browsers partition the storage it needs).
+- A new host must be on the Firebase Auth authorised-domains list
+  (`scripts/firebase-auth-domains.sh`).
 
 ## Cloud Functions (`functions/`)
 
-- Node runtime is the default from when this was written (8/10). Keep changes
-  conservative — deploying requires `firebase deploy --only functions` and a
-  working local Firebase CLI login.
-- Existing function: `userActivityNotification` — watches `swrlers/{swrlerID}`
-  and pings Pushover with a login/delete message. The owner's uid
-  (`hm7BIObShKVqU58e9O4Rj1JOK8k2`) is skipped by design.
-- Secrets live in `functions.config().pushover.{token,user}`. Set via
-  `firebase functions:config:set pushover.token=... pushover.user=...`.
-- `functions/` has its own `package.json` — `npm install` there before deploy.
+- Node 22, `firebase-functions` (1st gen API, `firebase-functions/v1`) and
+  the modular `firebase-admin` API (`firebase-admin/app`, `/firestore`,
+  `/messaging`). 1st gen on purpose: a 2nd gen Firestore trigger must be
+  deployed in a region matching the database's location.
+- `recommendationNotification` - on a new `recommendations` doc, sends a push
+  notification to the receivers' tokens (`sendEachForMulticast`) and deletes
+  tokens FCM reports as dead.
+- `userActivityNotification` - watches `swrlers/{swrlerID}` and pings
+  Pushover with a login/delete message. The owner's uid is skipped by design.
+- Secrets: `PUSHOVER_TOKEN` / `PUSHOVER_USER` via `defineSecret`, stored in
+  Secret Manager (created in `terraform/functions.tf`, filled from GitHub
+  secrets by the deploy workflow).
+- Pure logic lives in `functions/messages.js` with tests in `functions/test/`.
+- Deployed by the `deploy-functions` job; no local Firebase login needed.
 
 ## Gotchas
 

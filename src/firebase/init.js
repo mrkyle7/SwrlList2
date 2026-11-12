@@ -1,8 +1,7 @@
-const firebase = require("firebase/app");
-require("firebase/auth");
-require("firebase/firestore");
-require("firebase/messaging");
-
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
+import 'firebase/compat/firestore';
+import 'firebase/compat/messaging';
 /**
  *  @returns {firebase.app.App}
  */

@@ -1,4 +1,4 @@
-import 'abortcontroller-polyfill/dist/polyfill-patch-fetch'
+import firebase from 'firebase/compat/app';
 import { Category } from '../constants/Category';
 import { SEARCH } from '../constants/View';
 import { renderSwrl } from '../components/swrl';

@@ -47,7 +47,7 @@ containers that views attach into.
 - `src/screens/Screen.js` — base class for screens (`homeScreen`, `listScreen`,
   `swrlScreen`, etc.). One screen may host multiple views (e.g. the list
   screen hosts `yourListView` and `discoverView`).
-- `src/index.js` — Cordova `deviceready` → init Firebase → create the
+- `src/index.js` — on DOM ready → init Firebase → create the
   singleton `StateController` → set up login → show initial screen.
 
 ## Conventions
@@ -101,5 +101,5 @@ containers that views attach into.
 - Screen identity in `changeState` is compared with
   `currentState.view.screen !== newState.view.screen`. If two views share a
   screen object, the back-stack won't push — that's intentional.
-- `device.platform` comes from `cordova-plugin-device` and only exists after
-  `deviceready`. Do not read it at module load.
+- The app only runs in a browser; there is no platform switch. Routing uses
+  the History API (`screen.updateLocationHistory`, `window.onpopstate`).

@@ -4,7 +4,8 @@ const path = require('path');
 const querystring = require('querystring');
 
 const app = express();
-const www = path.join(__dirname, 'platforms/browser/www');
+// Built by `npm run build` (webpack): www/ plus bundle.js.
+const www = path.join(__dirname, 'dist');
 const indexHtml = path.join(www, 'index.html');
 
 // Cloud Run terminates TLS in front of us and injects PORT (8080).
@@ -33,7 +34,7 @@ app.get('/api/v1/health', function (req, res) {
 // ---------------------------------------------------------------------------
 // Third-party API proxies.
 //
-// The browser and the mobile apps call these routes instead of the APIs
+// The browser calls these routes instead of the APIs
 // themselves, so the credentials stay on the server (environment variables,
 // filled from Secret Manager on Cloud Run) and never ship in bundle.js:
 //
@@ -122,12 +123,6 @@ function relay(res, options) {
   });
 }
 
-// The Android / iOS apps load from file://, so they call these cross-origin.
-app.use('/api/v1', function (req, res, next) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  next();
-});
-
 /**
  * @param {any} value
  * @returns {string | undefined} a trimmed search term, or undefined if unusable
@@ -164,8 +159,8 @@ function tmdbPath(parts, query) {
   return undefined;
 }
 
-app.get('/api/v1/tmdb/*', function (req, res) {
-  const upstreamPath = tmdbPath(req.params[0].split('/'), req.query);
+app.get('/api/v1/tmdb/*parts', function (req, res) {
+  const upstreamPath = tmdbPath(req.params.parts, req.query);
   if (!upstreamPath) {
     return res.status(400).json({ error: 'Invalid TMDB request' });
   }
@@ -252,33 +247,19 @@ app.use('/api', function (req, res) {
 });
 
 // ---------------------------------------------------------------------------
-// The app itself.
-//
-// index.html references its assets with relative URLs because the same file
-// is loaded from file:// inside the Android / iOS apps. A deep link such as
-// /swrl/<id> therefore asks for /swrl/bundle.js, /swrl/img/..., so the static
-// root is mounted again under every deep-link prefix.
+// The app itself: static files, and index.html for every client-side route.
 // ---------------------------------------------------------------------------
-const deepLinksWithId = ['swrl', 'swrler', 'recommend'];
-const deepLinksWithoutId = ['savedsearches', 'recommendations', 'watch', 'listen', 'read', 'play'];
+const appRoutes = [
+  '/',
+  '/swrl/:id', '/swrler/:id', '/recommend/:id',
+  '/savedsearches', '/recommendations', '/watch', '/listen', '/read', '/play'
+];
 
-function sendIndex(req, res) {
+app.get(appRoutes, function (req, res) {
   res.setHeader('Cache-Control', 'no-cache');
   res.sendFile(indexHtml);
-}
-
-app.get('/', sendIndex);
+});
 app.use(express.static(www, staticOptions));
-
-deepLinksWithId.forEach(function (prefix) {
-  app.use('/' + prefix, express.static(www, staticOptions));
-  app.get('/' + prefix + '/:id', sendIndex);
-});
-
-deepLinksWithoutId.forEach(function (prefix) {
-  app.use('/' + prefix, express.static(www, staticOptions));
-  app.get('/' + prefix, sendIndex);
-});
 
 const server = app.listen(app.get('port'), function () {
   console.log('Express server listening on port ' + app.get('port'));

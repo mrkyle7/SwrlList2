@@ -1,3 +1,4 @@
+import firebase from 'firebase/compat/app';
 export default { renderSwrl };
 
 import { DISCOVER, YOUR_LIST, RECOMMEND, SEARCH } from '../constants/View';

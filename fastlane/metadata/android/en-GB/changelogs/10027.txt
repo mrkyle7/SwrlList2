@@ -1,1 +1,0 @@
-Enable back button navigation and clean up look and feel

@@ -9,6 +9,7 @@ region `us-east1`. Modelled on
 | `app.tf` | Cloud Run service `swrl-list`, its runtime account, image registry and secrets |
 | `domain.tf` | Cloud DNS zone for `swrl-list.com`; domain mappings + HTTPS once `map_domain` is true |
 | `github.tf` | Keyless sign-in from GitHub Actions (Workload Identity Federation) |
+| `functions.tf` | Secrets read by the Cloud Functions (the functions themselves are deployed by the workflow) |
 | `apis.tf` | Google APIs that must be on |
 | `bootstrap.sh` | The one-time setup terraform can't do for itself |
 
@@ -16,11 +17,11 @@ region `us-east1`. Modelled on
 
 `.github/workflows/deploy.yml`:
 
-- **Pull request:** builds the image and smoke-tests it, validates the
+- **Pull request:** runs the tests, builds the image and smoke-tests it, validates the
   terraform and posts the plan (as a read-only account).
 - **Merge to `master`:** applies the terraform, builds and pushes the image,
   copies GitHub secrets into Secret Manager, deploys, verifies, and rolls back
-  if the new revision fails.
+  if the new revision fails. Then deploys `functions/` with `firebase-tools`.
 
 The workflow won't apply a plan that **deletes or replaces** anything. To go
 ahead, run it by hand (Actions → Deploy → Run workflow) with **allow_destroy**
@@ -35,9 +36,12 @@ No Google credentials are stored in GitHub: the workflow signs in with OIDC.
 | `TMDB_API_KEY` | `swrl-list-tmdb-api-key` | The Movie Database "API Key (v3 auth)", from https://www.themoviedb.org/settings/api. Film and TV search and details. |
 | `OMDB_API_KEY` | `swrl-list-omdb-api-key` | OMDb key, from https://www.omdbapi.com/apikey.aspx. Adds IMDb / Rotten Tomatoes / Metacritic ratings and the plot to films; films still work without it. |
 | `BGG_API_TOKEN` | `swrl-list-bgg-api-token` | BoardGameGeek application token, from https://boardgamegeek.com/applications. Board game and video game search and details. |
+| `PUSHOVER_TOKEN` | `PUSHOVER_TOKEN` | Pushover application token, for the owner's "a user logged in" alert (Cloud Function). |
+| `PUSHOVER_USER` | `PUSHOVER_USER` | Pushover user key for the same alert. |
 
 Each is optional in the sense that the deploy succeeds without it: that
-category's search just returns an error until it is set. All three are only
+category's search just returns an error until it is set, and the login alert
+is skipped. The first three are only
 ever used by `server.js` (`/api/v1/tmdb`, `/api/v1/omdb`, `/api/v1/geek`); the
 client bundle contains no keys.
 

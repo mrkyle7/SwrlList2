@@ -1,5 +1,5 @@
 import { Swrl } from "./swrl";
-import { firestore } from "firebase/app";
+import firebase from "firebase/compat/app";
 import { Collection } from "../constants/Collection";
 
 export class Recommendation {
@@ -35,8 +35,8 @@ export class Recommendation {
     }
 
     /**
-     * @param {firestore.QueryDocumentSnapshot} doc
-     * @param {firestore.Firestore} firestore
+     * @param {firebase.firestore.QueryDocumentSnapshot} doc
+     * @param {firebase.firestore.Firestore} firestore
      * @return {Recommendation}
      */
     static fromFirestore(doc, firestore) {

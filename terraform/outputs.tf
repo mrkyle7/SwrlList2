@@ -14,6 +14,6 @@ output "image_repository" {
 }
 
 output "secrets" {
-  value       = local.secret_ids
+  value       = merge(local.secret_ids, { for name in var.function_secrets : name => name })
   description = "GitHub Actions secret name -> Secret Manager secret it is copied into"
 }

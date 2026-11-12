@@ -1,6 +1,5 @@
 /*
- * Swrl List app-shell service worker (browser / installed PWA only - the
- * Cordova apps never register it).
+ * Swrl List app-shell service worker.
  *
  * Strategy: network first, cache as fallback. bundle.js is not content-hashed,
  * so serving it cache-first would pin users to a stale build. Going to the
@@ -11,13 +10,11 @@
  * Push notifications are handled separately by firebase-messaging-sw.js, which
  * Firebase registers under its own scope.
  */
-const CACHE = 'swrl-shell-v1';
+const CACHE = 'swrl-shell-v2';
 const SHELL = [
   '/',
   '/css/index.css',
   '/bundle.js',
-  '/cordova.js',
-  '/cordova_plugins.js',
   '/manifest.webmanifest',
   '/img/logo.png',
   '/img/icon-192.png',
@@ -44,18 +41,11 @@ self.addEventListener('activate', (event) => {
 });
 
 /**
- * Deep-link prefixes are an artefact of relative asset URLs: /swrl/bundle.js
- * is the same file as /bundle.js. Normalise so each asset is cached once.
+ * Every app route is the same single page, so cache it once.
  * @param {URL} url
  */
 function cacheKey(url) {
-  const isNavigation = url.pathname === '/' || APP_ROUTE.test(url.pathname);
-  if (isNavigation) {
-    return '/';
-  }
-  return url.pathname.replace(
-    /^\/(swrl|swrler|recommend|savedsearches|recommendations|watch|listen|read|play)\/(?=(img|css|fonts|plugins|cordova-js-src)\/|bundle\.js$|cordova\.js$|cordova_plugins\.js$)/,
-    '/');
+  return url.pathname === '/' || APP_ROUTE.test(url.pathname) ? '/' : url.pathname;
 }
 
 self.addEventListener('fetch', (event) => {

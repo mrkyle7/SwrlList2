@@ -1,3 +1,4 @@
+import firebase from 'firebase/compat/app';
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,8 +18,9 @@
  * under the License.
  */
 
-// @ts-ignore
-require("typeface-raleway");
+import "@fontsource/raleway/400.css";
+import "@fontsource/raleway/700.css";
+import "@fontsource/raleway/800.css";
 import bindMenuSwipeAction from './utils/swipeUtils';
 import initialiseFirebase from './firebase/init';
 import { setUpLogin, initialisedLogin, swrlUser } from './firebase/login';
@@ -35,37 +37,23 @@ import { getSwrler } from './firebase/swrler';
 let stateController;
 
 const app = {
-    // Application Constructor
     initialize: function () {
-        document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
-        document.addEventListener('backbutton', () => {
-            if (stateController !== undefined) {
-                stateController.hidefilters();
-                stateController.showPreviousScreen();
-            }
-        });
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.start());
+        } else {
+            this.start();
+        }
     },
 
-    // deviceready Event Handler
-    //
-    // Bind any cordova events here. Common events are:
-    // 'pause', 'resume', etc.
-    onDeviceReady: async function () {
-        console.log('Received Event: onDeviceReady');
+    start: async function () {
         try {
             bindMenuSwipeAction();
             const firebase = initialiseFirebase();
             const firestore = firebase.firestore();
-            document.addEventListener('offline', () => firestore.disableNetwork(), false);
-            document.addEventListener('online', () => firestore.enableNetwork(), false);
-
-            // @ts-ignore
-            const initialState = navigator.connection.type;
-            // @ts-ignore
-            if (initialState === Connection.NONE) {
+            window.addEventListener('offline', () => firestore.disableNetwork());
+            window.addEventListener('online', () => firestore.enableNetwork());
+            if (!navigator.onLine) {
                 firestore.disableNetwork();
-            } else {
-                firestore.enableNetwork();
             }
             setUpLogin(firebase, firestore);
             initMessaging(firebase, firestore);
@@ -94,55 +82,50 @@ const app = {
             stateController.previousStates.push(startState);
             stateController.currentState = startState;
 
-            //@ts-ignore
-            if (device.platform === 'browser') {
-                registerServiceWorker();
-                window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/')
-                while (!initialisedLogin) {
-                    console.log('waiting for login...')
-                    await new Promise((resolve, _) => setTimeout(() => resolve(), 300))
-                }
-                console.log('testing for deep link')
-                const match = /\/([^\/]*)\/?([^\/]*)\/?/.exec(originalPath);
-                if (match && match.length > 1) {
-                    switch (match[1]) {
-                        case 'swrl':
-                            swrlRoute(match, firestore, startState);
-                            break;
-                        case 'swrler':
-                            swrlerRoute(match, firestore, startState);
-                            break;
-                        case 'watch':
-                            listRoute(WATCH);
-                            break;
-                        case 'read':
-                            listRoute(READ);
-                            break;
-                        case 'listen':
-                            listRoute(LISTEN);
-                            break;
-                        case 'play':
-                            listRoute(PLAY);
-                            break;
-                        case 'recommend':
-                            recommendRoute(match, firestore);
-                            break;
-                        case 'recommendations':
-                            recommendationsRoute()
-                            break;
-                        case 'savedsearches':
-                            savedSearchesRoute();
-                            break;
-                        default:
-                            console.log('Not a recognised deep link URL')
-                            stateController.changeState(startState);
-                            break;
-                    }
-                } else {
-                    console.log('Not a deep link URL')
-                    stateController.changeState(startState);
+            registerServiceWorker();
+            window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/')
+            while (!initialisedLogin) {
+                console.log('waiting for login...')
+                await new Promise(resolve => setTimeout(resolve, 300))
+            }
+            console.log('testing for deep link')
+            const match = /\/([^\/]*)\/?([^\/]*)\/?/.exec(originalPath);
+            if (match && match.length > 1) {
+                switch (match[1]) {
+                    case 'swrl':
+                        swrlRoute(match, firestore, startState);
+                        break;
+                    case 'swrler':
+                        swrlerRoute(match, firestore, startState);
+                        break;
+                    case 'watch':
+                        listRoute(WATCH);
+                        break;
+                    case 'read':
+                        listRoute(READ);
+                        break;
+                    case 'listen':
+                        listRoute(LISTEN);
+                        break;
+                    case 'play':
+                        listRoute(PLAY);
+                        break;
+                    case 'recommend':
+                        recommendRoute(match, firestore);
+                        break;
+                    case 'recommendations':
+                        recommendationsRoute()
+                        break;
+                    case 'savedsearches':
+                        savedSearchesRoute();
+                        break;
+                    default:
+                        console.log('Not a recognised deep link URL')
+                        stateController.changeState(startState);
+                        break;
                 }
             } else {
+                console.log('Not a deep link URL')
                 stateController.changeState(startState);
             }
         } catch (error) {
@@ -154,7 +137,7 @@ const app = {
 
 window.onerror = function (what, line, file) {
     if (what.toString().match('FIRESTORE|The transaction was aborted')) {
-        window.location.reload(true);
+        window.location.reload();
     } else {
         alert(what + '; ' + line + '; ' + file);
     }
@@ -162,8 +145,7 @@ window.onerror = function (what, line, file) {
 
 /**
  * Registers the app-shell service worker that makes the web app installable
- * and usable offline. Browser only: the Cordova apps load from file://, where
- * service workers do not exist.
+ * and usable offline.
  */
 function registerServiceWorker() {
     if ('serviceWorker' in navigator
@@ -225,10 +207,7 @@ function swrlRoute(match, firestore, startState) {
                     document.getElementById('loadingView').classList.add('hidden');
                     const startState = new State(stateController.homeView);
                     stateController.changeState(startState);
-                    //@ts-ignore
-                    if (device.platform === 'browser') {
-                        window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/');
-                    }
+                    window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/');
 
                 }
             })
@@ -264,10 +243,7 @@ function swrlerRoute(match, firestore, startState) {
                     document.getElementById('loadingView').classList.add('hidden');
                     const startState = new State(stateController.homeView);
                     stateController.changeState(startState);
-                    //@ts-ignore
-                    if (device.platform === 'browser') {
-                        window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/');
-                    }
+                    window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/');
 
                 }
             })
@@ -303,10 +279,7 @@ function recommendRoute(match, firestore) {
                     document.getElementById('loadingView').classList.add('hidden');
                     const startState = new State(stateController.homeView);
                     stateController.changeState(startState);
-                    //@ts-ignore
-                    if (device.platform === 'browser') {
-                        window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/');
-                    }
+                    window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/');
                 }
             })
             .catch(err => {

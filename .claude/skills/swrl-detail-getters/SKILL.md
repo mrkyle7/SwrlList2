@@ -103,7 +103,7 @@ that's how the `later`/`done`/`loved` uid arrays end up on a single shared doc.
 6. **Add the filter to the Category** in `src/constants/Category.js`
    (`typeFilters` array).
 7. **Add an image** for the type under `www/img/` if you want it in the UI.
-8. **Update Cypress tests** in `cypress/integration/model/swrl_test.js` to
+8. **Update the tests** in `test/swrl.test.js` to
    include a `fromFirestore` round-trip for the new type.
 
 ## Adding a new Category
@@ -121,8 +121,8 @@ If you really need one:
 
 No API key lives in `src/`. Sources that need one (TMDB, OMDb, BGG) are called
 through a route in `server.js` that reads the key from an environment
-variable; build the URL with `apiBase()` from `src/constants/Site.js` so it
-also works inside the Cordova apps. To add a keyed source:
+variable; the client calls it with a root-relative URL (`/api/v1/...`). To
+add a keyed source:
 
 1. Add a route under `/api/v1/` in `server.js` that validates its parameters
    and builds the upstream URL itself (use `relay()`; never forward an

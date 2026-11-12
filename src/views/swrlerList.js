@@ -1,3 +1,4 @@
+import firebase from 'firebase/compat/app';
 export default { showList, destroyList };
 
 import { SWRLER_LATER, SWRLER_LOVED, SWRLER_DONE } from '../constants/View';

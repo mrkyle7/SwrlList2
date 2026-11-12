@@ -4,7 +4,6 @@ import { PLAY } from '../constants/Category';
 import { Search } from './search';
 import { Swrl } from '../model/swrl';
 import { fetchGeekItems, fetchGeekXml, detailsFromGeekItem } from '../detailGetters/geekDetailGetter';
-import { apiBase } from '../constants/Site';
 
 export class PlaySearch extends Search {
 
@@ -70,7 +69,7 @@ function videoGameSearch(query, signal) {
  * @return {Promise<Swrl[]>} 
  */
 async function geekSearch(type, query, signal) {
-    const url = `${apiBase()}/api/v1/geek/search?type=${type.geekType}&query=${query}`;
+    const url = `/api/v1/geek/search?type=${type.geekType}&query=${query}`;
     const xmlResults = await fetchGeekXml(url, signal);
     const ids = Array.from(xmlResults.getElementsByTagName('item'))
         .slice(0, 20)

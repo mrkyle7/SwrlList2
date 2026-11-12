@@ -1,3 +1,4 @@
+import firebase from 'firebase/compat/app';
 import { INBOX, SENT } from '../constants/View';
 import { recommendationsInboxCache, recommendationsSentCache, inboxReady } from '../listeners/recommendations';
 import { Collection } from '../constants/Collection';
@@ -68,7 +69,7 @@ const showRecommendations = async (stateController, view, firestore) => {
     loadingSpinner.classList.remove('hidden');
     while (swrlUser && !swrlUser.isAnonymous && !inboxReady) {
         console.log('waiting for inbox...')
-        await new Promise((resolve, _) => setTimeout(() => resolve(), 300))
+        await new Promise(resolve => setTimeout(resolve, 300))
     }
     if (view === INBOX) {
         inboxTab.classList.add('selected');
@@ -101,7 +102,7 @@ const clearList = () => {
  * @param {number} renderID
  */
 const showInboxFromCache = (stateController, view, firestore, renderID) => {
-    //Object.values isn't supported in cordova browser
+    //Object.values wasn't supported in the old Cordova browser
     const recommendations = [];
     Object.keys(recommendationsInboxCache).forEach(i => recommendations.push(recommendationsInboxCache[i]));
 
@@ -116,7 +117,7 @@ const showInboxFromCache = (stateController, view, firestore, renderID) => {
  * @param {number} renderID
  */
 const showSentFromCache = (stateController, view, firestore, renderID) => {
-     //Object.values isn't supported in cordova browser
+     //Object.values wasn't supported in the old Cordova browser
      const recommendations = [];
      Object.keys(recommendationsSentCache).forEach(i => recommendations.push(recommendationsSentCache[i]));
      renderRecommendations(stateController, recommendations, view, firestore, renderID);

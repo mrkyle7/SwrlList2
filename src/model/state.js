@@ -1,3 +1,4 @@
+import firebase from 'firebase/compat/app';
 import { Category } from "../constants/Category";
 import { UIView } from "../views/UIView";
 import { Swrl } from "./swrl";

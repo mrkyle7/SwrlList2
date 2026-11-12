@@ -1,12 +1,4 @@
 node_modules
-plugins
-platforms
-play-store-keys.json
-fastlane/.env
+dist
 .DS_Store
 .vscode
-www/bundle.js
-www/bundlepretty.js
-www/fonts
-cypress/videos
-cypress/screenshots
