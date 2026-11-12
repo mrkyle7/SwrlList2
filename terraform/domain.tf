@@ -4,12 +4,25 @@
 # certificates.
 # ---------------------------------------------------------------------------
 
+# The zone was made by hand before the first apply, so it is adopted rather
+# than created. Its DNSSEC setting and description are left as they were set
+# there: switching DNSSEC off under a registrar that publishes its keys would
+# take the domain offline.
+import {
+  to = google_dns_managed_zone.this
+  id = "projects/${var.project}/managedZones/${var.dns_zone}"
+}
+
 resource "google_dns_managed_zone" "this" {
   project     = var.project
   name        = var.dns_zone
   dns_name    = "${var.domain_name}."
   description = "Swrl List"
   visibility  = "public"
+
+  lifecycle {
+    ignore_changes = [description, dnssec_config, labels]
+  }
 
   depends_on = [google_project_service.required]
 }
