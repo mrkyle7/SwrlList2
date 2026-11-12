@@ -88,6 +88,12 @@ it's `undefined` until `setUpLogin` resolves.
   the `*.firebaseapp.com` domain (browsers partition the storage it needs).
 - A new host must be on the Firebase Auth authorised-domains list
   (`scripts/firebase-auth-domains.sh`).
+- On `swrl-list.com` / `www.swrl-list.com`, `authDomain` is the site itself
+  and `server.js` passes `/__/auth/*` through to Firebase's helper pages, so
+  Google's screen names our domain. Each such host needs
+  `https://<host>/__/auth/handler` in the Google OAuth client's authorised
+  redirect URIs (Google Cloud console → APIs & Services → Credentials). Other
+  hosts use `swrl-1118.firebaseapp.com`.
 
 ## Cloud Functions (`functions/`)
 
