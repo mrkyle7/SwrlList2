@@ -97,9 +97,25 @@ jobs:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
           terraform_wrapper: false
 
-      - run: terraform init -input=false -lock=false
+      # Before the first apply there is no state. Terraform's GCS backend then
+      # creates an empty one, under a lock, even with -lock=false, and this
+      # read-only account can't write. Nothing to compare against yet anyway.
+      - name: Check the state exists
+        id: state
+        run: |
+          if gcloud storage ls gs://swrl-1118-tfstate/swrllist2/default.tfstate >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "## Terraform plan skipped" >> "$GITHUB_STEP_SUMMARY"
+            echo "No Terraform state yet: everything is created by the first apply, on merge to master." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - if: steps.state.outputs.exists == 'true'
+        run: terraform init -input=false -lock=false
 
       - name: Plan
+        if: steps.state.outputs.exists == 'true'
         run: |
           # Without pipefail a failed plan is hidden behind tee's success.
           set -o pipefail
