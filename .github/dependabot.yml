@@ -1,0 +1,53 @@
+# Routine dependency updates, weekly. Security fixes are raised separately by
+# Dependabot as soon as they are known, whatever this schedule says.
+#
+# Minor and patch updates arrive as one grouped pull request per area; major
+# updates arrive one at a time, because they are the ones that need reading.
+#
+# Not covered here, bump by hand: the Node version (Dockerfile base image,
+# "engines" in package.json, setup-node in the workflow, and the functions
+# runtime in firebase.json), which should move between LTS releases together.
+version: 2
+
+updates:
+  # The web app and server.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      app-minor-and-patch:
+        update-types: [minor, patch]
+
+  # Cloud Functions.
+  - package-ecosystem: npm
+    directory: /functions
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      functions-minor-and-patch:
+        update-types: [minor, patch]
+
+  # Actions used by .github/workflows.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # Terraform providers.
+  - package-ecosystem: terraform
+    directory: /terraform
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      terraform:
+        patterns: ["*"]
