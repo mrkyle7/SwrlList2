@@ -1,0 +1,25 @@
+{
+  "id": "/",
+  "name": "Swrl List 2",
+  "short_name": "Swrl List",
+  "description": "Remember and recommend things you Should Watch, Read or Listen to",
+  "lang": "en-GB",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#FF2E63",
+  "categories": ["entertainment", "lifestyle", "social"],
+  "icons": [
+    { "src": "/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Watch", "url": "/watch", "icons": [{ "src": "/img/icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Read", "url": "/read", "icons": [{ "src": "/img/icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Listen", "url": "/listen", "icons": [{ "src": "/img/icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Play", "url": "/play", "icons": [{ "src": "/img/icon-192.png", "sizes": "192x192", "type": "image/png" }] }
+  ]
+}

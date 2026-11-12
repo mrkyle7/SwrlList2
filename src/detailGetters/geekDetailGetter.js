@@ -1,6 +1,7 @@
 import { DetailGetter } from "./detailGetter";
 import { Details } from "../model/details";
 import { Link } from "../model/link";
+import { apiBase } from "../constants/Site";
 const Entities = require('html-entities').XmlEntities;
 
 export class GeekDetailGetter extends DetailGetter {
@@ -19,80 +20,97 @@ export class GeekDetailGetter extends DetailGetter {
      * @return {Promise<{id: number, details: Details}>}
      */
     get(id, signal, searchId) {
-        // to be overidden
-        return new Promise(async (resolve, reject) => {
-            try {
-                const url = 'https://api.geekdo.com/xmlapi2/thing?id=' + id;
-                const response = await fetch(url, { signal });
-                const xmlData = await response.text();
-                const parser = new DOMParser();
-                const xmlResult = parser.parseFromString(xmlData, 'application/xml');
-                const detailsItems = xmlResult.getElementsByTagName('item');
-                let imageUrl = undefined;
-                let designers = [];
-                let genres = [];
-                let title = 'Unknown';
-                let platforms = [];
-                let publishers = [];
-                let playerCount = undefined;
-                let twoPlayerRecommendation = undefined;
-                let playingTime = undefined;
-                let releaseYear = undefined;
-
-                const links = [new Link(`https://${this.type}geek.com/${this.type}/${id}`,
-                    'Geek URL', 'img/bgg.svg')];
-                let overview = undefined;
-                if (!detailsItems || detailsItems.length == 0) {
-                    console.log('ID from geek returned no items!');
-                } else {
-                    const data = detailsItems[0];
-                    title = data.getElementsByTagName('name')[0].getAttribute('value');
-                    imageUrl = getImageUrl(data);
-                    releaseYear = getReleaseYear(data, this.type);
-                    designers = getDesigners(data);
-                    genres = getGenres(data);
-                    const entities = new Entities();
-                    overview = data.getElementsByTagName('description')[0].textContent;
-                    overview = entities.decode(overview);
-                    platforms = getPlatforms(data);
-                    publishers = getPublishers(data);
-                    playerCount = getPlayerCount(data);
-                    twoPlayerRecommendation = getTwoPlayerRecommendation(data);
-                    playingTime = getPlayingTime(data);
+        return fetchGeekItems([id], signal)
+            .then(items => {
+                if (items.length === 0) {
+                    // Reject rather than resolve with placeholder details: the
+                    // caller writes whatever we return over the saved Swrl.
+                    throw new Error('Geek returned no item for ID: ' + id);
                 }
-                resolve({
-                    id: searchId,
-                    details: new Details(id, title, imageUrl || 'img/NoPoster.jpg',
-                        undefined, undefined, releaseYear,
-                        genres,
-                        links,
-                        undefined,
-                        overview,
-                        [],
-                        [],
-                        undefined,
-                        [],
-                        [],
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        [],
-                        designers,
-                        platforms,
-                        publishers,
-                        playerCount,
-                        twoPlayerRecommendation,
-                        playingTime)
-                })
-
-            } catch (err) {
-                console.error('Error getting details from Geekdo for ID: ' + id);
+                return { id: searchId, details: detailsFromGeekItem(items[0], this.type) };
+            })
+            .catch(err => {
+                console.error('Error getting details from Geek for ID: ' + id);
                 console.error(err);
-                reject(err);
-            }
-        });
+                throw err;
+            });
     }
+}
+
+/**
+ * Fetch one or more "things" from BoardGameGeek in a single request.
+ *
+ * BGG only answers authenticated requests, so this goes through our own
+ * server (see /api/v1/geek in server.js), which holds the API token.
+ *
+ * @param {string[]} ids at most 20
+ * @param {AbortSignal} signal
+ * @return {Promise<Element[]>}
+ */
+export async function fetchGeekItems(ids, signal) {
+    if (ids.length === 0) {
+        return [];
+    }
+    const url = `${apiBase()}/api/v1/geek/thing?id=${ids.join(',')}`;
+    return Array.from(await fetchGeekXml(url, signal).then(xml => xml.getElementsByTagName('item')));
+}
+
+/**
+ * @param {string} url
+ * @param {AbortSignal} signal
+ * @return {Promise<Document>}
+ */
+export async function fetchGeekXml(url, signal) {
+    const response = await fetch(url, { signal });
+    if (!response.ok) {
+        throw new Error(`Geek request failed with HTTP ${response.status}`);
+    }
+    const xml = new DOMParser().parseFromString(await response.text(), 'application/xml');
+    if (xml.getElementsByTagName('parsererror').length > 0) {
+        throw new Error('Geek response was not valid XML');
+    }
+    return xml;
+}
+
+/**
+ * @param {Element} data an <item> element from the Geek "thing" API
+ * @param {string} type boardgame | videogame
+ * @return {Details}
+ */
+export function detailsFromGeekItem(data, type) {
+    const id = data.getAttribute('id');
+    const names = data.getElementsByTagName('name');
+    const descriptions = data.getElementsByTagName('description');
+    const overview = descriptions.length > 0
+        ? new Entities().decode(descriptions[0].textContent)
+        : undefined;
+    const links = [new Link(`https://${type}geek.com/${type}/${id}`,
+        'Geek URL', 'img/bgg.svg')];
+
+    return new Details(id,
+        names.length > 0 ? names[0].getAttribute('value') : 'Unknown',
+        getImageUrl(data) || 'img/NoPoster.jpg',
+        undefined, undefined, getReleaseYear(data, type),
+        getGenres(data),
+        links,
+        undefined,
+        overview,
+        [],
+        [],
+        undefined,
+        [],
+        [],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        [],
+        getDesigners(data),
+        getPlatforms(data),
+        getPublishers(data),
+        getPlayerCount(data),
+        getTwoPlayerRecommendation(data),
+        getPlayingTime(data));
 }
 
 /**
@@ -112,17 +130,12 @@ function getImageUrl(data) {
  * @param {string} type
  */
 function getReleaseYear(data, type) {
-    if (type === 'boardgame') {
-        return data.getElementsByTagName('yearpublished')
-            ? data.getElementsByTagName('yearpublished')[0].getAttribute('value')
-            : undefined;
-    } else {
-        return data.getElementsByTagName('releasedate')
-            ? data.getElementsByTagName('releasedate')[0].getAttribute('value').length >= 4
-                ? data.getElementsByTagName('releasedate')[0].getAttribute('value').substring(0, 4)
-                : data.getElementsByTagName('releasedate')[0].getAttribute('value')
-            : undefined;
+    const elements = data.getElementsByTagName(type === 'boardgame' ? 'yearpublished' : 'releasedate');
+    if (elements.length === 0) {
+        return undefined;
     }
+    const value = elements[0].getAttribute('value');
+    return value && value.length >= 4 ? value.substring(0, 4) : value;
 }
 
 /**

@@ -4,7 +4,7 @@
     <description>
         Remember and recommend what you should watch, read or listen to
     </description>
-    <author email="kylejharrison@gmail.com" href="https://swrl-list.herokuapp.com/">
+    <author email="kylejharrison@gmail.com" href="https://swrl-list.com/">
         Kyle Harrison
     </author>
     <platform name="android">
@@ -49,7 +49,7 @@
         <hook src="scripts/afterAddBrowserTabPlugin.js" type="after_plugin_add" />
     </platform>
     <plugin name="cordova-plugin-browsertab" spec="0.2.0" />
-    <plugin name="cordova-plugin-device" spec="^2.0.3" />
+    <plugin name="cordova-plugin-device" spec="2.0.3" />
     <plugin name="cordova-plugin-network-information" spec="^2.0.2" />
     <engine name="ios" spec="^4.5.5" />
     <engine name="browser" spec="^5.0.4" />

@@ -1,0 +1,17 @@
+.git
+node_modules
+platforms
+plugins
+www/bundle.js
+www/bundlepretty.js
+www/fonts
+cypress/videos
+cypress/screenshots
+functions
+fastlane
+play-store-keys.json
+*.md
+.claude
+cypress
+terraform
+.github

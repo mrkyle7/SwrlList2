@@ -69,8 +69,8 @@ exports.recommendationNotification = functions.firestore
                     notification: {
                         title: 'New Swrl Recommendation',
                         body: body,
-                        icon: 'https://swrl-list.herokuapp.com/img/logo.png',
-                        click_action: 'https://swrl-list.herokuapp.com/'
+                        icon: 'https://swrl-list.com/img/logo.png',
+                        click_action: 'https://swrl-list.com/'
                     }
                 };
                 const options = {

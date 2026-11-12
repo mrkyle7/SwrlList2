@@ -1,0 +1,305 @@
+name: Deploy
+
+# Pull requests: build and smoke-test the image, check the terraform and post
+# its plan. Merges to master: apply the terraform, then ship the app.
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      allow_destroy:
+        description: Apply even if the plan deletes or replaces resources
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: swrl-1118
+  REGION: us-east1
+  REPOSITORY: swrl-list
+  IMAGE_NAME: swrl-list
+  SERVICE_NAME: swrl-list
+  TERRAFORM_VERSION: 1.14.5
+  WIF_PROVIDER: projects/443237991407/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+  # GCP only lets this repo's master branch act as github-terraform, and
+  # anything else (pull requests, other branches) only as the read-only plan
+  # account; see terraform/github.tf. Editing this file can't change that.
+  SERVICE_ACCOUNT: github-terraform@swrl-1118.iam.gserviceaccount.com
+  PLAN_SERVICE_ACCOUNT: github-terraform-plan@swrl-1118.iam.gserviceaccount.com
+  # Text the smoke tests look for in the served page.
+  PAGE_MARKER: "<title>Swrl List 2</title>"
+
+jobs:
+  test:
+    name: Build and smoke-test the image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Container builds, starts and serves the app
+        run: |
+          docker build -t app:ci .
+          docker run -d --name app -p 8080:8080 app:ci
+          for i in $(seq 1 20); do
+            if curl -fsS http://localhost:8080/api/v1/health | grep -q '"isAvailable":true' \
+              && curl -fsS http://localhost:8080/watch | grep -qF "$PAGE_MARKER" \
+              && curl -fsS -o /dev/null http://localhost:8080/swrl/bundle.js \
+              && curl -fsS -o /dev/null http://localhost:8080/sw.js \
+              && curl -fsS -o /dev/null http://localhost:8080/manifest.webmanifest; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs app
+          exit 1
+
+  terraform-check:
+    name: Check terraform
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - run: terraform fmt -check -recursive
+      - run: terraform init -backend=false -input=false
+      - run: terraform validate
+
+  plan:
+    name: Terraform plan
+    needs: terraform-check
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.PLAN_SERVICE_ACCOUNT }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      # Before the first apply there is no state. Terraform's GCS backend then
+      # creates an empty one, under a lock, even with -lock=false, and this
+      # read-only account can't write. Nothing to compare against yet anyway.
+      - name: Check the state exists
+        id: state
+        run: |
+          if gcloud storage ls gs://swrl-1118-tfstate/swrllist2/default.tfstate >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "## Terraform plan skipped" >> "$GITHUB_STEP_SUMMARY"
+            echo "No Terraform state yet: everything is created by the first apply, on merge to master." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - if: steps.state.outputs.exists == 'true'
+        run: terraform init -input=false -lock=false
+
+      - name: Plan
+        if: steps.state.outputs.exists == 'true'
+        run: |
+          # Without pipefail a failed plan is hidden behind tee's success.
+          set -o pipefail
+          # Read-only account: it can't take the state lock.
+          terraform plan -input=false -lock=false -no-color | tee plan.txt
+          {
+            echo "## Terraform plan"
+            echo
+            grep -E '^Plan:|^No changes' plan.txt || true
+            echo
+            echo '<details><summary>Full plan</summary>'
+            echo
+            echo '```'
+            head -c 900000 plan.txt
+            echo '```'
+            echo '</details>'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  apply:
+    name: Terraform apply
+    needs: [ test, terraform-check ]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    # Applies take a few minutes. Without this, one stuck retrying an API call
+    # runs until GitHub's 6-hour default. If it times out, the next run may need
+    # `terraform force-unlock <ID>` (the ID is in its error).
+    timeout-minutes: 30
+    # Never run two applies at once, and never cancel one half way.
+    concurrency:
+      group: terraform-apply
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.SERVICE_ACCOUNT }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - run: terraform init -input=false
+
+      - name: Plan
+        run: |
+          # Without pipefail a failed plan is hidden behind tee's success and the
+          # job carries on to apply.
+          set -o pipefail
+          terraform plan -input=false -lock-timeout=5m -no-color -out=tfplan | tee plan.txt
+          {
+            echo "## Terraform apply"
+            echo
+            grep -E '^Plan:|^No changes' plan.txt || true
+            echo
+            echo '<details><summary>Full plan</summary>'
+            echo
+            echo '```'
+            head -c 900000 plan.txt
+            echo '```'
+            echo '</details>'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Unattended applies only add or change. Deleting or replacing something
+      # (a replaced domain mapping means an HTTPS outage while its certificate
+      # is reissued) needs a manual run with allow_destroy ticked.
+      - name: Refuse deletions unless allowed
+        env:
+          ALLOW_DESTROY: ${{ github.event.inputs.allow_destroy }}
+        run: |
+          DELETES=$(terraform show -json tfplan | jq -r '.resource_changes[]? | select(.change.actions | index("delete")) | .address')
+          if [ -n "$DELETES" ] && [ "$ALLOW_DESTROY" != "true" ]; then
+            echo "This plan deletes or replaces:"
+            echo "$DELETES"
+            echo
+            echo "Nothing was applied. If this is intended, run this workflow manually (Actions → Deploy → Run workflow) with allow_destroy ticked."
+            exit 1
+          fi
+
+      - run: terraform apply -input=false -lock-timeout=5m tfplan
+
+  deploy:
+    name: Deploy app
+    needs: apply
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-app
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push image
+        run: |
+          gcloud auth configure-docker $REGION-docker.pkg.dev --quiet
+          IMAGE_URI=$REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:${{ github.sha }}
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
+
+      # Copies each GitHub Actions secret into the Secret Manager secret
+      # terraform made for it (terraform/app.tf), when it is set and differs.
+      # Superseded versions are destroyed: only six active versions are free.
+      # One line per entry of var.secrets in terraform/variables.tf.
+      - name: Sync secrets to Secret Manager
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+          BGG_API_TOKEN: ${{ secrets.BGG_API_TOKEN }}
+        run: |
+          sync() {
+            local name="$1" value="$2"
+            local secret="$SERVICE_NAME-$(echo "$name" | tr 'A-Z_' 'a-z-')"
+            if [ -z "$value" ]; then
+              echo "::warning::GitHub secret $name is not set; $secret keeps its current value."
+              return
+            fi
+            local current
+            current=$(gcloud secrets versions access latest --secret="$secret" --project="$PROJECT_ID")
+            if [ "$current" = "$value" ]; then
+              echo "$secret is up to date"
+              return
+            fi
+            local version
+            version=$(printf '%s' "$value" | gcloud secrets versions add "$secret" \
+              --project="$PROJECT_ID" --data-file=- --format='value(name.basename())')
+            echo "$secret updated to version $version"
+            # Version 1 is terraform's placeholder: leave it, or terraform would
+            # try to re-enable a destroyed version on its next apply.
+            for old in $(gcloud secrets versions list "$secret" --project="$PROJECT_ID" \
+              --filter="state!=DESTROYED" --format='value(name.basename())'); do
+              if [ "$old" != "1" ] && [ "$old" != "$version" ]; then
+                gcloud secrets versions destroy "$old" --secret="$secret" --project="$PROJECT_ID" --quiet
+              fi
+            done
+          }
+          sync TMDB_API_KEY "$TMDB_API_KEY"
+          sync OMDB_API_KEY "$OMDB_API_KEY"
+          sync BGG_API_TOKEN "$BGG_API_TOKEN"
+
+      # A new revision is what picks up a changed secret, so this runs after
+      # the sync.
+      - name: Deploy to Cloud Run
+        id: deploy
+        run: |
+          gcloud run deploy $SERVICE_NAME \
+            --image="$REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:${{ github.sha }}" \
+            --region="$REGION" --project="$PROJECT_ID" --quiet
+
+      - name: Verify deployment
+        run: |
+          EXPECTED="$REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:${{ github.sha }}"
+          ACTIVE=$(gcloud run services describe $SERVICE_NAME --region="$REGION" --project="$PROJECT_ID" \
+            --format='value(spec.template.spec.containers[0].image)')
+          URL=$(gcloud run services describe $SERVICE_NAME --region="$REGION" --project="$PROJECT_ID" \
+            --format='value(status.url)')
+          echo "Expected: $EXPECTED"
+          echo "Active:   $ACTIVE"
+          [ "$ACTIVE" = "$EXPECTED" ] || { echo "Active image does not match"; exit 1; }
+          curl -fsS "$URL/" | grep -qF "$PAGE_MARKER" || { echo "Service did not serve the app"; exit 1; }
+          echo "Deployment verified at $URL"
+
+      - name: Roll back on failure
+        if: failure() && steps.deploy.outcome == 'failure'
+        run: |
+          FAILED_REV=$(gcloud run services describe $SERVICE_NAME --region="$REGION" --project="$PROJECT_ID" \
+            --format='value(status.latestCreatedRevisionName)')
+          PREV_REV=$(gcloud run revisions list --service="$SERVICE_NAME" --region="$REGION" --project="$PROJECT_ID" \
+            --filter="status.conditions.type:Ready AND status.conditions.status:True AND metadata.name!=$FAILED_REV" \
+            --sort-by="~metadata.creationTimestamp" --limit=1 --format='value(metadata.name)')
+          if [ -z "$PREV_REV" ]; then
+            echo "No previous healthy revision to roll back to"
+            exit 1
+          fi
+          echo "Rolling back to $PREV_REV"
+          gcloud run services update-traffic $SERVICE_NAME --region="$REGION" --project="$PROJECT_ID" \
+            --to-revisions="$PREV_REV=100"

@@ -1,3 +1,4 @@
+import { apiBase } from "../constants/Site";
 import { DetailGetter } from "./detailGetter";
 import { Details } from "../model/details";
 import { Link } from "../model/link";
@@ -5,7 +6,6 @@ import { Network } from "../model/network";
 import { TmdbPerson } from "../model/tmdbPerson";
 
 
-const tmdbAPIKey = 'c3356e66739e40233c7870d42b30bc34';
 const imageUrlPrefix = 'https://image.tmdb.org/t/p/original';
 
 export class TmdbTVDetailGetter extends DetailGetter {
@@ -22,9 +22,12 @@ export class TmdbTVDetailGetter extends DetailGetter {
     get(id, signal, searchId) {
         // to be overidden
         return new Promise(async (resolve, reject) => {
-            const url = `https://api.themoviedb.org/3/tv/${id}?api_key=${tmdbAPIKey}&append_to_response=credits`;
+            const url = `${apiBase()}/api/v1/tmdb/tv/${id}`;
             try {
                 const response = await fetch(url, { signal });
+                if (!response.ok) {
+                    throw new Error(`TMDB request failed with HTTP ${response.status}`);
+                }
                 const data = await response.json();
 
                 const links = [

@@ -96,6 +96,7 @@ const app = {
 
             //@ts-ignore
             if (device.platform === 'browser') {
+                registerServiceWorker();
                 window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/')
                 while (!initialisedLogin) {
                     console.log('waiting for login...')
@@ -158,6 +159,23 @@ window.onerror = function (what, line, file) {
         alert(what + '; ' + line + '; ' + file);
     }
 };
+
+/**
+ * Registers the app-shell service worker that makes the web app installable
+ * and usable offline. Browser only: the Cordova apps load from file://, where
+ * service workers do not exist.
+ */
+function registerServiceWorker() {
+    if ('serviceWorker' in navigator
+        && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(() => console.log('Service worker registered'))
+            .catch(err => {
+                console.error('Service worker registration failed');
+                console.error(err);
+            });
+    }
+}
 
 /**
  * @param {Category} category

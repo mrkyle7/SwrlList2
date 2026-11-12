@@ -45,17 +45,31 @@ npx cypress run
 
 # How to publish
 
-## Browser
+## Browser (Google Cloud Run)
 
-Setup
+The web app is a Docker image (see `Dockerfile`) running on Cloud Run in the
+`swrl-1118` project, region `us-east1`, service `swrl-list`.
 
-1. Install the Heroku cli tool: [Guide](https://devcenter.heroku.com/articles/heroku-cli)
-2. Login to Heroku: `heroku login`
-3. Set up the git remote to Heroku: `heroku git:remote -a swrl-list`
+Merging to `master` deploys it: `.github/workflows/deploy.yml` applies the
+terraform in `terraform/`, builds the image and ships it. Setup, the GitHub
+secrets to set, and how to switch on `swrl-list.com` are in
+[terraform/README.md](terraform/README.md).
 
-Push
+To try the image locally (searches need the API keys; see
+[terraform/README.md](terraform/README.md#github-secrets)):
 
-Simply run `git push heroku master`
+    docker build -t swrllist2 .
+    docker run -p 8080:8080 -e TMDB_API_KEY=... -e OMDB_API_KEY=... -e BGG_API_TOKEN=... swrllist2
+
+`npm start` reads the same three environment variables.
+
+### PWA
+
+The browser build is installable: `www/manifest.webmanifest` + `www/sw.js`
+(network-first app-shell cache, so the app opens offline and Firestore's
+persistence supplies the data). Push notifications stay in
+`www/firebase-messaging-sw.js`. Bump `CACHE` in `sw.js` if the shell file list
+changes.
 
 ## iOS and Android
 

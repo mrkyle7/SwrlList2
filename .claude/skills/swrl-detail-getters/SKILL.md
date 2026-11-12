@@ -74,16 +74,16 @@ that's how the `later`/`done`/`loved` uid arrays end up on a single shared doc.
 
 | File | API | Notes |
 | --- | --- | --- |
-| `detailGetters/tmdbFilmDetailGetter.js` | TMDB + OMDB | Uses hardcoded API keys (client-side). Merges IMDB rating via OMDB. |
-| `detailGetters/tmdbTVDetailGetter.js` | TMDB | Same key as film getter. |
+| `detailGetters/tmdbFilmDetailGetter.js` | TMDB + OMDb, via `server.js` `/api/v1/tmdb/*` and `/api/v1/omdb` | Merges ratings and plot from OMDb; works without it. |
+| `detailGetters/tmdbTVDetailGetter.js` | TMDB via `/api/v1/tmdb/*` | |
 | `detailGetters/openLibraryBookDetailGetter.js` | OpenLibrary | No key. |
-| `detailGetters/geekDetailGetter.js` | BoardGameGeek XML API | Both boardgame and videogame go through this. |
+| `detailGetters/geekDetailGetter.js` | BoardGameGeek XML API, via `server.js` `/api/v1/geek/*` | Both boardgame and videogame go through this. BGG needs a bearer token, held server-side. |
 | `detailGetters/itunesAlbumGetter.js` | iTunes Search | No key. |
 | `detailGetters/itunesPodcastGetter.js` | iTunes Search | No key. |
-| `search/watchSearch.js` | TMDB multi-search | Handles both film + TV, plus `personID:` syntax. |
-| `search/readSearch.js` | OpenLibrary | |
+| `search/watchSearch.js` | TMDB search via `/api/v1/tmdb/*` | Handles both film + TV, plus `personID:` syntax. |
+| `search/readSearch.js` | OpenLibrary | Must request `fields=...,isbn` — search no longer returns ISBNs by default. |
 | `search/listenSearch.js` | iTunes | Album + podcast combined. |
-| `search/playSearch.js` | BGG | Boardgame + videogame combined. |
+| `search/playSearch.js` | BGG via `/api/v1/geek/*` | Boardgame + videogame combined; details fetched in one batched `thing` call. |
 
 ## Adding a new Type
 
@@ -119,10 +119,20 @@ If you really need one:
 
 ## API-key hygiene
 
-Several getters contain API keys committed to the repo (TMDB, OMDB). These are
-client-side keys and were checked in deliberately, but **do not copy them to
-other files, docs, or logs**. If you're adding a service that requires a
-_secret_ key, route it through a Cloud Function instead of embedding it.
+No API key lives in `src/`. Sources that need one (TMDB, OMDb, BGG) are called
+through a route in `server.js` that reads the key from an environment
+variable; build the URL with `apiBase()` from `src/constants/Site.js` so it
+also works inside the Cordova apps. To add a keyed source:
+
+1. Add a route under `/api/v1/` in `server.js` that validates its parameters
+   and builds the upstream URL itself (use `relay()`; never forward an
+   arbitrary path).
+2. Add the variable name to `secrets` in `terraform/variables.tf` and to the
+   "Sync secrets" step in `.github/workflows/deploy.yml`.
+3. Document the GitHub secret in `terraform/README.md`.
+
+Keyless sources (Open Library, iTunes) are still called directly from the
+client.
 
 ## Common pitfalls
 
@@ -130,6 +140,9 @@ _secret_ key, route it through a Cloud Function instead of embedding it.
   the caller can discard out-of-order responses.
 - **Image URLs expire / change.** Build them from a constant prefix +
   source id; don't store full CDN URLs if the API gives you a path.
+- **A getter must reject when the source has no data** — never resolve with
+  placeholder details. `swrlFullPage` writes whatever a getter resolves with
+  over the saved Swrl in Firestore.
 - **BGG returns XML**, not JSON — see `geekDetailGetter.js` for the DOM-parsing
   pattern.
 - **iTunes ratings / review counts are not in the search endpoint** — the
