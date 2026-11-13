@@ -1083,3 +1083,68 @@ body {
     margin: 8px 0 0 0;
     font-size: 12px;
 }
+
+
+/* Private comments on the Swrl page. */
+.privateCommentHint, .privateCommentStatus, .privateCommentDate {
+    margin: 4px;
+    color: #666;
+    font-size: 14px;
+}
+
+.privateComment {
+    margin: 4px;
+    padding: 8px;
+    border-left: 3px solid #FF2E63;
+    background: #fafafa;
+}
+
+.privateCommentText {
+    margin: 0 0 4px 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.privateCommentMeta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.privateCommentForm {
+    display: flex;
+    flex-direction: column;
+    margin: 4px;
+}
+
+.privateCommentInput {
+    box-sizing: border-box;
+    border: 2px solid #222222;
+    font: inherit;
+    font-size: 16px;
+    padding: 8px;
+    resize: vertical;
+}
+
+.privateCommentAdd {
+    align-self: flex-end;
+    margin-top: 8px;
+    font-size: 16px;
+}
+
+.privateCommentEditForm {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 4px;
+}
+
+.privateCommentEditButtons {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.privateCommentSave {
+    font-size: 16px;
+}

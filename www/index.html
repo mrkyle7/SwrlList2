@@ -238,6 +238,7 @@
       </div>
 
       <div id="swrlFullPageCards" class="cardsContainer"></div>
+      <div id="swrlFullPagePrivateComments" class="cardsContainer"></div>
       <div id="swrlFullPageSocialCards" class="cardsContainer"></div>
       <div id="swrlAttribution" class="attribution hidden"></div>
     </div>
@@ -308,6 +309,39 @@
       <p class="cardSubTitle"></p>
       <div class="cardContent">
         <img class="loadingSpinnerSmall" src="img/spinner.gif" />
+      </div>
+    </div>
+  </template>
+  <template id="privateCommentsCard">
+    <div class="card">
+      <p class="cardTitle">Private comments</p>
+      <div class="cardContent">
+        <p class="privateCommentHint">Only you can see these.</p>
+        <p class="privateCommentStatus hidden"></p>
+        <div class="privateCommentList"></div>
+        <form class="privateCommentForm" autocomplete="off">
+          <textarea class="privateCommentInput" rows="3" placeholder="Add a private comment" aria-label="Add a private comment"></textarea>
+          <input type="submit" class="privateCommentAdd" value="Add">
+        </form>
+      </div>
+    </div>
+  </template>
+  <template id="privateComment">
+    <div class="privateComment">
+      <p class="privateCommentText"></p>
+      <form class="privateCommentEditForm hidden" autocomplete="off">
+        <textarea class="privateCommentInput privateCommentEditInput" rows="3" aria-label="Edit private comment"></textarea>
+        <div class="privateCommentEditButtons">
+          <span class="actionText privateCommentCancel" role="button" tabindex="0">CANCEL</span>
+          <input type="submit" class="privateCommentSave" value="Save">
+        </div>
+      </form>
+      <div class="privateCommentMeta">
+        <span class="privateCommentDate"></span>
+        <span class="privateCommentActions">
+          <span class="actionText privateCommentEdit" role="button" tabindex="0">EDIT</span>
+          <span class="actionText privateCommentDelete" role="button" tabindex="0">DELETE</span>
+        </span>
       </div>
     </div>
   </template>
