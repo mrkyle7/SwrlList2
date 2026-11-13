@@ -314,7 +314,7 @@
   </template>
   <template id="privateCommentsCard">
     <div class="card">
-      <p class="cardTitle">Your private comments</p>
+      <p class="cardTitle">Private comments</p>
       <div class="cardContent">
         <p class="privateCommentHint">Only you can see these.</p>
         <p class="privateCommentStatus hidden"></p>
@@ -329,9 +329,19 @@
   <template id="privateComment">
     <div class="privateComment">
       <p class="privateCommentText"></p>
+      <form class="privateCommentEditForm hidden" autocomplete="off">
+        <textarea class="privateCommentInput privateCommentEditInput" rows="3" aria-label="Edit private comment"></textarea>
+        <div class="privateCommentEditButtons">
+          <span class="actionText privateCommentCancel" role="button" tabindex="0">CANCEL</span>
+          <input type="submit" class="privateCommentSave" value="Save">
+        </div>
+      </form>
       <div class="privateCommentMeta">
         <span class="privateCommentDate"></span>
-        <span class="actionText privateCommentDelete" role="button" tabindex="0">DELETE</span>
+        <span class="privateCommentActions">
+          <span class="actionText privateCommentEdit" role="button" tabindex="0">EDIT</span>
+          <span class="actionText privateCommentDelete" role="button" tabindex="0">DELETE</span>
+        </span>
       </div>
     </div>
   </template>

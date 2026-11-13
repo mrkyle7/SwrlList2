@@ -92,6 +92,11 @@ match /swrlers/{uid}/privateComments/{swrlID}/comments/{commentID} {
                 && request.resource.data.text is string
                 && request.resource.data.text.size() > 0
                 && request.resource.data.text.size() <= 2000;
+  allow update: if request.auth != null && request.auth.uid == uid
+                && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text'])
+                && request.resource.data.text is string
+                && request.resource.data.text.size() > 0
+                && request.resource.data.text.size() <= 2000;
 }
 ```
 
