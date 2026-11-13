@@ -139,8 +139,11 @@ client.
 TMDB and BoardGameGeek require a visible credit wherever their data is shown.
 `src/constants/Attribution.js` defines each one (logo, link, any required
 wording); a `Type` and a `Category` each take an optional `attribution`, and
-`components/attribution.js` renders it under the list, the search results and
-the Swrl page. A new source with attribution terms needs an `Attribution`
+`components/attribution.js` renders it at the end of the list, at the end of
+the search results, and at the bottom of the Swrl page. It must go *inside*
+the view's scrolling container (`appendAttribution(list, ...)`), and only
+when there is data to credit: the views are absolutely positioned, so an
+element placed beside one is drawn on top of it. A new source with attribution terms needs an `Attribution`
 there, passed to its `Type` (and to the `Category` if every type in it uses
 that source). Don't recolour or redraw provider logos.
 

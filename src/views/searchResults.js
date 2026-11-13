@@ -1,4 +1,4 @@
-import { showAttribution, hideAttribution } from '../components/attribution';
+import { appendAttribution } from '../components/attribution';
 import { collection, doc, getDocs, addDoc, deleteDoc, query, where } from 'firebase/firestore';
 import { Category } from '../constants/Category';
 import { SEARCH } from '../constants/View';
@@ -71,7 +71,6 @@ let currentSearchController;
  */
 function showSearch(category, searchText, firestore, stateController) {
     searchView.classList.remove('hidden');
-    showAttribution('searchAttribution', category.attribution);
     tabs.classList.remove('hidden');
     searchBar.classList.remove('hidden');
     searchTab.classList.add('selected');
@@ -180,7 +179,6 @@ function renderSavedSearches(querySnapshot, firestore, stateController) {
 }
 
 function destroySearch() {
-    hideAttribution('searchAttribution');
     searchView.classList.remove('hidden');
     searchBar.classList.add('hidden');
     tabs.classList.add('hidden');
@@ -336,5 +334,7 @@ function processResults(results, firestore, searchText, stateController) {
         results.forEach((swrl) => {
             renderSwrl(stateController, SEARCH, swrl, firestore, searchResulList);
         });
+        // Part of the results, so it is only there when results are.
+        appendAttribution(searchResulList, currentCategory.attribution);
     }
 }
