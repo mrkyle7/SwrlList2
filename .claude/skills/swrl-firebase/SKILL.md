@@ -75,6 +75,30 @@ maintain a plain-object cache keyed by doc id. Views read from the cache
 synchronously and re-render when the listener pings them. Don't do ad-hoc
 `.get()` calls in views.
 
+### Private comments
+
+`swrlers/{uid}/privateComments/{swrlID}/comments/{commentID}` holds
+`{ text, created }`: one user's private notes about one Swrl
+(`privateCommentsPath()` in `src/constants/Collection.js`). They live under
+the user's own document, never on the shared `swrls` doc, so a security rule
+can restrict them. Their privacy depends on this rule being in the project's
+Firestore rules (managed in the Firebase console, not in this repo):
+
+```
+match /swrlers/{uid}/privateComments/{swrlID}/comments/{commentID} {
+  allow read, delete: if request.auth != null && request.auth.uid == uid;
+  allow create: if request.auth != null && request.auth.uid == uid
+                && request.resource.data.keys().hasOnly(['text', 'created'])
+                && request.resource.data.text is string
+                && request.resource.data.text.size() > 0
+                && request.resource.data.text.size() <= 2000;
+}
+```
+
+Any other per-user private data should follow the same shape: a
+subcollection under `swrlers/{uid}` with its own owner-only rule.
+
+
 ## Auth (`src/firebase/login.js`)
 
 - Exposes `swrlUser` (mutable, current `firebase.User`), `setUpLogin(firebase, firestore)`,
