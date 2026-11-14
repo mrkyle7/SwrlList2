@@ -214,10 +214,8 @@ function setupAutocomplete(toInput) {
 
         if (selectableSwrlers.length > 0) {
             selectableSwrlers.forEach(swrler => {
-                /*check if the input val is part of a swrlers name or email:*/
-                if (swrler.displayName.toUpperCase().indexOf(val.toUpperCase()) !== -1
-                    || swrler.email.toUpperCase().indexOf(val.toUpperCase()) !== -1
-                ) {
+                /*check if the input val is part of a swrlers name (never match on email):*/
+                if (swrler.displayName.toUpperCase().indexOf(val.toUpperCase()) !== -1) {
                     /*create a DIV element for each matching element:*/
                     autocompleteItem = document.createElement("DIV");
 
