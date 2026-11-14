@@ -1,7 +1,7 @@
 import { Category } from "../constants/Category";
 import { UIView } from "../views/UIView";
 import { Swrl } from "./swrl";
-import { alphabetical } from "../constants/Sort";
+import { recentlyUpdated } from "../constants/Sort";
 import { Filter } from "../constants/Filter";
 import { WhereFilter } from "../constants/WhereFilter";
 
@@ -17,7 +17,7 @@ export class State {
     /** @type {Swrl} */
     swrl;
     numberOfSwrlsToDisplay = 20;
-    sort = alphabetical;
+    sort = recentlyUpdated;
     /** @type {Filter[]} */
     filters = [];
     /** @type {WhereFilter} */
