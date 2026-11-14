@@ -1,10 +1,15 @@
+#!/usr/bin/env node
 // One-off migration: removes the legacy `email` field from every swrlers doc.
 // Profiles are readable by all users, so emails must not be stored there.
 //
 // Usage (needs admin credentials, e.g. `gcloud auth application-default login`):
-//   cd functions && node ../scripts/remove-swrler-emails.js [--dry-run]
-const { initializeApp } = require('firebase-admin/app');
-const { getFirestore, FieldValue } = require('firebase-admin/firestore');
+//   (cd functions && npm ci)   # once, installs firebase-admin
+//   ./scripts/remove-swrler-emails.js [--dry-run]
+const path = require('path');
+// firebase-admin is a dependency of functions/, not of the root package.
+const functionsModules = { paths: [path.join(__dirname, '..', 'functions')] };
+const { initializeApp } = require(require.resolve('firebase-admin/app', functionsModules));
+const { getFirestore, FieldValue } = require(require.resolve('firebase-admin/firestore', functionsModules));
 
 const dryRun = process.argv.includes('--dry-run');
 
