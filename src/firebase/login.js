@@ -5,7 +5,7 @@ export default { swrlUser, setUpLogin };
 import {
     getAuth, GoogleAuthProvider, onAuthStateChanged, signInAnonymously, signInWithPopup, signOut
 } from 'firebase/auth';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { deleteField, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { Collection } from '../constants/Collection';
 import { setUpRecommendationsListener, cancelRecommendationsListener } from '../listeners/recommendations';
 import swrl from '../components/swrl';
@@ -154,7 +154,9 @@ function updateSwrlerDetails(firestore) {
     var swrler = {
         uid: swrlUser.uid,
         displayName: swrlUser.displayName,
-        email: swrlUser.email,
+        // Profiles are readable by every user, so never store the email here.
+        // Also scrubs any email written by older versions of the app.
+        email: deleteField(),
         photoURL: swrlUser.photoURL,
         lastLoginTime: serverTimestamp()
     }
