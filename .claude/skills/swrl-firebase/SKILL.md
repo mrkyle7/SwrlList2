@@ -43,7 +43,7 @@ data changes; never test against the live project.
 | Collection | Key | Purpose |
 | --- | --- | --- |
 | `swrls` | `swrlID` (deterministic, from the source — e.g. `film-123`) | Every saved item. The same doc is shared by all users who have ever added that item; per-user state is held in arrays (`later`, `done`, `deleted`, `loved`, `isRecommended`) of `uid`s. |
-| `swrlers` | user `uid` | User profile (displayName, email, photoURL). Written on login. |
+| `swrlers` | user `uid` | User profile (displayName, photoURL, lastLoginTime). Written on login. Readable by all users, so it must never hold private data such as email; login deletes any legacy `email` field. |
 | `recommendations` | auto id | Recommendation from one user to one or more others. Has `to: string[]` (uids) and `from`. |
 | `messagingtokens` | auto id per device | FCM tokens associated with a `uid` for push notifications. |
 | `savedsearches` | auto id | User-saved searches for discover. |
