@@ -1,4 +1,5 @@
 import { showPrivateComments, hidePrivateComments } from '../components/privateComments';
+import { showLabels, hideLabels } from '../components/labels';
 import { showAttribution, hideAttribution } from '../components/attribution';
 import { showSwrlVisibility, hideSwrlVisibility } from '../components/swrlVisibility';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -66,6 +67,7 @@ async function showSwrlFullPage(stateController) {
     const swrl = stateController.currentState.swrl;
     const firestore = stateController.firestore;
     showAttribution('swrlAttribution', swrl.type.attribution);
+    showLabels(swrl, firestore);
     showPrivateComments(swrl, firestore);
     showSwrlVisibility(swrl, firestore);
 
@@ -604,6 +606,7 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl, 
 function destroySwrlFullPage() {
     socialCardsToken = undefined;
     hideAttribution('swrlAttribution');
+    hideLabels();
     hidePrivateComments();
     hideSwrlVisibility();
     swrlFullPageView.classList.add('hidden');

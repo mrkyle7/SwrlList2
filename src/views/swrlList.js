@@ -16,6 +16,8 @@ import { Sort } from '../constants/Sort';
 import { WhereFilter } from '../constants/WhereFilter';
 import { getAllListEntries, getListEntry, whenListEntriesReady } from '../listeners/listEntries';
 import { sortListEntries } from '../model/listEntry';
+import { getLabelsFor } from '../listeners/labels';
+import { matchesLabels } from '../model/labels';
 
 export class YourListView extends UIView {
     /**
@@ -106,7 +108,9 @@ export function showList(category, view, firestore, stateController) {
 
                 clearList();
                 if (total > 0) {
-                    const swrls = loaded.filter(swrl => filters.every(f => f.match(swrl, userId)));
+                    const labelFilters = stateController.currentState.labelFilters;
+                    const swrls = loaded.filter(swrl => filters.every(f => f.match(swrl, userId))
+                        && matchesLabels(getLabelsFor(swrl.swrlID), labelFilters));
                     renderNextSwrls(swrls, stateController, view, firestore, true);
 
                     if (swrlsContainer.querySelectorAll('div').length == 0) {

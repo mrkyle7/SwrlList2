@@ -19,6 +19,8 @@ import { Friends } from "./friends";
 import { SettingsScreen } from "../screens/settingsScreen";
 import { Settings } from "./settings";
 import { sortFromId } from "../constants/Sort";
+import { getAllMyLabels } from "../listeners/labels";
+import { hasLabel } from "../model/labels";
 import { filterFromId } from "../constants/Filter";
 import { whereFilterFromId } from "../constants/WhereFilter";
 import { SwrlerListScreen } from "../screens/swrlerListScreen";
@@ -171,6 +173,8 @@ export class StateController {
                 //@ts-ignore
                 .forEach(input => input.checked = this.currentState.filters.some(f => f.id === parseInt(input.value)))
 
+            this._showLabelFilters();
+
             const filters = document.getElementById('filters')
             filters.classList.remove('hidden');
         })
@@ -267,6 +271,10 @@ export class StateController {
                     this.currentState.filters.push(filter);
                 }
             })
+            this.currentState.labelFilters = [];
+            document.querySelectorAll('input[name="labelFilter"]:checked')
+                //@ts-ignore
+                .forEach(input => this.currentState.labelFilters.push(input.value));
             const typeFilters = document.querySelectorAll('input[name="whereFilter"]:checked');
             typeFilters.forEach(tf => {
                 //@ts-ignore
@@ -283,11 +291,40 @@ export class StateController {
                 refreshState.searchTerms = this.currentState.searchTerms;
                 refreshState.sort = this.currentState.sort;
                 refreshState.filters = this.currentState.filters;
+                refreshState.labelFilters = this.currentState.labelFilters;
                 refreshState.typeFilter = this.currentState.typeFilter;
                 refreshState.swrler = this.currentState.swrler;
                 this.changeState(refreshState);
             }
         };
+    }
+
+    /**
+     * Lists my labels as checkboxes in the filter popup. Only on my own
+     * lists: labels are mine, so they mean nothing on someone else's.
+     */
+    _showLabelFilters() {
+        const section = document.getElementById('labelFilters');
+        const list = document.getElementById('labelFilterList');
+        while (list.firstChild) list.removeChild(list.firstChild);
+        const labels = this.currentState.view.screen === this.listScreen ? getAllMyLabels() : [];
+        section.classList.toggle('hidden', labels.length === 0);
+        labels.forEach((label, i) => {
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.name = 'labelFilter';
+            input.id = 'labelFilter' + i;
+            input.value = label;
+            input.checked = hasLabel(this.currentState.labelFilters, label);
+            const text = document.createElement('label');
+            text.htmlFor = input.id;
+            text.textContent = label;
+            const row = document.createElement('div');
+            row.className = 'labelFilterRow';
+            row.appendChild(input);
+            row.appendChild(text);
+            list.appendChild(row);
+        });
     }
 
     hidefilters() {
@@ -369,6 +406,7 @@ export class StateController {
             yourListState.sort = this.currentState.sort;
             yourListState.typeFilter = this.currentState.typeFilter;
             yourListState.filters = this.currentState.filters
+            yourListState.labelFilters = this.currentState.labelFilters;
             this.changeState(yourListState);
         });
     }
@@ -385,6 +423,7 @@ export class StateController {
             discoverState.sort = this.currentState.sort;
             discoverState.typeFilter = this.currentState.typeFilter;
             discoverState.filters = this.currentState.filters
+            discoverState.labelFilters = this.currentState.labelFilters;
             this.changeState(discoverState);
         });
     }
@@ -401,6 +440,7 @@ export class StateController {
             searchState.sort = this.currentState.sort;
             searchState.typeFilter = this.currentState.typeFilter;
             searchState.filters = this.currentState.filters
+            searchState.labelFilters = this.currentState.labelFilters;
             this.changeState(searchState);
         });
     }
@@ -418,6 +458,7 @@ export class StateController {
             state.sort = this.currentState.sort;
             state.typeFilter = this.currentState.typeFilter;
             state.filters = this.currentState.filters
+            state.labelFilters = this.currentState.labelFilters;
             this.changeState(state);
         });
     }

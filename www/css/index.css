@@ -363,26 +363,106 @@ body {
     border-bottom-color: #FF2E63;
 }
 
-#swrlSearch {
+#swrlSearchBar {
     z-index: 2;
     position: absolute;
     top: 112px;
     left: 0px;
     right: 0px;
-    height: 36px;
     margin: auto;
     width: calc(100% - 8px);
+}
+
+#swrlSearch {
+    display: block;
+    width: 100%;
+    height: 36px;
+    margin: 0;
     line-height: 36px;
     box-sizing: border-box;
     border: 2px solid #222222;
     border-radius: 16px;
     font-size: 20px;
+    font-family: inherit;
     background-color: white;
     background-image: url(../img/search.png);
     background-size: 18px;
     background-position: 8px 8px;
     background-repeat: no-repeat;
-    padding: 12px 20px 12px 32px;
+    padding: 12px 40px 12px 32px;
+}
+
+#swrlSearch.hidden {
+    display: none;
+}
+
+/* A search field: an input with a clear button inside its right edge. */
+.searchField {
+    position: relative;
+}
+
+.searchField input {
+    padding-right: 40px;
+}
+
+/* The browser's own clear control would sit beside ours. */
+.searchField input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* The button is a 36px touch target around a 20px icon. It shows only while
+   the input holds text: `:placeholder-shown` also follows values set from
+   code, which an input event listener would miss. */
+.searchClear {
+    position: absolute;
+    top: 50%;
+    right: 2px;
+    width: 36px;
+    height: 36px;
+    margin: 0;
+    padding: 8px;
+    transform: translateY(-50%);
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.searchClear svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.searchClear circle {
+    fill: #9aa0a6;
+    transition: fill 120ms ease;
+}
+
+.searchClear path {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.searchClear:hover circle, .searchClear:active circle {
+    fill: #5f6368;
+}
+
+.searchClear:focus-visible {
+    outline: 2px solid #4A90E2;
+    outline-offset: -4px;
+}
+
+.searchField input:placeholder-shown + .searchClear,
+.searchField input.hidden + .searchClear {
+    display: none;
 }
 
 #recommendToForm {
@@ -1136,10 +1216,14 @@ body {
     font-weight: bold;
 }
 
+.friendsSection .searchField {
+    margin: 4px;
+}
+
 .friendSearchInput {
     box-sizing: border-box;
-    width: calc(100% - 8px);
-    margin: 4px;
+    width: 100%;
+    margin: 0;
     padding: 8px;
     font-family: inherit;
     border: 2px solid #222222;
@@ -1293,7 +1377,7 @@ body {
     .tabs {
         top: 60px;
     }
-    #swrlSearch {
+    #swrlSearchBar {
         top: 112px;
     }
     #swrlList, #recommendationList {
@@ -1308,7 +1392,7 @@ body {
     .main .section {
         padding-left: 0px;
     }
-    .main .section, #centre, .tabs, #swrlSearch, .swrlsContainer, #recommend, #swrlFullPage, #friendsView, #settingsView, #loggingInView {
+    .main .section, #centre, .tabs, #swrlSearchBar, .swrlsContainer, #recommend, #swrlFullPage, #friendsView, #settingsView, #loggingInView {
         margin-left: auto;
         margin-right: auto;
         width: 640px;
@@ -1441,4 +1525,98 @@ body {
 
 .privateCommentSave {
     font-size: 16px;
+}
+
+
+/* Private labels on the swrl page, and the label filter. */
+.labelChips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 4px;
+}
+
+.labelChip {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 2px 2px 2px 10px;
+    border-radius: 16px;
+    background: #eef1f4;
+    color: #222222;
+    font-size: 14px;
+    line-height: 24px;
+}
+
+.labelChipText {
+    overflow-wrap: anywhere;
+}
+
+.labelChipRemove {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    margin: 0 0 0 2px;
+    padding: 6px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.labelChipRemove svg {
+    display: block;
+    width: 16px;
+    height: 16px;
+}
+
+.labelChipRemove path {
+    fill: none;
+    stroke: #5f6368;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.labelChipRemove:hover {
+    background: #d9dee3;
+}
+
+.labelChipRemove:focus-visible {
+    outline: 2px solid #4A90E2;
+}
+
+.labelForm {
+    display: flex;
+    gap: 8px;
+    margin: 4px;
+}
+
+.labelInput {
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
+    border: 2px solid #222222;
+    font: inherit;
+    font-size: 16px;
+    padding: 8px;
+}
+
+.labelAdd {
+    font-size: 16px;
+}
+
+#filters {
+    max-height: calc(100% - 134px);
+    overflow-y: auto;
+}
+
+#labelFilterList {
+    max-height: 168px;
+    overflow-y: auto;
+}
+
+.labelFilterRow label {
+    margin-left: 4px;
+    overflow-wrap: anywhere;
 }

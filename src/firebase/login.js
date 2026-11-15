@@ -10,6 +10,7 @@ import { Collection } from '../constants/Collection';
 import { setUpRecommendationsListener, cancelRecommendationsListener } from '../listeners/recommendations';
 import { setUpListEntriesListener, cancelListEntriesListener } from '../listeners/listEntries';
 import { setUpFriendsListener, cancelFriendsListener } from '../listeners/friends';
+import { setUpLabelsListener, cancelLabelsListener } from '../listeners/labels';
 import swrl from '../components/swrl';
 import { updateDeviceToken } from './messaging';
 /** @type {import('firebase/auth').Auth} */
@@ -127,6 +128,7 @@ function handleLoginSuccess(firestore) {
     setUpRecommendationsListener(firestore);
     setUpListEntriesListener(firestore);
     setUpFriendsListener(firestore);
+    setUpLabelsListener(firestore);
     showLoginButtons();
     updateDeviceToken(firestore);
     /** @type {HTMLImageElement} */
@@ -181,6 +183,7 @@ function handleAnonymous() {
     cancelRecommendationsListener();
     cancelListEntriesListener();
     cancelFriendsListener();
+    cancelLabelsListener();
     loggingInView.classList.add('hidden');
     loggingInAnonymousView.classList.add('hidden');
 }
@@ -193,6 +196,7 @@ export function pauseUserListeners() {
     cancelRecommendationsListener();
     cancelListEntriesListener();
     cancelFriendsListener();
+    cancelLabelsListener();
 }
 
 /**
@@ -206,6 +210,7 @@ export function resumeUserListeners(firestore) {
     setUpRecommendationsListener(firestore);
     setUpListEntriesListener(firestore);
     setUpFriendsListener(firestore);
+    setUpLabelsListener(firestore);
 }
 
 /** Puts the page into its signed-out state and stops my listeners. */
@@ -221,6 +226,7 @@ export function handleLogout() {
     cancelRecommendationsListener();
     cancelListEntriesListener();
     cancelFriendsListener();
+    cancelLabelsListener();
     loggingInView.classList.add('hidden');
     loggingInAnonymousView.classList.add('hidden');
 }

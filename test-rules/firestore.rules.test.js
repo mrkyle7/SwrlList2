@@ -378,6 +378,27 @@ describe('private comments (copied from the swrl-firebase skill)', () => {
     });
 });
 
+describe('private labels', () => {
+    const labels = (uid) => `swrlers/${uid}/labels/film-1`;
+    it('are the owner\'s alone, and limited in size', async () => {
+        await assertSucceeds(setDoc(doc(as('owner'), labels('owner')), { labels: ['comedy', 'date night'], updated: serverTimestamp() }));
+        await assertSucceeds(getDoc(doc(as('owner'), labels('owner'))));
+        await assertSucceeds(getDocs(collection(as('owner'), 'swrlers/owner/labels')));
+        // not even a friend, whatever the list entry's visibility
+        await assertFails(getDoc(doc(as('bob'), labels('owner'))));
+        await assertFails(getDocs(collection(as('bob'), 'swrlers/owner/labels')));
+        await assertFails(getDoc(doc(signedOut(), labels('owner'))));
+        await assertFails(setDoc(doc(as('bob'), labels('owner')), { labels: ['x'], updated: serverTimestamp() }));
+        await assertFails(setDoc(doc(as('owner'), labels('owner')), { labels: [], updated: serverTimestamp() }));
+        await assertFails(setDoc(doc(as('owner'), labels('owner')), { labels: 'comedy', updated: serverTimestamp() }));
+        await assertFails(setDoc(doc(as('owner'), labels('owner')), { labels: ['x'], updated: serverTimestamp(), extra: 1 }));
+        await assertFails(setDoc(doc(as('owner'), labels('owner')),
+            { labels: Array.from({ length: 21 }, (_, i) => 'l' + i), updated: serverTimestamp() }));
+        await assertFails(setDoc(doc(as('owner'), labels('owner')), { labels: ['a'.repeat(601)], updated: serverTimestamp() }));
+        await assertSucceeds(deleteDoc(doc(as('owner'), labels('owner'))));
+    });
+});
+
 describe('recommendations', () => {
     const recommendation = (from, to) => ({ from, to, message: 'm', swrlID: 'film-1', created: serverTimestamp() });
     beforeEach(async () => {

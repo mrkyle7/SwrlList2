@@ -59,3 +59,15 @@ export const friendsPath = (uid) => [Collection.SWRLERS, uid, 'friends'];
  * @return {string}
  */
 export const friendRequestId = (from, to) => `${from}_${to}`;
+
+/**
+ * Where one user's private labels live: swrlers/{uid}/labels/{swrlID}, one
+ * doc per swrl holding `{ labels: string[], updated }`.
+ *
+ * Like private comments they sit under the user's own document, not on the
+ * list entry (which friends or everyone may read), so only the owner sees them.
+ *
+ * @param {string} uid
+ * @return {string[]} path segments, for collection(firestore, ...segments)
+ */
+export const labelsPath = (uid) => [Collection.SWRLERS, uid, 'labels'];

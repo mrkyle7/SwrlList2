@@ -22,6 +22,9 @@ export class State {
     filters = [];
     /** @type {WhereFilter} */
     typeFilter = undefined;
+    /** My private labels to filter my list by; a swrl must have them all.
+     * @type {string[]} */
+    labelFilters = [];
     
     /** @type {import('firebase/auth').User} */
     swrler;
