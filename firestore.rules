@@ -90,6 +90,19 @@ service cloud.firestore {
         allow read, delete: if isOwner(uid);
       }
 
+      // Private labels: one doc per swrl with the owner's labels for it.
+      // Owner only, like private comments. At most 20 labels, and no more
+      // than 600 characters in all (the app allows 30 per label).
+      match /labels/{swrlID} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(['labels', 'updated'])
+          && request.resource.data.labels is list
+          && request.resource.data.labels.size() > 0
+          && request.resource.data.labels.size() <= 20
+          && request.resource.data.labels.join('').size() <= 600;
+      }
+
       // Private notes, readable and writable by the owner only.
       match /privateComments/{swrlID}/comments/{commentID} {
         allow read, delete: if request.auth != null && request.auth.uid == uid;

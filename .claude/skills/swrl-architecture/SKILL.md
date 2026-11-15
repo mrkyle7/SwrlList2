@@ -53,7 +53,7 @@ containers that views attach into.
   `addListEntriesChangeListener`), `friends.js` (my friends, incoming and sent
   requests: `isFriend`, `getFriends`, `getRelationshipTo`, `whenFriendsReady`,
   `addFriendsChangeListener`, the request badge), `recommendations.js` (inbox and
-  sent, `isRecommendedToMe`), `privateComments.js`. They start in
+  sent, `isRecommendedToMe`), `privateComments.js`, `labels.js` (my private labels). They start in
   `src/firebase/login.js` for a signed-in, non-anonymous user and stop on
   logout; `pauseUserListeners` / `resumeUserListeners` bracket account deletion.
 - `src/screens/` + `src/views/` — besides the list/swrl/swrler/recommendation

@@ -155,6 +155,18 @@ and add a test in `test-rules/firestore.rules.test.js`. Rules the owner relies o
 private comments owner-only, `swrls` counts and legacy arrays not writable by
 clients, friends docs not writable by clients, `swrlers` never with an email.
 
+### Private labels
+
+`swrlers/{uid}/labels/{swrlID}` holds `{ labels: string[], updated }`: one
+user's private labels for one Swrl (`labelsPath()` in
+`src/constants/Collection.js`; pure logic in `src/model/labels.js`). Owner-only
+by rule, like private comments. They are NOT on the list entry, because friends
+or everyone may read that. `src/listeners/labels.js` caches all of mine
+(`getLabelsFor`, `getAllMyLabels`); `src/actions/setSwrlLabels.js` replaces a
+swrl's labels (an empty list deletes the doc). The filter popup lists my labels
+on my own lists and `State.labelFilters` holds the selection (a swrl must have
+them all). Account deletion removes them with the rest of `swrlers/{uid}`.
+
 ### Private comments
 
 `swrlers/{uid}/privateComments/{swrlID}/comments/{commentID}` holds

@@ -78,7 +78,12 @@
       <a href="https://github.com/mrkyle7/SwrlList2/issues" target="_blank" rel="noopener">Support</a>
     </div>
   </div>
-  <input id="swrlSearch" class="hidden" type="text" autofocus>
+  <div id="swrlSearchBar" class="searchField">
+    <input id="swrlSearch" class="hidden" type="text" placeholder="Search" enterkeyhint="search" autocomplete="off" autofocus>
+    <button type="button" class="searchClear" aria-label="Clear search" title="Clear">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8.5 8.5l7 7m0-7l-7 7"/></svg>
+    </button>
+  </div>
   <div id="menuSwipeable"></div>
   <div id='centre' class="main">
     <div id="fade" class="hidden"></div>
@@ -110,6 +115,10 @@
         <label for="allTypes">All</label>
         <br><br><input type="checkbox" id="recommended" name="filter" value="1">
         <label for="recommended">Recommended to you</label><br>
+        <div id="labelFilters" class="hidden">
+          <h3>Your labels</h3>
+          <div id="labelFilterList"></div>
+        </div>
         <h3>Sort</h3>
         <input type="radio" id="alphabetical" name="sort" value="1">
         <label for="alphabetical">Alphabetical</label><br>
@@ -219,7 +228,12 @@
         <div class="friendsSection">
           <h2 class="friendsHeading">Add a friend</h2>
           <form id="friendSearchForm" autocomplete="off">
-            <input id="friendSearch" class="friendSearchInput" type="search" placeholder="Search by name" autocomplete="off">
+            <div class="searchField">
+              <input id="friendSearch" class="friendSearchInput" type="search" placeholder="Search by name" autocomplete="off">
+              <button type="button" class="searchClear" aria-label="Clear search" title="Clear">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8.5 8.5l7 7m0-7l-7 7"/></svg>
+              </button>
+            </div>
           </form>
           <p id="friendSearchHint" class="friendsEmpty">Type at least 2 letters of their name.</p>
           <div id="friendSearchResults"></div>
@@ -254,7 +268,7 @@
           </div>
           <div id="deleteAccountSection" class="friendsSection settingsDanger">
             <h2 class="friendsHeading">Delete my account</h2>
-            <p class="settingsNote">This permanently deletes your account and everything in it: your lists, your private notes, your friends and friend requests, your saved searches and the recommendations you sent. It can't be undone.</p>
+            <p class="settingsNote">This permanently deletes your account and everything in it: your lists, your private notes and labels, your friends and friend requests, your saved searches and the recommendations you sent. It can't be undone.</p>
             <button id="deleteAccountStart" class="settingsDangerButton settingsDangerButtonQuiet" type="button">Delete my account…</button>
             <div id="deleteAccountConfirm" class="settingsConfirm hidden">
               <p class="settingsConfirmText">Are you sure? Your account and all of its data will be gone for good.</p>
@@ -315,6 +329,7 @@
       </div>
 
       <div id="swrlFullPageCards" class="cardsContainer"></div>
+      <div id="swrlFullPageLabels" class="cardsContainer"></div>
       <div id="swrlFullPagePrivateComments" class="cardsContainer"></div>
       <div id="swrlFullPageSocialCards" class="cardsContainer"></div>
       <div id="swrlAttribution" class="hidden"></div>
@@ -400,6 +415,28 @@
         <img class="loadingSpinnerSmall" src="img/spinner.gif" />
       </div>
     </div>
+  </template>
+  <template id="labelsCard">
+    <div class="card labelsCard">
+      <p class="cardTitle">Labels</p>
+      <div class="cardContent">
+        <p class="privateCommentHint">Only you can see these. Filter your list by label from the filter button.</p>
+        <div class="labelChips"></div>
+        <form class="labelForm" autocomplete="off">
+          <input class="labelInput" type="text" list="labelSuggestions" placeholder="Add a label" aria-label="Add a label" enterkeyhint="done">
+          <datalist id="labelSuggestions"></datalist>
+          <input type="submit" class="labelAdd" value="Add">
+        </form>
+      </div>
+    </div>
+  </template>
+  <template id="labelChip">
+    <span class="labelChip">
+      <span class="labelChipText"></span>
+      <button type="button" class="labelChipRemove" title="Remove">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10m0-10L7 17"/></svg>
+      </button>
+    </span>
   </template>
   <template id="privateCommentsCard">
     <div class="card">

@@ -32,6 +32,7 @@ import { Swrl } from './model/swrl';
 import { Category, WATCH, LISTEN, READ, PLAY } from './constants/Category';
 import { inboxReady } from './listeners/recommendations';
 import { getSwrler } from './firebase/swrler';
+import { initSearchClearButtons } from './components/searchClear';
 
 /** @type {StateController} */
 let stateController;
@@ -58,6 +59,7 @@ const app = {
             initMessaging(firebaseApp, firestore);
             stateController = new StateController(firestore);
             stateController.initialiseAllViews();
+            initSearchClearButtons();
 
             window.onpopstate =
                 /**

@@ -223,7 +223,8 @@ Checklist:
 
 1. Review `firestore.rules` against the rules now in the Firebase console
    (Firestore Database, Rules). The repo file is the intended full set (every
-   collection the app uses, including the private comments rule). Do not apply
+   collection the app uses, including the private comments rule and the
+   private labels rule added later; labels do not work until it is applied). Do not apply
    it yet. If `scripts/remove-swrler-emails.js` has never been run, run it now
    (`./scripts/remove-swrler-emails.js --dry-run`, then for real): profiles are
    readable by every signed-in user.
