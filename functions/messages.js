@@ -67,11 +67,47 @@ function deadTokens(tokens, responses) {
 }
 
 /**
- * Text of the owner's alert when a user profile is written or deleted, or
- * undefined when no alert should be sent.
+ * Whether two Firestore timestamps (or Dates, or millisecond numbers) are the
+ * same moment. Two missing values are the same; one missing is a difference.
  *
- * @param {{uid?: string, displayName?: string} | undefined} before
- * @param {{uid?: string, displayName?: string} | undefined} after
+ * @param {any} a
+ * @param {any} b
+ * @returns {boolean}
+ */
+function sameTime(a, b) {
+    if (a === undefined || a === null || b === undefined || b === null) {
+        return (a === undefined || a === null) && (b === undefined || b === null);
+    }
+    if (typeof a.isEqual === 'function') {
+        try {
+            return a.isEqual(b);
+        } catch (e) {
+            // fall through to comparing milliseconds
+        }
+    }
+    return millis(a) === millis(b);
+}
+
+/**
+ * @param {any} value a Timestamp, Date or number
+ * @returns {number}
+ */
+function millis(value) {
+    if (typeof value === 'number') return value;
+    if (typeof value.toMillis === 'function') return value.toMillis();
+    if (value instanceof Date) return value.getTime();
+    if (typeof value.seconds === 'number') return value.seconds * 1000 + Math.floor((value.nanoseconds || 0) / 1e6);
+    return NaN;
+}
+
+/**
+ * Text of the owner's alert when a user profile is created, logged into or
+ * deleted, or undefined when no alert should be sent. A write that leaves
+ * `lastLoginTime` as it was (for example a change of default visibility) is
+ * not a login.
+ *
+ * @param {{uid?: string, displayName?: string, lastLoginTime?: any} | undefined} before
+ * @param {{uid?: string, displayName?: string, lastLoginTime?: any} | undefined} after
  * @param {string} ownerUid never alert the owner about themselves
  * @returns {string | undefined}
  */
@@ -81,7 +117,13 @@ function userActivityText(before, after, ownerUid) {
         return undefined;
     }
     const name = swrler.displayName || 'An unnamed user';
-    return after ? `User ${name} has just logged in.` : `User ${name} was deleted`;
+    if (!after) {
+        return `User ${name} was deleted`;
+    }
+    if (before && sameTime(before.lastLoginTime, after.lastLoginTime)) {
+        return undefined;
+    }
+    return `User ${name} has just logged in.`;
 }
 
 module.exports = { recommendationMessage, friendRequestMessage, deadTokens, userActivityText, SITE_URL };
