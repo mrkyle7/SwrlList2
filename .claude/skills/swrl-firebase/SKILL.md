@@ -34,7 +34,8 @@ worker.
 
 `npm run build:emulators` builds the app pointed at local emulators (Firestore
 on 8085, Auth on 9099; see `firebase.json`). Start them with
-`npx firebase-tools emulators:start --only auth,firestore --project swrl-1118`
+`npx firebase-tools emulators:start --config firebase.emulators.json --only auth,firestore --project swrl-1118`
+(that config also loads `firestore.rules`)
 (needs Java), then `npm start`. This is the safe way to exercise sign-in and
 data changes; never test against the live project.
 

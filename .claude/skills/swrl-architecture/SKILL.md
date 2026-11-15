@@ -53,10 +53,13 @@ containers that views attach into.
 ## Conventions
 
 - **One action per file** in `src/actions/`. Each default-exports a function
-  that takes `(swrl, firestore)` (sometimes extra args) and returns the
-  Firestore promise. Use `FieldValue.arrayUnion` / `arrayRemove` on the
-  `later` / `done` / `loved` / `deleted` / `isRecommended` arrays keyed by
-  `swrlUser.uid`. Do **not** read-modify-write these arrays.
+  that takes `(swrl, firestore)` (sometimes extra args) and returns a promise.
+  List actions (`addSwrlToList`, `markASwrlAsDone`, ...) call
+  `writeListEntry`, which sets flags on MY entry
+  (`swrlers/{uid}/listEntries/{swrlID}`) and refreshes the shared swrl's
+  details in one batch. Never write uid arrays or counts on `swrls/{id}`
+  (the rules refuse them) and never read membership from the shared doc: use
+  `getListEntry` from `src/listeners/listEntries.js`.
 - **Listeners live in `src/listeners/`** and export both
   `setUpXListener(firestore)` and `cancelXListener()`, plus a mutable cache
   object that views read from. Errors count up into a local `errorCount`

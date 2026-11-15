@@ -258,3 +258,48 @@ until they refresh; once the rules are applied those writes are refused.
   export of `functions/index.js`.
 - The migration's recount counts `later`/`done`/`loved` flags from entries,
   including entries flagged `deleted`, exactly like `listEntryCounts`.
+
+## Phase 2 decisions (recorded while building)
+
+- `src/listeners/listEntries.js` holds my entries in an in-memory cache and
+  exposes `getListEntry`, `getAllListEntries`, `whenListEntriesReady()` /
+  `isListEntriesReady()`, `getDefaultVisibility()` and
+  `setCurrentDefaultVisibility()` (Phase 4 calls the latter when the setting
+  changes). It does not notify views on change: the existing listeners do not
+  either, and buttons toggle optimistically as before. The "ready" promise
+  covers the first snapshot AND the read of `defaultVisibility`, so an action
+  never stamps a new entry with a wrong default. It resolves at once when
+  nobody is signed in.
+- Deviation (fail closed): if reading `swrlers/{uid}.defaultVisibility` fails,
+  new entries are `private` until the next login, never `friends`.
+- Actions share `src/actions/writeListEntry.js` (one `writeBatch`: my entry +
+  the shared doc's details); the pure data builders are in
+  `src/model/listEntryWrite.js`. Every action now also sets `updated` on the
+  entry (the old `deleteSwrl` / `unloveASwrl` did not touch it on the shared
+  doc; the shared doc keeps the old behaviour).
+- `Swrl` lost its uid arrays: `later/done/deleted/loved/isRecommended` are gone
+  and it carries `laterCount`, `doneCount`, `lovedCount` instead, taken from
+  the count fields or, per field when missing, from the legacy array length
+  (`countOrLegacy`, used only there). Constructor order changed to
+  `(type, category, swrlID, details, added, updated, recommendations, laterCount, doneCount, lovedCount)`.
+- Counts are not adjusted locally after an action: the old UI never bumped the
+  number either, it only toggled the buttons.
+- Your List is built from the cache (`category`, `later`, optional type), sorted
+  on the client (`sortListEntries`; titles compare case-insensitively, unlike
+  the old Firestore order). `renderSwrl` fetches `swrls/{id}` per card for the
+  counts (also for the swrler list and search/recommend) and falls back to the
+  entry's own details if the doc is missing or unreadable, so cards appear
+  immediately and fill in as the reads arrive.
+- Swrler list: query on that user's `listEntries` with `visibility in [...]`
+  from `visibilitiesViewerMayQuery(viewer, owner, false)` (nothing extra for
+  the owner), sorted on the client.
+- Swrlers card: `getEntriesForSwrl` in `src/firebase/swrlEntries.js` merges
+  `swrlersCardSources` (`myEntrySource`, `publicEntriesSource`), one entry per
+  uid, first source wins. Phase 4 adds a friends source to that array.
+- "Recommended to you" and the full page marker use `isRecommendedToMe`
+  (`src/listeners/recommendations.js`, pure part `inboxHasSwrl`). A dismissed
+  recommendation still counts, as `isRecommended` never cleared either.
+- `firebase.emulators.json` (used with `--config`) points the Firestore
+  emulator at `firestore.rules`. `firebase.json` is untouched. The deploy job
+  runs `firebase deploy --only functions`, so a `firestore` section there would
+  not have been deployed either, but the separate file keeps it impossible.
