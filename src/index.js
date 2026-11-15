@@ -121,6 +121,9 @@ const app = {
                     case 'friends':
                         friendsRoute(startState);
                         break;
+                    case 'settings':
+                        settingsRoute(startState);
+                        break;
                     default:
                         console.log('Not a recognised deep link URL')
                         stateController.changeState(startState);
@@ -192,6 +195,20 @@ function friendsRoute(startState) {
     document.getElementById('loadingView').classList.add('hidden');
     if (swrlUser && !swrlUser.isAnonymous) {
         stateController.changeState(new State(stateController.friendsView));
+    } else {
+        stateController.changeState(startState);
+    }
+}
+
+/**
+ * Settings needs a real account; anyone else lands on the home page.
+ *
+ * @param {State} startState
+ */
+function settingsRoute(startState) {
+    document.getElementById('loadingView').classList.add('hidden');
+    if (swrlUser && !swrlUser.isAnonymous) {
+        stateController.changeState(new State(stateController.settingsView));
     } else {
         stateController.changeState(startState);
     }

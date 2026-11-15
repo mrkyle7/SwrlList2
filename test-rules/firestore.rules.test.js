@@ -91,6 +91,24 @@ describe('list entries: writes', () => {
         await assertSucceeds(updateDoc(doc(db, 'swrlers/owner/listEntries/new'), { visibility: 'private' }));
         await assertSucceeds(deleteDoc(doc(db, 'swrlers/owner/listEntries/new')));
     });
+    it('owner can change only visibility / visibilityOverride on existing entries, in one batch (Settings)', async () => {
+        const db = as('owner');
+        const batch = writeBatch(db);
+        for (const id of ['priv', 'fr', 'pub']) {
+            batch.update(doc(db, `swrlers/owner/listEntries/${id}`), { visibility: 'private' });
+        }
+        await assertSucceeds(batch.commit());
+        await assertSucceeds(updateDoc(doc(db, 'swrlers/owner/listEntries/pub'),
+            { visibility: 'public', visibilityOverride: true }));
+        await assertSucceeds(updateDoc(doc(db, 'swrlers/owner/listEntries/pub'),
+            { visibility: 'friends', visibilityOverride: false }));
+        // an invalid value anywhere in the batch refuses the whole batch
+        const bad = writeBatch(db);
+        bad.update(doc(db, 'swrlers/owner/listEntries/fr'), { visibility: 'public' });
+        bad.update(doc(db, 'swrlers/owner/listEntries/priv'), { visibility: 'everyone' });
+        await assertFails(bad.commit());
+        await assertFails(updateDoc(doc(db, 'swrlers/owner/listEntries/pub'), { uid: 'carol' }));
+    });
     it('rejects a wrong uid, swrlID or visibility', async () => {
         const db = as('owner');
         await assertFails(setDoc(doc(db, 'swrlers/owner/listEntries/x'), entry('someoneelse', 'x', 'public')));

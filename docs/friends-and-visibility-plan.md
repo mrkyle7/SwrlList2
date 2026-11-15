@@ -350,3 +350,55 @@ until they refresh; once the rules are applied those writes are refused.
 - For Phase 4: pass `isFriend(ownerUid)` from the friends listener to
   `ListEntry.isVisibleTo` / `visibilitiesViewerMayQuery`; the swrler list
   already does. Friend rows and the control reuse `.friendRow`, `.friendButton`.
+
+## Phase 4 decisions (recorded while building)
+
+- Settings is `/settings` (`src/screens/settingsScreen.js`, `src/views/settings.js`),
+  wired like Friends: sidebar item `#settingsMenu` (real accounts only, shown and
+  hidden in `login.js`), `server.js` `appRoutes`, `www/sw.js` route list,
+  `src/index.js` deep link (anonymous visitors land on home), `StateController`.
+  If the view is shown while signed out (history navigation), it says "Log in to
+  see your settings." and nothing else. The radios save at once, with a toaster on
+  success; on failure the radio goes back to the stored default and an error
+  toaster shows. The radios are disabled while saving.
+- `setDefaultVisibility(visibility, firestore)` write order (`writeOrder` in
+  `src/model/visibilitySettings.js`, unit tested):
+  - **more private (or the same)**: rewrite the entries first (batches of 400,
+    `update` of `visibility` only, so `updated` and the list order are untouched),
+    then the profile. A failure leaves some entries more private than the stored
+    default says, never less.
+  - **less private**: write the profile first, then the entries. A failure leaves
+    entries as private as they were, never more visible than the new setting.
+  - The in-memory default (`setCurrentDefaultVisibility`) changes only when
+    everything was written. Entries to rewrite are the ones with
+    `visibilityOverride == false` AND not yet at the target, taken from the
+    own-entries cache, so choosing the same value again after a failure finishes
+    the job and an already-complete run writes nothing.
+- `setSwrlVisibility(swrlID, visibility | 'default', firestore)`: `updateDoc` on
+  my entry with `{visibility, visibilityOverride: true}` or, for "default",
+  `{visibility: <my default>, visibilityOverride: false}`. `updated` is never
+  written. It needs the entry to exist, so an update of a missing entry fails
+  instead of creating a stub the rules would refuse.
+- The per-swrl control ("Visible to:", a `<select>` with Default (X) / Private /
+  Friends / Public) sits right under the swrl's buttons on the full page, above
+  the cards. It appears only while my entry is on a list (later, done or loved) and
+  follows my entry live. To make that possible `src/listeners/listEntries.js` got
+  `addListEntriesChangeListener` (a plain subscriber set called after each
+  snapshot, local writes included). This replaces the Phase 2 remark that the
+  listener notifies nobody. It is used only by this control.
+- Swrler page empty states (`emptySwrlerMessage`): own page unchanged ("No Swrls to
+  see here :("); a friend sees "Nothing here yet."; anyone else (stranger or
+  anonymous) sees "{Name} only shares swrls with friends, or has nothing public
+  here." The friendship bar stays. Nothing tells a stranger whether hidden entries
+  exist.
+- No change to `firestore.rules`. `test-rules` gained one test for the owner's
+  batch update of `visibility` / `visibilityOverride` (and a bad value refusing the
+  whole batch).
+- Leak check of the client (`collectionGroup`, `listEntriesPath`, `getDocs(`):
+  the only other-user reads of entries are the swrler list (query carries
+  `visibility in visibilitiesViewerMayQuery(...)`), the Swrlers card (a `getDoc`
+  per friend, denied reads swallowed; a collection group query constrained to
+  `visibility == 'public'`) and my own listener. `getDocs` on `swrlers` (the
+  recommend and friend searches) read the public profile (name, photo,
+  `defaultVisibility`) which the rules allow to any signed-in user by design.
+  `getDocs` on `swrls` reads the shared doc (details and anonymous counts).

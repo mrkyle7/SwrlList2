@@ -1,5 +1,6 @@
 import { showPrivateComments, hidePrivateComments } from '../components/privateComments';
 import { showAttribution, hideAttribution } from '../components/attribution';
+import { showSwrlVisibility, hideSwrlVisibility } from '../components/swrlVisibility';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { UIView } from './UIView';
 import { StateController } from './stateController';
@@ -66,6 +67,7 @@ async function showSwrlFullPage(stateController) {
     const firestore = stateController.firestore;
     showAttribution('swrlAttribution', swrl.type.attribution);
     showPrivateComments(swrl, firestore);
+    showSwrlVisibility(swrl, firestore);
 
     swrlImageLarge.src = swrl.details.imageUrl;
     swrlImageLarge.addEventListener('error',
@@ -603,6 +605,7 @@ function destroySwrlFullPage() {
     socialCardsToken = undefined;
     hideAttribution('swrlAttribution');
     hidePrivateComments();
+    hideSwrlVisibility();
     swrlFullPageView.classList.add('hidden');
     loadingbar.classList.add('hidden');
     if (detailController) {

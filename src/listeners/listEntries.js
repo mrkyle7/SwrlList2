@@ -67,6 +67,13 @@ function subscribe(firestore, uid) {
                 }
             });
             resolveFirstSnapshot();
+            changeListeners.forEach(listener => {
+                try {
+                    listener();
+                } catch (error) {
+                    console.error(error);
+                }
+            });
         }, error => {
             errorCount++;
             console.error('List entries listener failed, error count: ' + errorCount);
@@ -159,13 +166,28 @@ export function whenListEntriesReady() {
 }
 
 /**
- * My current default visibility, applied to new entries. A later phase adds
- * the setting and calls setCurrentDefaultVisibility.
+ * My current default visibility, applied to new entries (changed on the
+ * Settings screen, which calls setCurrentDefaultVisibility).
  *
  * @return {Visibility}
  */
 export function getDefaultVisibility() {
     return defaultVisibility;
+}
+
+/** @type {Set<() => void>} */
+const changeListeners = new Set();
+
+/**
+ * Calls `listener` whenever the entries cache has changed (a local write
+ * counts), so a view showing one entry's state can follow it live.
+ *
+ * @param {() => void} listener
+ * @return {() => void} call it to stop listening
+ */
+export function addListEntriesChangeListener(listener) {
+    changeListeners.add(listener);
+    return () => { changeListeners.delete(listener); };
 }
 
 /**

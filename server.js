@@ -296,7 +296,7 @@ app.use('/__', function (req, res) {
 const appRoutes = [
   '/',
   '/swrl/:id', '/swrler/:id', '/recommend/:id',
-  '/savedsearches', '/friends', '/recommendations', '/watch', '/listen', '/read', '/play'
+  '/savedsearches', '/friends', '/settings', '/recommendations', '/watch', '/listen', '/read', '/play'
 ];
 
 app.get(appRoutes, function (req, res) {

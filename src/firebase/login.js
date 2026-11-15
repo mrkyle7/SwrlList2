@@ -148,6 +148,7 @@ function handleLoginSuccess(firestore) {
     document.getElementById("logout").classList.remove('hidden');
     document.getElementById("savedSearchesMenu").classList.remove('hidden');
     document.getElementById("friendsMenu").classList.remove('hidden');
+    document.getElementById("settingsMenu").classList.remove('hidden');
     document.getElementById("login").classList.add('hidden');
     document.getElementById("loginStatus").innerHTML = swrlUser.displayName;
 }
@@ -173,6 +174,7 @@ function handleAnonymous() {
     document.querySelector("#logout").classList.add('hidden');
     document.querySelector("#savedSearchesMenu").classList.add('hidden');
     document.querySelector("#friendsMenu").classList.add('hidden');
+    document.querySelector("#settingsMenu").classList.add('hidden');
     document.querySelector("#login").classList.remove('hidden');
     document.querySelector("#userPhoto").classList.add('hidden');
     document.querySelector("#loginStatus").innerHTML = "Mystery Swrler";
@@ -188,6 +190,7 @@ function handleLogout() {
     document.querySelector("#logout").classList.add('hidden');
     document.querySelector("#savedSearchesMenu").classList.add('hidden');
     document.querySelector("#friendsMenu").classList.add('hidden');
+    document.querySelector("#settingsMenu").classList.add('hidden');
     document.querySelector("#login").classList.remove('hidden');
     document.querySelector("#userPhoto").classList.add('hidden');
     document.querySelector("#loginStatus").innerHTML = "Not Logged In";

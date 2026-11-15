@@ -510,7 +510,7 @@ body {
     position: absolute;
 }
 
-#swrlList, #searchResults, #searchView, #recommend, #recommendationList, #swrlFullPage, #savedSearches, #friendsView {
+#swrlList, #searchResults, #searchView, #recommend, #recommendationList, #swrlFullPage, #savedSearches, #friendsView, #settingsView {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -540,7 +540,7 @@ body {
     display: contents;
 }
 
-#recommend, #swrlFullPage, #savedSearches, #friendsView {
+#recommend, #swrlFullPage, #savedSearches, #friendsView, #settingsView {
     top: 56px;
     overflow: scroll;
 }
@@ -1016,7 +1016,7 @@ body {
     border: 2px solid #fff;
 }
 
-#friends {
+#friends, #settings {
     padding: 0 4px 24px 4px;
     box-sizing: border-box;
 }
@@ -1132,6 +1132,75 @@ body {
     border-bottom: 1px solid #e0e0e0;
 }
 
+/* Settings */
+
+.settingsOptions {
+    margin: 4px 0;
+}
+
+.settingsOption {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 4px 0;
+    padding: 10px 8px;
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    cursor: pointer;
+}
+
+.settingsOption input {
+    flex: none;
+    margin: 3px 0 0 0;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--swrl-blue);
+}
+
+.settingsOptionText {
+    display: flex;
+    flex-direction: column;
+}
+
+.settingsOptionTitle {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.settingsOptionHint {
+    font-size: 14px;
+    color: grey;
+}
+
+.settingsNote {
+    margin: 8px 4px;
+    font-size: 14px;
+    color: #444;
+}
+
+/* The per-swrl "Visible to" control on the full page */
+
+.swrlVisibility {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 4px 0 8px 0;
+    font-size: 14px;
+    color: #444;
+}
+
+.swrlVisibility select {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 4px 8px;
+    border: 2px solid #222222;
+    border-radius: 0;
+    background: #fff;
+}
+
 @media only screen and (min-width: 1025px) {
     .main .sections {
         top: 68px;
@@ -1152,13 +1221,13 @@ body {
     #searchResults, #searchView, #savedSearchesCard {
         top: 156px;
     }
-    #recommend, #swrlFullPage, #savedSearches, #friendsView {
+    #recommend, #swrlFullPage, #savedSearches, #friendsView, #settingsView {
         top: 56px;
     }
     .main .section {
         padding-left: 0px;
     }
-    .main .section, #centre, .tabs, #swrlSearch, .swrlsContainer, #recommend, #swrlFullPage, #friendsView, #loggingInView {
+    .main .section, #centre, .tabs, #swrlSearch, .swrlsContainer, #recommend, #swrlFullPage, #friendsView, #settingsView, #loggingInView {
         margin-left: auto;
         margin-right: auto;
         width: 640px;

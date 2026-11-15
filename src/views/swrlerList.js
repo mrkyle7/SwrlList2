@@ -7,6 +7,7 @@ import { Category } from '../constants/Category';
 import { swrlUser } from '../firebase/login';
 import { renderSwrl } from '../components/swrl';
 import { Constant } from '../constants/Constant';
+import { emptySwrlerMessage } from '../model/visibilitySettings';
 import { Swrl } from '../model/swrl';
 import { ListEntry, sortListEntries, visibilitiesViewerMayQuery } from '../model/listEntry';
 import { whenListEntriesReady } from '../listeners/listEntries';
@@ -147,7 +148,7 @@ export function showList(swrler, view, firestore, stateController) {
                 const swrls = entries.map(entry => entry.toSwrl()).filter(swrl => filters.every(f => f.match(swrl, userId)));
                 if (swrls.length === 0) {
                     console.log("No Swrls found");
-                    showNoSwrlsView();
+                    showNoSwrlsView(swrler);
                 } else {
                     renderNextSwrls(swrls, stateController, view, firestore, true);
                 }
@@ -158,7 +159,7 @@ export function showList(swrler, view, firestore, stateController) {
         .catch(function (error) {
             console.error(error);
             console.error("Couldn't get swrls!");
-            showNoSwrlsView();
+            showNoSwrlsView(swrler);
         })
 }
 
@@ -293,10 +294,17 @@ export function destroyList() {
     currentID = undefined;
 }
 
-function showNoSwrlsView() {
+/**
+ * The empty state, worded for the viewer's relationship to the swrler. Nothing
+ * here says whether entries exist that the viewer may not see.
+ *
+ * @param {import('firebase/auth').User} swrler
+ */
+function showNoSwrlsView(swrler) {
     document.getElementById('messageContainer').classList.remove('hidden');
     document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
-    document.getElementById('message').innerText = 'No Swrls to see here :(';
+    document.getElementById('message').innerText = emptySwrlerMessage(
+        swrlUser ? swrlUser.uid : undefined, swrler.uid, swrler.displayName, isFriend(swrler.uid));
 }
 
 

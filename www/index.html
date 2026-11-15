@@ -68,6 +68,9 @@
         <p>Friends</p>
         <b class="menuBadge hidden" id="friendsBadge">0</b>
       </li>
+      <li class="hidden" id="settingsMenu"><img class="menu-image" src="img/settings-24px-white.svg">
+        <p>Settings</p>
+      </li>
       <li class="hidden" id="logout">Logout</li>
     </ul>
   </div>
@@ -223,6 +226,31 @@
         </div>
       </div>
     </div>
+    <div id="settingsView" class="hidden">
+      <div id="settings" class="swrlsContainer">
+        <p id="settingsSignedOut" class="friendsEmpty hidden">Log in to see your settings.</p>
+        <div id="settingsContent">
+          <div class="friendsSection">
+            <h2 class="friendsHeading">Who can see your swrls</h2>
+            <div class="settingsOptions" role="radiogroup" aria-label="Who can see your swrls">
+              <label class="settingsOption">
+                <input type="radio" name="defaultVisibility" value="private">
+                <span class="settingsOptionText"><span class="settingsOptionTitle">Private</span><span class="settingsOptionHint">Only you</span></span>
+              </label>
+              <label class="settingsOption">
+                <input type="radio" name="defaultVisibility" value="friends">
+                <span class="settingsOptionText"><span class="settingsOptionTitle">Friends</span><span class="settingsOptionHint">Only people you've added as friends</span></span>
+              </label>
+              <label class="settingsOption">
+                <input type="radio" name="defaultVisibility" value="public">
+                <span class="settingsOptionText"><span class="settingsOptionTitle">Public</span><span class="settingsOptionHint">Anyone</span></span>
+              </label>
+            </div>
+            <p class="settingsNote">You can set a different choice for an individual swrl from that swrl's page. The number of lists a swrl is on is always shown anonymously, whatever you choose.</p>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="recommendationList" class="hidden swrlsContainer"></div>
     <div id="searchView" class="hidden">
       <div id="searchResults" class="hidden swrlsContainer">
@@ -263,6 +291,11 @@
         <div class="pageButtons">
 
         </div>
+      </div>
+
+      <div id="swrlFullPageVisibility" class="swrlVisibility hidden">
+        <label for="swrlVisibilitySelect">Visible to:</label>
+        <select id="swrlVisibilitySelect"></select>
       </div>
 
       <div id="swrlFullPageCards" class="cardsContainer"></div>
