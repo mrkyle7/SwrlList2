@@ -36,7 +36,9 @@ worker.
 on 8085, Auth on 9099; see `firebase.json`). Start them with
 `npx firebase-tools emulators:start --config firebase.emulators.json --only auth,firestore --project swrl-1118`
 (that config also loads `firestore.rules`)
-(needs Java), then `npm start`. This is the safe way to exercise sign-in and
+(needs Java), then `npm start`. Add `functions` to `--only` to run the Cloud Functions too (needs a git-ignored
+`functions/.secret.local` with placeholder `PUSHOVER_TOKEN` / `PUSHOVER_USER`; behind an HTTP proxy, start the emulators without the proxy env
+variables). This is the safe way to exercise sign-in and
 data changes; never test against the live project.
 
 ## Firestore collections (`src/constants/Collection.js`)

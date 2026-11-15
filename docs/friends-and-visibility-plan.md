@@ -303,3 +303,50 @@ until they refresh; once the rules are applied those writes are refused.
   emulator at `firestore.rules`. `firebase.json` is untouched. The deploy job
   runs `firebase deploy --only functions`, so a `firestore` section there would
   not have been deployed either, but the separate file keeps it impossible.
+
+## Phase 3 decisions (recorded while building)
+
+- `src/listeners/friends.js` runs three `onSnapshot`s (my `friends`, requests
+  with `to == me`, requests with `from == me`) for a signed-in, non-anonymous
+  user, idempotent per uid, wired into `login.js` next to the others. Getters:
+  `isFriend`, `getFriends`, `getIncomingRequests`, `getSentRequests`,
+  `getRelationshipTo` (pure part `relationshipTo` in `src/model/friendRequest.js`),
+  `whenFriendsReady()` (first snapshot of all three, resolves at once for
+  anonymous users or after giving up). Views subscribe with
+  `addFriendsChangeListener`. The badge (count of pending requests to me) is
+  updated by the listener itself, like the inbox count: a pill on the Friends
+  menu item and a dot on the hamburger button.
+- Actions take `(uid, firestore)` like the others. `sendFriendRequest` accepts
+  their request instead when the incoming cache holds one; it cannot read the
+  other direction's doc to check (a read of a missing request is refused by the
+  rules, `resource` being null), so the cache is the only check. The rules
+  alone would allow a second request in the other direction; the UI never
+  offers "Add friend" in that case, it offers "Accept".
+- Accepting is completed by a Cloud Function. After pressing Accept the row
+  says "Adding..." for 5 seconds, then "Accepted, finishing up..." for as
+  long as the request stays accepted (no spinner). Once the friends doc exists
+  the accepted request is hidden. Accepted requests do not count in the badge.
+- The add-a-friend search loads all `swrlers` once per visit (as `recommend.js`
+  does) and filters on the client by display name only: at least 2 characters,
+  me excluded, at most 20 shown (with a note when there are more).
+- The friendship control (`src/components/friendControl.js`) is shared by the
+  search results and the swrler page. On the swrler page it is a sticky bar at
+  the top of the list (hidden on my own page and for anonymous viewers). The
+  swrler list waits for `whenFriendsReady()` and reloads when the viewer
+  becomes (or stops being) a friend of that swrler.
+- The Swrlers card: `friendsEntriesSource` does one `getDoc` per friend. The
+  rules answer permission-denied both for a private entry and for a missing
+  one, so permission-denied is swallowed silently; other errors are logged.
+  Order is me, friends, public.
+- `/friends` is a route in `server.js`, `www/sw.js` (app-shell routes) and
+  `src/index.js` (anonymous visitors land on the home page). The push
+  notification link `${SITE_URL}/friends` lands there.
+- No change to `firestore.rules`. `firebase.emulators.json` now also starts the
+  Functions emulator (port 5001); it needs `functions/.secret.local` with
+  `PUSHOVER_TOKEN` / `PUSHOVER_USER` placeholders (git-ignored), and in
+  sandboxes with an HTTP proxy the emulators must run without the proxy
+  variables (`env -u HTTPS_PROXY -u https_proxy -u JAVA_TOOL_OPTIONS ...`), or the
+  Firestore trigger registration fails.
+- For Phase 4: pass `isFriend(ownerUid)` from the friends listener to
+  `ListEntry.isVisibleTo` / `visibilitiesViewerMayQuery`; the swrler list
+  already does. Friend rows and the control reuse `.friendRow`, `.friendButton`.

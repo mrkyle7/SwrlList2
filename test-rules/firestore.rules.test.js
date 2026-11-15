@@ -291,6 +291,61 @@ describe('friend requests', () => {
     });
 });
 
+describe('the queries and writes the friends client makes (Phase 3)', () => {
+    const pending = (from, to) => ({ from, to, created: serverTimestamp(), status: 'pending' });
+    const requestDoc = (db, from, to) => doc(db, `friendRequests/${from}_${to}`);
+
+    beforeEach(async () => {
+        await env.withSecurityRulesDisabled(async (context) => {
+            const db = context.firestore();
+            await setDoc(requestDoc(db, 'carol', 'owner'), { from: 'carol', to: 'owner', created: new Date(), status: 'pending' });
+            await setDoc(requestDoc(db, 'owner', 'dave'), { from: 'owner', to: 'dave', created: new Date(), status: 'pending' });
+        });
+    });
+
+    it('the three friends listeners: my friends, requests to me and requests from me', async () => {
+        const db = as('owner');
+        await assertSucceeds(getDocs(collection(db, 'swrlers/owner/friends')));
+        const incoming = await assertSucceeds(getDocs(query(collection(db, 'friendRequests'), where('to', '==', 'owner'))));
+        const sent = await assertSucceeds(getDocs(query(collection(db, 'friendRequests'), where('from', '==', 'owner'))));
+        if (incoming.size !== 1 || sent.size !== 1) throw new Error(`expected 1 and 1, got ${incoming.size} and ${sent.size}`);
+    });
+    it('a user cannot list someone else\'s requests, or all of them', async () => {
+        const db = as('carol');
+        await assertFails(getDocs(query(collection(db, 'friendRequests'), where('to', '==', 'owner'))));
+        await assertFails(getDocs(collection(db, 'friendRequests')));
+    });
+    it('"they already asked me": I accept their request (status only) and send no second one', async () => {
+        await assertSucceeds(updateDoc(requestDoc(as('owner'), 'carol', 'owner'), { status: 'accepted' }));
+    });
+    it('the rules alone would allow a second request in the other direction, which is why the client accepts instead', async () => {
+        await assertSucceeds(setDoc(requestDoc(as('owner'), 'owner', 'carol'), pending('owner', 'carol')));
+    });
+    it('decline (receiver) and cancel (sender) both delete', async () => {
+        await assertSucceeds(deleteDoc(requestDoc(as('owner'), 'carol', 'owner')));
+        await assertSucceeds(deleteDoc(requestDoc(as('owner'), 'owner', 'dave')));
+    });
+    it('swrlers card: a friend reads a friends-visibility entry by getDoc, is denied a private one, and a missing one', async () => {
+        const db = as('bob');
+        await assertSucceeds(getDoc(doc(db, 'swrlers/owner/listEntries/fr')));
+        await assertFails(getDoc(doc(db, 'swrlers/owner/listEntries/priv')));
+        // the client cannot tell "private" from "no entry": both are permission-denied
+        await assertFails(getDoc(doc(db, 'swrlers/owner/listEntries/nothing-here')));
+    });
+    it('a non-friend is denied a friends-visibility entry; access ends when the OWNER\'s friends doc goes', async () => {
+        await assertFails(getDoc(doc(as('carol'), 'swrlers/owner/listEntries/fr')));
+        // the rule looks at owner's side (swrlers/owner/friends/bob), so bob's own side does not matter
+        await env.withSecurityRulesDisabled(async (context) => {
+            await deleteDoc(doc(context.firestore(), 'swrlers/bob/friends/owner'));
+        });
+        await assertSucceeds(getDoc(doc(as('bob'), 'swrlers/owner/listEntries/fr')));
+        await env.withSecurityRulesDisabled(async (context) => {
+            await deleteDoc(doc(context.firestore(), 'swrlers/owner/friends/bob'));
+        });
+        await assertFails(getDoc(doc(as('bob'), 'swrlers/owner/listEntries/fr')));
+    });
+});
+
 describe('private comments (copied from the swrl-firebase skill)', () => {
     const comments = (uid) => `swrlers/${uid}/privateComments/film-1/comments`;
     it('are the owner\'s alone', async () => {
