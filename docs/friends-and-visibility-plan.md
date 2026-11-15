@@ -221,6 +221,13 @@ Notes:
 - `firestore.rules` is tested against the emulator with `npm run test:rules`
   (needs Java; `test-rules/`, not part of `npm test`).
 
+Account deletion (see "Account deletion" below) adds no owner step of its own:
+the `userDeleted` function is picked up by the same functions deploy as step 2.
+After that deploy, check in the Firebase console (Functions) that `userDeleted`
+is listed; it is the first Auth-triggered function in this project, and that
+could not be verified without a real deploy. Review `www/privacy_policy.html`
+too (see below).
+
 Browsers still running the old cached app keep writing the legacy arrays
 until they refresh; once the rules are applied those writes are refused.
 
@@ -402,3 +409,61 @@ until they refresh; once the rules are applied those writes are refused.
   recommend and friend searches) read the public profile (name, photo,
   `defaultVisibility`) which the rules allow to any signed-in user by design.
   `getDocs` on `swrls` reads the shared doc (details and anonymous counts).
+
+## Account deletion (Phase 4 addition)
+
+- **Cloud Function `userDeleted`**: a 1st gen Auth trigger
+  (`functions.auth.user().onDelete`), so the same clean-up runs for a deletion from
+  the app and one from the Firebase console. It runs `deleteUserData` (admin SDK,
+  `functions/deleteUserData.js`; pure planning in `functions/accountDeletion.js`,
+  tested in `functions/test/accountDeletion.test.js`) for the uid:
+  - explicit delete of each friend's mirror doc `swrlers/{friend}/friends/{uid}`
+    (found from the user's own friends docs; `friendRemoved` would do it too)
+  - `friendRequests` with `from == uid` or `to == uid`
+  - `messagingtokens` and `savedsearches` with `uid == uid`
+  - `recommendations` sent by the user: deleted, id removed from
+    `swrls/{id}.recommendations` (only swrls that still exist); recommendations
+    received: the uid leaves `to`, and `read` / `dismissed` if present; when `to`
+    becomes empty the doc is deleted and its id removed from the swrl
+  - legacy arrays: `arrayRemove(uid)` from `later`, `done`, `deleted`, `loved`,
+    `isRecommended` (five `array-contains` queries, one update per swrl doc)
+  - last, `db.recursiveDelete(swrlers/{uid})`: the profile, `listEntries`
+    (`listEntryCounts` brings the shared counts down), `friends`
+    (`friendRemoved`, a no-op by then) and `privateComments`
+  - Writes go in batches of at most 400, a one-line summary is logged, and it is
+    safe to re-run. `failurePolicy: true` makes Cloud Functions retry a failed run,
+    which is safe for that reason. The existing `userActivityNotification` fires on
+    the profile delete ("was deleted"), as intended.
+- **Deploy**: nothing extra in `deploy.yml` or terraform: `firebase deploy --only
+  functions` deploys every export, the deploy account already has
+  `cloudfunctions.admin`, `firebase.admin` and `serviceusage.serviceUsageAdmin`, and
+  a non-blocking Auth trigger needs no Identity Platform upgrade. Not verified
+  against the live project (no deploy was possible); see Rollout.
+- **Client**: Settings has a "Delete my account" section at the bottom (red, set
+  apart). It says what goes (lists, private notes, friends and requests, saved
+  searches, recommendations you sent) and that it cannot be undone. The button
+  opens an inline confirmation ("Are you sure?" with "Yes, delete everything" and
+  Cancel). Chosen over typing DELETE because it is lighter on a phone and, unlike
+  `window.confirm` (used for removing a friend), it is a styled panel that can be
+  shown and tested; it still needs a second, explicit tap.
+- `src/actions/deleteAccount.js`: stops my listeners (`pauseUserListeners` in
+  `login.js`: once the account is gone they would only log permission errors),
+  `deleteUser(auth.currentUser)`; on `auth/requires-recent-login` it runs
+  `reauthenticateWithPopup(user, new GoogleAuthProvider())` (the provider
+  `login()` uses) and retries once; if the popup is closed the action resolves
+  `false` (nothing deleted, listeners restarted with `resumeUserListeners`, toaster
+  "Your account was not deleted"); other errors restart the listeners and show an
+  error toaster. On success it calls `handleLogout()` (exported from `login.js`;
+  the auth state change does the same and signs in anonymously), the view goes to
+  the home screen, empties the back stack and shows "Your account was deleted".
+  Classifying the auth errors is the pure `classifyDeleteError`
+  (`src/model/accountDeletion.js`, tested).
+- The client deletes nothing in Firestore, so nothing is half-deleted if the tab
+  closes; the rules are unchanged. `updateSwrlerDetails` runs on login only
+  (`handleLoginSuccess`), and re-authenticating does not trigger it (same uid), so
+  a deleted profile is not recreated; verified (profile still absent seconds later).
+- Known limits: other devices signed in as the deleted user keep a valid ID token
+  for up to an hour and could still write; the Firestore offline cache in that
+  browser is not wiped (logout does not wipe it either); the privacy policy page
+  (`www/privacy_policy.html`) is generic template text and does not mention
+  deletion, so it was left unchanged.

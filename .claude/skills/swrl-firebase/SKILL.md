@@ -153,6 +153,12 @@ it's `undefined` until `setUpLogin` resolves.
   tokens FCM reports as dead.
 - `userActivityNotification` - watches `swrlers/{swrlerID}` and pings
   Pushover with a login/delete message. The owner's uid is skipped by design.
+- `userDeleted` - a 1st gen Auth trigger (`auth.user().onDelete`) that removes
+  everything of a deleted account: `swrlers/{uid}` recursively, friend mirror
+  docs, friend requests, tokens, saved searches, recommendations (sent ones
+  deleted, received ones lose the uid) and legacy uid arrays. Logic in
+  `functions/deleteUserData.js` / `accountDeletion.js`. The client's
+  `deleteAccount` only deletes the Auth user; this does the rest.
 - Secrets: `PUSHOVER_TOKEN` / `PUSHOVER_USER` via `defineSecret`, stored in
   Secret Manager (created in `terraform/functions.tf`, filled from GitHub
   secrets by the deploy workflow).

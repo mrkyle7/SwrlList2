@@ -10,6 +10,7 @@ const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
 const { recommendationMessage, friendRequestMessage, deadTokens, userActivityText } = require('./messages');
 const { countDeltas, justAccepted, friendDocsFor } = require('./listEntries');
+const { deleteUserData } = require('./deleteUserData');
 
 initializeApp();
 const db = getFirestore();
@@ -152,6 +153,20 @@ exports.friendRemoved = functions.firestore
         if ((await mirror.get()).exists) {
             await mirror.delete();
         }
+    });
+
+/**
+ * Removes a user's data when their Auth account is deleted, whether from the
+ * app ("Delete my account") or from the Firebase console. The client deletes
+ * nothing in Firestore itself, so nothing is left half done if a tab closes.
+ * Idempotent, and retried on failure for as long as Cloud Functions retries
+ * (failurePolicy), which is safe because a rerun only finishes what is left.
+ */
+exports.userDeleted = functions
+    .runWith({ failurePolicy: true })
+    .auth.user()
+    .onDelete(async (user) => {
+        await deleteUserData(db, FieldValue, user.uid);
     });
 
 /**

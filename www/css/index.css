@@ -1179,6 +1179,63 @@ body {
     color: #444;
 }
 
+.settingsDanger {
+    margin-top: 32px;
+    padding: 12px 8px 16px 8px;
+    border-top: 1px solid #e0e0e0;
+    border-left: 4px solid #c62828;
+    background: #fff6f6;
+}
+
+.settingsDanger .friendsHeading {
+    color: #c62828;
+    margin-top: 0;
+}
+
+.settingsDangerButton {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+    background: #c62828;
+    border: 2px solid #c62828;
+    border-radius: 16px;
+    padding: 4px 14px;
+    min-height: 32px;
+    margin: 4px;
+    cursor: pointer;
+}
+
+.settingsDangerButtonQuiet {
+    color: #c62828;
+    background: #fff;
+}
+
+.settingsDangerButton:disabled, .settingsDanger .friendButton:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.settingsConfirm {
+    margin: 8px 4px 0 4px;
+    padding: 8px;
+    border: 2px solid #c62828;
+    border-radius: 2px;
+    background: #fff;
+}
+
+.settingsConfirmText {
+    margin: 0 0 8px 0;
+    font-weight: bold;
+}
+
+.settingsConfirmButtons {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
 /* The per-swrl "Visible to" control on the full page */
 
 .swrlVisibility {

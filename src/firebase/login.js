@@ -185,7 +185,31 @@ function handleAnonymous() {
     loggingInAnonymousView.classList.add('hidden');
 }
 
-function handleLogout() {
+/**
+ * Stops my Firestore listeners (and forgets their caches) without signing out.
+ * Used while my account is being deleted, when they would only fail.
+ */
+export function pauseUserListeners() {
+    cancelRecommendationsListener();
+    cancelListEntriesListener();
+    cancelFriendsListener();
+}
+
+/**
+ * Starts my Firestore listeners again after pauseUserListeners, when the
+ * account turned out not to be deleted.
+ *
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+export function resumeUserListeners(firestore) {
+    if (!swrlUser || swrlUser.isAnonymous) return;
+    setUpRecommendationsListener(firestore);
+    setUpListEntriesListener(firestore);
+    setUpFriendsListener(firestore);
+}
+
+/** Puts the page into its signed-out state and stops my listeners. */
+export function handleLogout() {
     document.querySelector("#inboxDisplay").classList.add('hidden');
     document.querySelector("#logout").classList.add('hidden');
     document.querySelector("#savedSearchesMenu").classList.add('hidden');
