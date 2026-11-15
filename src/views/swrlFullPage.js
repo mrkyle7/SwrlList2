@@ -26,6 +26,7 @@ const pageButtons = swrlFullPageView.querySelector('.pageButtons');
 const swrlButtonsTemplate = document.getElementById('swrlButtons');
 const swrlFullPageCards = document.getElementById('swrlFullPageCards');
 const swrlFullPageSocialCards = document.getElementById('swrlFullPageSocialCards');
+const swrlFullPageRecommendations = document.getElementById('swrlFullPageRecommendations');
 const loadingbar = document.querySelector('#swrlImageContainer .loadingbar')
 /** @type {HTMLTemplateElement} */
 // @ts-ignore
@@ -266,7 +267,7 @@ const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, 
                     }
                 });
             }
-            swrlFullPageSocialCards.appendChild(recommendationsCard);
+            swrlFullPageRecommendations.appendChild(recommendationsCard);
         }
     }
     catch (err) {
@@ -622,6 +623,9 @@ function destroySwrlFullPage() {
     destroyDetailCards();
     while (swrlFullPageSocialCards.firstChild) {
         swrlFullPageSocialCards.removeChild(swrlFullPageSocialCards.firstChild);
+    }
+    while (swrlFullPageRecommendations.firstChild) {
+        swrlFullPageRecommendations.removeChild(swrlFullPageRecommendations.firstChild);
     }
 }
 
