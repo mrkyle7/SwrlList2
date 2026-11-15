@@ -1,8 +1,10 @@
 # Friends and list visibility — design and build plan
 
-Status: in progress on branch `ccr-22cb35e7-7ggqaa`. This file is the single
-spec for the work. If you change a decision while building, change it here in
-the same commit.
+Status: built and tested against the emulators (Phases 1 to 5 and account
+deletion are on branch `ccr-22cb35e7-7ggqaa`); awaiting rollout. Nothing has
+been run against the live project. The owner's steps are in "Rollout" below.
+This file is the single spec for the work. If you change a decision, change it
+here in the same commit.
 
 ## Goal
 
@@ -175,61 +177,141 @@ Each phase ends with `npm test` and `cd functions && npm test` passing and
 4. **Visibility.** Settings screen with the default, per-swrl override on the
    full page, swrler list honouring the viewer's relationship, the Swrlers
    card honouring visibility.
-5. **Docs and verification.** Update `CLAUDE.md` source map if needed, the
-   `swrl-firebase` and `swrl-architecture` skills, this file's Rollout
-   section; run everything; exercise against the emulators if Java is
-   available.
+5. **Docs and verification.** Docs and skills brought up to date, the
+   Rollout checklist, a migration-to-app integration test on legacy-shaped data
+   and a regression sweep, all against the emulators (see "Phase 5 decisions").
 
 ## Migration script
 
 `scripts/migrate-list-entries.js` (admin SDK, resolved from `functions/` like
 `scripts/remove-swrler-emails.js`; needs Node 22 and
-`gcloud auth application-default login`):
+`gcloud auth application-default login`; `FIRESTORE_EMULATOR_HOST` makes it
+use an emulator instead, and must NOT be set for the real run):
 
-- default: for every swrl doc and every uid in its legacy arrays, create the
-  user's entry if it does not exist yet (never overwrite an existing entry),
-  with the user's `defaultVisibility` or `friends`; then recount
-  `laterCount` / `doneCount` / `lovedCount` for every swrl from the entries.
-- `--dry-run`: report only.
-- `--recount`: only redo the counts.
-- `--strip-arrays`: remove the legacy arrays from every swrl doc. Run this
-  last, once no old client is left.
+- default: for every swrl doc and every uid in its legacy `later`, `done`,
+  `deleted` and `loved` arrays, create the user's entry if it does not exist
+  yet (`create()`, so an existing entry is never overwritten), with the user's
+  `defaultVisibility` or `friends`, `added` / `updated` copied from the shared
+  doc; then recount `laterCount` / `doneCount` / `lovedCount` for every swrl
+  from the entries. A uid with no `swrlers` profile (an account deleted before
+  account deletion existed) gets no entry: it would be an orphan under a
+  profile that does not exist, invisible, never cleaned up and still counted.
+  The script prints which uids it skipped. Such a user's data is simply not
+  carried over, and the counts cover real users only.
+- `--dry-run`: report only (combine with any mode).
+- `--recount`: only redo the counts, from the entries.
+- `--strip-arrays`: remove the legacy arrays from every swrl doc (docs without
+  them are left alone). Run this last, once no old client is left. Irreversible.
 
 ## Rollout (owner)
 
-1. Run `./scripts/migrate-list-entries.js --dry-run`, then for real.
-2. Merge to `master`; wait for the deploy (app and functions).
-3. Apply `firestore.rules` and the indexes in the Firebase console.
-4. Run `./scripts/migrate-list-entries.js` again to pick up anything added
-   between steps 1 and 2. Changes old clients made to swrls that were already
-   migrated in that window are not carried over.
-5. A week or so later: `./scripts/migrate-list-entries.js --strip-arrays`.
+Nothing here has been run against the live project. Everything below was
+rehearsed on the emulators (Phase 5), except the three things the emulators
+cannot show: the deploy itself (the first Auth-triggered function in this
+project), the console steps (rules, index) and how the real data looks.
+
+Prerequisites, once:
+
+- Node 22 (`node --version`) and `(cd functions && npm ci)` in the repo.
+- `gcloud auth application-default login` with an account that can read and
+  write Firestore in project `swrl-1118`. Make sure `FIRESTORE_EMULATOR_HOST` is
+  not set in that shell (the script would write to an emulator, or fail).
+- Recommended: a Firestore export before step 2 and again before step 9, e.g.
+  `gcloud firestore export gs://<a-bucket-you-own>/swrl-backup-$(date +%F) --project swrl-1118`.
+
+Checklist:
+
+1. Review `firestore.rules` against the rules now in the Firebase console
+   (Firestore Database, Rules). The repo file is the intended full set (every
+   collection the app uses, including the private comments rule). Do not apply
+   it yet. If `scripts/remove-swrler-emails.js` has never been run, run it now
+   (`./scripts/remove-swrler-emails.js --dry-run`, then for real): profiles are
+   readable by every signed-in user.
+2. Dry run: `./scripts/migrate-list-entries.js --dry-run`. Read the numbers
+   (swrls, entries to create) and the line about skipped uids.
+3. For real: `./scripts/migrate-list-entries.js`. The new functions do not
+   exist yet, so the counts it writes are final. It is safe to re-run.
+4. Merge to `master` and wait for the deploy (app and functions) to finish
+   in GitHub Actions. Then do steps 5 and 6 straight away: the live console
+   rules were not visible when this was written, and if they do not allow
+   writes under `swrlers/{uid}/listEntries` or `friendRequests`, the new app's
+   list and friend actions fail until step 6.
+5. In the Firebase console, Functions: check that `listEntryCounts`,
+   `friendRequestAccepted`, `friendRemoved`, `friendRequestNotification` and
+   `userDeleted` are listed next to `userActivityNotification` and
+   `recommendationNotification`. `userDeleted` is an Authentication trigger
+   (event: user deleted); it could not be tried without a real deploy. If the
+   deploy failed on it, stop here and read the log before going on.
+6. Apply the rules: Firestore Database, Rules; replace the editor contents with
+   the whole of `firestore.rules`; Publish. Do this after step 5, not before:
+   from this moment the old app code can no longer write.
+7. Create the collection-group index: Firestore Database, Indexes, the "Single
+   field" tab, "Add exemption", twice:
+   - Collection ID `listEntries`, field path `swrlID`;
+   - Collection ID `listEntries`, field path `visibility`.
+   For each: query scope "Collection" with Ascending and Descending on (the
+   defaults), and "Collection group" with Ascending on (this is the part the
+   app needs). Save, and wait until both show Enabled. These are the entries of
+   `firestore.indexes.json`; do not deploy that file with tooling that deletes
+   indexes missing from it. Until it is enabled, the "Swrlers" card on a swrl's
+   page cannot list people with a public entry (the browser console shows a
+   failed-precondition error with a link that creates the same index); my own
+   and my friends' entries still show.
+8. Pick up what happened since step 3, then fix the counts:
+   `./scripts/migrate-list-entries.js`, wait a minute, then
+   `./scripts/migrate-list-entries.js --recount`. (The `listEntryCounts`
+   function is live now and reacts to every entry the script creates; whether
+   it lands before or after the script's own count varies, so the counts can be
+   doubled for a moment. The recount after the wait makes them exact; a
+   second `--recount` should say "Updated counts on 0".) Changes an old client
+   made, between steps 3 and 6, to a swrl that was already migrated are not
+   carried over: the entry says what it said at step 3.
+9. A week or so later, when old tabs and installed apps have refreshed:
+   `./scripts/migrate-list-entries.js --strip-arrays --dry-run`, then for real
+   (after an export). From then on the swrl docs hold no uids at all.
+10. Review `www/privacy_policy.html`: it is generic template text. It does not
+    yet mention friends, who can see your swrls (and the default of "friends"),
+    the public profile (name and photo), or account deletion. Update it before
+    or soon after step 4.
+11. Smoke test with a real account: Your List and Discover show the right swrls
+    and counts; Settings changes the default; send a friend request between
+    two accounts; check a stranger's page shows only public swrls.
+
+What users see:
+
+- Before step 3 nothing changes for them. If the migration were skipped and the
+  new app deployed anyway, a user would see an empty Your List (their lists are
+  in the legacy arrays, and the new app reads entries only), Discover would
+  list everything including swrls they already have, shown as not added, with
+  counts from the legacy array lengths and no errors. Adding a swrl would then
+  make the shown count of that swrl drop to the shared counter's own total
+  (e.g. 3 shown, 1 after) until a migration recount. This is why the migration
+  runs first and a second time after the deploy.
+- A browser or installed app still running the old code (a tab left open, an
+  app not reopened since the deploy; the service worker is network-first, so
+  the next page load fetches the new code) behaves as follows. Until step 6 it
+  keeps writing the legacy arrays: those writes are not seen by new clients
+  (carried over only for entries missing at step 8). After step 6 its writes to
+  `swrls` are refused (permission-denied; the buttons may flip and the change is
+  not saved). Its reads keep working but the arrays are frozen, so its lists
+  and counts go stale; after step 9 its lists and counts are empty. It is fixed
+  by reloading the page. How long that takes depends on the user; that is the
+  reason for waiting a week before step 9. (The old client's exact behaviour on
+  a refused write was not run here; the refusal itself was.)
+- Rolling back: until step 9 the old code still works on the legacy arrays
+  (revert the deploy and republish the old rules); anything done in the new app
+  since is only in the entries. After step 9 there is no way back except the
+  export.
 
 Notes:
 
-- `firestore.indexes.json` only holds the indexes the NEW queries need (the
-  `listEntries` collection-group queries on `swrlID` and `visibility`). The
-  indexes the legacy queries already have in the console are not reproduced
-  here, so do not deploy it with `--force`-style tooling that deletes indexes
-  missing from the file; add its entries in the console by hand.
-- The `listEntryCounts` function reacts to every entry the migration script
-  creates, asynchronously. Step 1 runs before the functions exist, so the
-  script's own recount is final. On the second run (step 4) the function is
-  live: after the script finishes, wait a minute and run
-  `./scripts/migrate-list-entries.js --recount` once more, so late
-  increments cannot leave the counts doubled.
+- `firestore.indexes.json` only holds the indexes the NEW queries need.
 - `firestore.rules` is tested against the emulator with `npm run test:rules`
-  (needs Java; `test-rules/`, not part of `npm test`).
-
-Account deletion (see "Account deletion" below) adds no owner step of its own:
-the `userDeleted` function is picked up by the same functions deploy as step 2.
-After that deploy, check in the Firebase console (Functions) that `userDeleted`
-is listed; it is the first Auth-triggered function in this project, and that
-could not be verified without a real deploy. Review `www/privacy_policy.html`
-too (see below).
-
-Browsers still running the old cached app keep writing the legacy arrays
-until they refresh; once the rules are applied those writes are refused.
+  (needs Java; `test-rules/`, not part of `npm test` and not run by CI).
+- Neither `firestore.rules` nor the indexes are deployed by CI (the deploy job
+  only runs `firebase deploy --only functions`); steps 6 and 7 are by hand.
+- The account-deletion function `userDeleted` is deployed with step 4 like the
+  others; see "Account deletion".
 
 ## Not in scope
 
@@ -272,8 +354,9 @@ until they refresh; once the rules are applied those writes are refused.
   exposes `getListEntry`, `getAllListEntries`, `whenListEntriesReady()` /
   `isListEntriesReady()`, `getDefaultVisibility()` and
   `setCurrentDefaultVisibility()` (Phase 4 calls the latter when the setting
-  changes). It does not notify views on change: the existing listeners do not
-  either, and buttons toggle optimistically as before. The "ready" promise
+  changes). It does not notify views on change by itself: buttons toggle
+  optimistically as before. (Phase 4 added `addListEntriesChangeListener` for the
+  one control that needs to follow my entry live.) The "ready" promise
   covers the first snapshot AND the read of `defaultVisibility`, so an action
   never stamps a new entry with a wrong default. It resolves at once when
   nobody is signed in.
@@ -467,3 +550,67 @@ until they refresh; once the rules are applied those writes are refused.
   browser is not wiped (logout does not wipe it either); the privacy policy page
   (`www/privacy_policy.html`) is generic template text and does not mention
   deletion, so it was left unchanged.
+
+## Phase 5 decisions and findings (integration test on the emulators)
+
+Done on the Auth, Firestore (with `firestore.rules`) and Functions emulators
+with the built app and Playwright, never against the live project.
+
+- **Migration on legacy-shaped data.** Real Auth users and legacy `swrlers`
+  profiles (no `defaultVisibility`, one with a leftover `email`) and 15 legacy
+  swrl docs (uid arrays, mixed categories and types, spread-out `added` /
+  `updated`, a swrl only deleted by one user, a loved-but-not-on-list one, an
+  empty `later`, one with no arrays, one with only a deleted user's uid) were
+  migrated by `scripts/migrate-list-entries.js`. Every expected entry existed
+  with the right booleans, `added` / `updated` copied, `visibility: 'friends'`,
+  `visibilityOverride: false`, `uid` and `swrlID`; the counts equalled the true
+  totals after the recount.
+- **Double count confirmed, and not deterministic.** With the functions
+  running, the counts straight after the first run were exactly double on every
+  swrl with entries (e.g. 6/0/2 instead of 3/0/1) and stayed so until
+  `--recount`, which fixed them. On a second, tiny run (2 entries) the function
+  happened to land before the script's own count and nothing was doubled. So the
+  recount after a wait is always required when the functions are live.
+- **Bug found and fixed: a uid with no profile.** The first run created entries
+  for the deleted user under `swrlers/{uid}/listEntries` although
+  `swrlers/{uid}` did not exist: orphans nobody can read, no function ever
+  cleans up, still counted in the totals. The script now skips such uids and
+  says so (`splitByProfile` in `functions/listEntries.js`, tested).
+- **Entries are never overwritten, counts stay right.** After the app changed
+  some entries (add, done, love, remove, dismiss) a default re-run created 0
+  entries, left every changed entry as it was and the counts, from the
+  entries, were right before and after the recount. A swrl written with legacy
+  arrays after the first run was picked up by the next run.
+- **`--strip-arrays`** removed the arrays from every doc that had them (15 of
+  16: one never had any), a second run found nothing, and the default run on
+  the stripped docs did nothing and did not crash. The app (Your List, Discover,
+  counts from the count fields, full page state, the "Recommended to you"
+  filter) kept working.
+- **App on the migrated data.** Your List per category matched the legacy
+  `later` arrays in all three sort orders; done and loved were right on cards
+  and the full page; a swrl the user had deleted was absent from Discover;
+  "Recommended to you" worked from the legacy `recommendations` doc; a
+  non-friend saw nothing and the friends-only wording; after the two became
+  friends through the UI the friend saw all three tabs, and the Swrlers card
+  named the friend. Counts moved by exactly one per action through the function.
+- **Old client refused, new client accepted.** A signed-in `setDoc` merge on
+  `swrls/{id}` with `later: arrayUnion(uid)` (or `loved`, or `laterCount`) is
+  refused with permission-denied; the new client's batch (my entry plus the
+  shared doc's details) succeeds.
+- **Unmigrated data in the app (the window if the migration were skipped).**
+  Your List empty; Discover shows every swrl including ones the user has,
+  not marked as added, with counts from the legacy array lengths; no errors.
+  Acting on such a swrl makes its shown count drop to the counter's own total
+  (3 shown, 1 after) until a recount.
+- **Login alert fix.** `userActivityText` (`functions/messages.js`) now returns
+  the login text for an update only when `lastLoginTime` changed (compared with
+  `isEqual` or milliseconds); a create still counts as a login, a delete gives
+  the deleted text, the owner is still skipped. The default-visibility change
+  (which writes the profile) no longer sends a "has just logged in" alert.
+- **Navigation findings.** The hamburger menu only exists on the home screen,
+  so Friends and Settings are reached from there; back (the arrow or the
+  browser) returns home, and forward works. A swrler page reached from the
+  Friends list goes back to Friends.
+- **Left as is.** The 32px `#menuSwipeable` strip at the left edge of the page
+  (older code) sits over the left edge of the poster on list cards, so a tap
+  exactly there does not open the swrl (tapping the title or elsewhere does).
