@@ -8,6 +8,7 @@ import {
 import { deleteField, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { Collection } from '../constants/Collection';
 import { setUpRecommendationsListener, cancelRecommendationsListener } from '../listeners/recommendations';
+import { setUpListEntriesListener, cancelListEntriesListener } from '../listeners/listEntries';
 import swrl from '../components/swrl';
 import { updateDeviceToken } from './messaging';
 /** @type {import('firebase/auth').Auth} */
@@ -123,6 +124,7 @@ function handleLoginSuccess(firestore) {
 
     updateSwrlerDetails(firestore);
     setUpRecommendationsListener(firestore);
+    setUpListEntriesListener(firestore);
     showLoginButtons();
     updateDeviceToken(firestore);
     /** @type {HTMLImageElement} */
@@ -171,6 +173,7 @@ function handleAnonymous() {
     document.querySelector("#userPhoto").classList.add('hidden');
     document.querySelector("#loginStatus").innerHTML = "Mystery Swrler";
     cancelRecommendationsListener();
+    cancelListEntriesListener();
     loggingInView.classList.add('hidden');
     loggingInAnonymousView.classList.add('hidden');
 }
@@ -183,6 +186,7 @@ function handleLogout() {
     document.querySelector("#userPhoto").classList.add('hidden');
     document.querySelector("#loginStatus").innerHTML = "Not Logged In";
     cancelRecommendationsListener();
+    cancelListEntriesListener();
     loggingInView.classList.add('hidden');
     loggingInAnonymousView.classList.add('hidden');
 }

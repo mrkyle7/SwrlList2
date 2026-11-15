@@ -1,7 +1,7 @@
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { Collection } from '../constants/Collection';
 import { swrlUser, showLoginButtons } from '../firebase/login';
-import { Recommendation } from '../model/recommendation';
+import { Recommendation, inboxHasSwrl } from '../model/recommendation';
 
 export let recommendationsInboxCache = {};
 /** @type Object */
@@ -106,6 +106,16 @@ export function setUpRecommendationsListener(firestore) {
                 setUpRecommendationsListener(firestore);
             }
         })
+}
+
+/**
+ * Whether a swrl was recommended to me: an inbox recommendation has its swrlID.
+ *
+ * @param {string} swrlID
+ * @return {boolean}
+ */
+export function isRecommendedToMe(swrlID) {
+    return inboxHasSwrl(recommendationsInboxCache, swrlID);
 }
 
 export function cancelRecommendationsListener() {

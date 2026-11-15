@@ -14,6 +14,8 @@ import { UIView } from './UIView';
 import { StateController} from './stateController';
 import { Sort } from '../constants/Sort';
 import { WhereFilter } from '../constants/WhereFilter';
+import { getAllListEntries, getListEntry, whenListEntriesReady } from '../listeners/listEntries';
+import { sortListEntries } from '../model/listEntry';
 
 export class YourListView extends UIView {
     /**
@@ -93,77 +95,114 @@ export function showList(category, view, firestore, stateController) {
     }
     currentCategory = category
     currentView = view;
-    const swrlsRef = collection(firestore, Collection.SWRLS);
-    if (swrlsRef) {
-        runQuery(swrlsRef, category, view, stateController.currentState.sort, stateController.currentState.typeFilter)
-            .then(function (querySnapshot) {
-                if (currentID === resultsID) {
-                    document.getElementById('messageContainer').classList.add('hidden');
-                    document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
-                    document.querySelector('#swrlListView .loadingbar').classList.add('hidden');
+    const filters = stateController.currentState.filters;
+    const userId = swrlUser ? swrlUser.uid : undefined;
+    loadSwrls(category, view, stateController.currentState.sort, stateController.currentState.typeFilter, firestore)
+        .then(function ({ total, swrls: loaded }) {
+            if (currentID === resultsID) {
+                document.getElementById('messageContainer').classList.add('hidden');
+                document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
+                document.querySelector('#swrlListView .loadingbar').classList.add('hidden');
 
-                    clearList();
-                    if (!querySnapshot.empty) {
-                        const swrls = [];
-                        querySnapshot.forEach(
-                            /**
-                             * @param {import('firebase/firestore').QueryDocumentSnapshot} docSnapshot
-                             */
-                            (docSnapshot) => {
-                                try {
-                                    const swrl = Swrl.fromFirestore(docSnapshot.data());
-                                    if (!(view === DISCOVER && (isOnList(swrl) || isDeleted(swrl)))
-                                        && stateController.currentState.filters.every(f => f.match(swrl, swrlUser ? swrlUser.uid : undefined))) {
-                                        swrls.push(swrl);
-                                    }
-                                } catch (error) {
-                                    console.error(`Cannot get swrl ${docSnapshot.id}`);
-                                    console.error(docSnapshot.data());
-                                    console.error(error);
-                                }
-                            })
-                        renderNextSwrls(swrls, stateController, view, firestore, true);
+                clearList();
+                if (total > 0) {
+                    const swrls = loaded.filter(swrl => filters.every(f => f.match(swrl, userId)));
+                    renderNextSwrls(swrls, stateController, view, firestore, true);
 
-                        if (view === DISCOVER && swrlsContainer.querySelectorAll('div').length == 0) {
-                            console.log('No Swrls to discover');
+                    if (swrlsContainer.querySelectorAll('div').length == 0) {
+                        console.log(view === DISCOVER ? 'No Swrls to discover' : 'No Swrls match the filters');
+                        if (view === DISCOVER) {
                             showNoSwrlsDiscoverView(category);
+                        } else {
+                            showNoSwrlsView(category);
                         }
-                    } else {
-                        console.log("No Swrls found");
-                        showNoSwrlsView(category);
                     }
                 } else {
-                    console.log('View was changed');
+                    console.log("No Swrls found");
+                    showNoSwrlsView(category);
                 }
-            })
-            .catch(function (error) {
-                console.error(error);
-                console.error("Couldn't get swrls!");
-                showNoSwrlsView(category);
-            })
-    } else {
-        if (currentID === resultsID) {
-            console.log("No Swrls found");
+            } else {
+                console.log('View was changed');
+            }
+        })
+        .catch(function (error) {
+            console.error(error);
+            console.error("Couldn't get swrls!");
             showNoSwrlsView(category);
-        } else {
-            console.log('View was changed');
-        }
-    }
+        })
 }
 
 /**
+ * Your List comes from my own entries; Discover from the shared swrls
+ * collection, leaving out what is already on my list or done and what I
+ * deleted (both from my entries). Either way the swrls come back in the order
+ * to show them. Your List swrls are built from the entries; renderSwrl then
+ * fetches the shared doc of each swrl it shows (for the counts).
+ *
+ * @param {Category} category
+ * @param {Constant} view
+ * @param {Sort} sort
+ * @param {WhereFilter} typeFilter
+ * @param {import('firebase/firestore').Firestore} firestore
+ * @return {Promise<{total: number, swrls: Swrl[]}>} total is how many there were before Discover's exclusions
+ */
+async function loadSwrls(category, view, sort, typeFilter, firestore) {
+    if (view === YOUR_LIST) {
+        if (!swrlUser || swrlUser.isAnonymous) {
+            showRequireLoginScreen('to see Swrls on your list');
+            return { total: 0, swrls: [] };
+        }
+        await whenListEntriesReady();
+        const entries = sortListEntries(getAllListEntries().filter(entry =>
+            entry.later && entry.category.id === category.id && (!typeFilter || entry.type.id === typeFilter.value)), sort);
+        return { total: entries.length, swrls: entries.map(entry => entry.toSwrl()) };
+    }
+
+    /** @type {import('firebase/firestore').QueryConstraint[]} */
+    const constraints = [where("category", "==", category.id), orderBy(sort.column, sort.direction)];
+    if (typeFilter) constraints.push(where(typeFilter.column, '==', typeFilter.value));
+    const [querySnapshot] = await Promise.all([
+        getDocs(query(collection(firestore, Collection.SWRLS), ...constraints)),
+        whenListEntriesReady()]);
+    /** @type {Swrl[]} */
+    const swrls = [];
+    querySnapshot.forEach(
+        /**
+         * @param {import('firebase/firestore').QueryDocumentSnapshot} docSnapshot
+         */
+        (docSnapshot) => {
+            try {
+                const swrl = Swrl.fromFirestore(docSnapshot.data());
+                if (!isOnList(swrl) && !isDeleted(swrl)) {
+                    swrls.push(swrl);
+                }
+            } catch (error) {
+                console.error(`Cannot get swrl ${docSnapshot.id}`);
+                console.error(docSnapshot.data());
+                console.error(error);
+            }
+        });
+    return { total: querySnapshot.size, swrls: swrls };
+}
+
+/**
+ * On my list or done, according to my own entries.
+ *
  * @param {Swrl} swrl
  */
 function isOnList(swrl) {
-    return (swrl.later && swrl.later.indexOf(swrlUser.uid) !== -1)
-        || (swrl.done && swrl.done.indexOf(swrlUser.uid) !== -1);
+    const entry = getListEntry(swrl.swrlID);
+    return entry !== undefined && (entry.later || entry.done);
 }
 
 /**
+ * Deleted by me, according to my own entries.
+ *
  * @param {Swrl} swrl
  */
 function isDeleted(swrl) {
-    return swrl.deleted && swrl.deleted.indexOf(swrlUser.uid) !== -1;
+    const entry = getListEntry(swrl.swrlID);
+    return entry !== undefined && entry.deleted;
 }
 
 /**
@@ -196,29 +235,6 @@ function renderNextSwrls(swrls, stateController, view, firestore, firstLoad) {
     if (swrlsContainer.querySelector('.swrl')) {
         appendAttribution(swrlsContainer, currentCategory.attribution);
     }
-}
-
-/**
- * @param {import('firebase/firestore').CollectionReference} db
- * @param {Category} category
- * @param {Constant} view
- * @return {Promise}
- * @param {Sort} sort
- * @param {WhereFilter} typeFilter
- */
-function runQuery(db, category, view, sort, typeFilter) {
-    /** @type {import('firebase/firestore').QueryConstraint[]} */
-    const constraints = [where("category", "==", category.id)];
-    if (view === YOUR_LIST) {
-        if (!swrlUser || swrlUser.isAnonymous) {
-            showRequireLoginScreen('to see Swrls on your list');
-            return Promise.resolve({ empty: true });
-        }
-        constraints.push(where("later", "array-contains", swrlUser.uid));
-    }
-    constraints.push(orderBy(sort.column, sort.direction));
-    if (typeFilter) constraints.push(where(typeFilter.column, '==', typeFilter.value));
-    return getDocs(query(db, ...constraints));
 }
 
 function clearList() {

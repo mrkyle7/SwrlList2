@@ -6,7 +6,7 @@ import { Swrl } from '../src/model/swrl';
 import { ALBUM } from '../src/constants/Type';
 import { LISTEN } from '../src/constants/Category';
 import { Details } from '../src/model/details';
-import { Recommendation } from '../src/model/recommendation';
+import { Recommendation, inboxHasSwrl } from '../src/model/recommendation';
 import { Link } from '../src/model/link';
 import { Rating } from '../src/model/rating';
 
@@ -121,7 +121,7 @@ describe('Can translate Firestore data to a recommendation', function () {
                     undefined,
                     undefined,
                     undefined),
-                new Date(1568452504000), [], [], ['user1'], [], undefined, [], []);
+                new Date(1568452504000), undefined, []);
             const expectedRecommendation = new Recommendation('1234s', 'user1', ['user2', 'user3'], 'is great', 'ITUNESALBUM_ABC123',
                 new Date(1568452504000), [], []);
             // @ts-ignore
@@ -230,12 +230,27 @@ describe('Can translate Firestore data to a recommendation', function () {
                     undefined,
                     undefined,
                     undefined),
-                new Date(1568452504000), [], [], ['user1'], [], undefined, [], []);
+                new Date(1568452504000), undefined, []);
             const expectedRecommendation = new Recommendation('1234s', 'user1', ['user2', 'user3'], 'is great', 'ITUNESALBUM_ABC123',
                 new Date(1568452504000), ['user2'], ['user3']);
             // @ts-ignore
             const recommendation = await Recommendation.fromFirestore(firestoreDoc, mockFirestore);
             expect(recommendation).to.deep.equal(expectedRecommendation);
         })
+    })
+})
+
+describe('inboxHasSwrl', function () {
+    const inbox = {
+        r1: new Recommendation('r1', 'a', ['me'], 'hi', 'film-1', new Date(), [], []),
+        r2: new Recommendation('r2', 'b', ['me'], 'hi', 'film-2', new Date(), [], ['me'])
+    };
+    it('is true when an inbox recommendation has the swrl, dismissed or not', function () {
+        expect(inboxHasSwrl(inbox, 'film-1')).toBe(true);
+        expect(inboxHasSwrl(inbox, 'film-2')).toBe(true);
+    })
+    it('is false for other swrls and an empty inbox', function () {
+        expect(inboxHasSwrl(inbox, 'film-3')).toBe(false);
+        expect(inboxHasSwrl({}, 'film-1')).toBe(false);
     })
 })

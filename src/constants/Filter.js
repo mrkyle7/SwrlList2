@@ -1,5 +1,6 @@
 import { Constant } from "./Constant";
 import { Swrl } from "../model/swrl";
+import { isRecommendedToMe } from "../listeners/recommendations";
 
 export class Filter extends Constant {
     /**
@@ -28,7 +29,7 @@ export const RECOMMENDED_FILTER = new Filter(1,
      * @param {string} userId
      */
     (swrl, userId) => {
-        return swrl.isRecommended.some(id => id === userId)
+        return isRecommendedToMe(swrl.swrlID)
     });
 
 export const filters = Object.freeze([RECOMMENDED_FILTER])

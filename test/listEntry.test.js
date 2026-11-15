@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 //@ts-check
 
 import { Timestamp } from 'firebase/firestore';
-import { ListEntry, visibilitiesViewerMayQuery, effectiveVisibility } from '../src/model/listEntry';
+import { ListEntry, visibilitiesViewerMayQuery, effectiveVisibility, sortListEntries, mergeEntriesByUid } from '../src/model/listEntry';
 import { Swrl } from '../src/model/swrl';
 import { Details } from '../src/model/details';
 import { FILM } from '../src/constants/Type';
@@ -97,16 +97,13 @@ describe('ListEntry', function () {
             true, true, false, false, undefined, undefined, PUBLIC, false);
         expect(ListEntry.fromFirestore(entry.toFirestoreData())).to.deep.equal(entry);
     })
-    it('turns into a Swrl holding only the owner', function () {
+    it('turns into a Swrl whose counts cover only the owner flags', function () {
         const entry = new ListEntry('u1', 'film-1', FILM, WATCH, Details.fromJSON(rawDetails),
             true, false, true, false, new Date(1), new Date(2), FRIENDS, false);
         const swrl = entry.toSwrl();
         expect(swrl).toBeInstanceOf(Swrl);
         expect(swrl.swrlID).toBe('film-1');
-        expect(swrl.later).to.deep.equal(['u1']);
-        expect(swrl.loved).to.deep.equal(['u1']);
-        expect(swrl.done).to.deep.equal([]);
-        expect(swrl.deleted).to.deep.equal([]);
+        expect([swrl.laterCount, swrl.doneCount, swrl.lovedCount]).to.deep.equal([1, 0, 1]);
         expect(swrl.added).to.deep.equal(new Date(1));
     })
 })
@@ -138,5 +135,54 @@ describe('visibility helpers', function () {
         expect(effectiveVisibility(PUBLIC, true, PRIVATE)).toBe(PRIVATE);
         expect(effectiveVisibility(undefined, false, PRIVATE)).toBe(FRIENDS);
         expect(effectiveVisibility(PUBLIC, true, undefined)).toBe(PUBLIC);
+    })
+})
+
+
+describe('sortListEntries', function () {
+    const make = (id, title, added, updated, uid = 'u1') => new ListEntry(uid, id, FILM, WATCH,
+        Details.fromJSON({ id: id, title: title, imageUrl: '/img' }),
+        true, false, false, false, added, updated, FRIENDS, false);
+    const a = make('a', 'banana', new Date(1), new Date(30));
+    const b = make('b', 'Apple', new Date(3), new Date(10));
+    const c = make('c', 'cherry', new Date(2), new Date(20));
+    const ids = (entries) => entries.map(e => e.swrlID);
+
+    it('sorts by title ascending, ignoring case', function () {
+        expect(ids(sortListEntries([a, b, c], { column: 'details.title', direction: 'asc' }))).to.deep.equal(['b', 'a', 'c']);
+    })
+    it('sorts by added, newest first', function () {
+        expect(ids(sortListEntries([a, b, c], { column: 'added', direction: 'desc' }))).to.deep.equal(['b', 'c', 'a']);
+    })
+    it('sorts by updated, newest first', function () {
+        expect(ids(sortListEntries([a, b, c], { column: 'updated', direction: 'desc' }))).to.deep.equal(['a', 'c', 'b']);
+    })
+    it('puts entries still waiting for the server time first when newest first', function () {
+        const pending = make('p', 'zed', undefined, undefined);
+        expect(ids(sortListEntries([a, pending, b], { column: 'updated', direction: 'desc' }))).to.deep.equal(['p', 'a', 'b']);
+    })
+    it('does not change the input and breaks ties on swrlID', function () {
+        const x = make('x', 'same', new Date(1), new Date(1));
+        const y = make('y', 'same', new Date(1), new Date(1));
+        const input = [y, x];
+        expect(ids(sortListEntries(input, { column: 'details.title', direction: 'asc' }))).to.deep.equal(['x', 'y']);
+        expect(ids(input)).to.deep.equal(['y', 'x']);
+    })
+})
+
+describe('mergeEntriesByUid', function () {
+    const make = (uid, later, loved) => new ListEntry(uid, 'film-1', FILM, WATCH,
+        Details.fromJSON(rawDetails), later, false, loved, false, undefined, undefined, PUBLIC, false);
+    it('keeps one entry per owner, the first source winning', function () {
+        const mineFromCache = make('me', true, false);
+        const mineFromPublic = make('me', true, true);
+        const other = make('u2', false, true);
+        const merged = mergeEntriesByUid([mineFromCache], [mineFromPublic, other]);
+        expect(merged.map(e => e.uid)).to.deep.equal(['me', 'u2']);
+        expect(merged[0]).toBe(mineFromCache);
+    })
+    it('copes with no sources and empty sources', function () {
+        expect(mergeEntriesByUid()).to.deep.equal([]);
+        expect(mergeEntriesByUid([], [])).to.deep.equal([]);
     })
 })

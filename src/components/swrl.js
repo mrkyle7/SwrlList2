@@ -1,7 +1,8 @@
 import { doc, getDoc } from 'firebase/firestore';
 export default { renderSwrl };
 
-import { DISCOVER, YOUR_LIST, RECOMMEND, SEARCH } from '../constants/View';
+import { DISCOVER, YOUR_LIST, RECOMMEND, SEARCH, SWRLER_LATER, SWRLER_LOVED, SWRLER_DONE } from '../constants/View';
+import { whenListEntriesReady } from '../listeners/listEntries';
 import { swrlUser } from '../firebase/login';
 import showRequireLoginScreen from '../components/requireLoginScreen';
 import deleteSwrl from '../actions/deleteSwrl';
@@ -64,13 +65,41 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
 
     $swrl('.swrlButtons').appendChild(buttons);
 
-    if (view === SEARCH || view === RECOMMEND) {
+    if (view === SEARCH || view === RECOMMEND || view === YOUR_LIST
+        || view === SWRLER_LATER || view === SWRLER_LOVED || view === SWRLER_DONE) {
         $swrl('.swrlButtonSpinner').classList.remove('hidden');
-        //for these let's try get the latest swrl details for the buttons
-        getDoc(doc(firestore, Collection.SWRLS, swrl.swrlID))
-            .then(docSnapshot => {
+        //for these let's get the shared swrl (counts, latest details) for the buttons and stats. The card
+        //shows straight away; where there is no shared doc yet (or it can't be read) we keep the swrl we were given.
+        const showButtons = (/** @type {Swrl} */ latestSwrl) => {
+            swrlDiv.querySelector('.swrlButtonSpinner').classList.add('hidden');
+            addStats(swrlDiv, latestSwrl);
+            addLoveButton(view, latestSwrl, swrlDiv, firestore, null);
+            addDoneButton(swrlDiv, latestSwrl, firestore, swrlsContainer, view);
+            addAddButton(view, swrlDiv, latestSwrl, firestore, swrlsContainer, null);
+            //Already on the recommend screen, so would be weird to recommend again!
+            if (view !== RECOMMEND) {
+                addRecommendButton(swrlDiv, swrl, stateController);
+            }
+
+            swrlDiv.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const swrlFullPage = new State(stateController.swrlView);
+                swrlFullPage.swrl = latestSwrl;
+                stateController.changeState(swrlFullPage);
+            })
+        };
+        // my own entries must have loaded, or the buttons would all say "not on my list"
+        Promise.all([
+            getDoc(doc(firestore, Collection.SWRLS, swrl.swrlID)).catch(error => {
+                console.error(`Could not get the shared swrl for ${swrl.swrlID}`);
+                console.error(error);
+                return undefined;
+            }),
+            whenListEntriesReady()])
+            .then(([docSnapshot]) => {
                 let latestSwrl = swrl;
-                if (docSnapshot.exists()) {
+                if (docSnapshot && docSnapshot.exists()) {
                     try {
                         latestSwrl = Swrl.fromFirestore(docSnapshot.data());
                     } catch (error) {
@@ -78,24 +107,8 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
                         console.error(error);
                     }
                 }
-                swrlDiv.querySelector('.swrlButtonSpinner').classList.add('hidden');
-                addStats(swrlDiv, latestSwrl);
-                addLoveButton(view, latestSwrl, swrlDiv, firestore, null);
-                addDoneButton(swrlDiv, latestSwrl, firestore, swrlsContainer, view);
-                addAddButton(view, swrlDiv, latestSwrl, firestore, swrlsContainer, null);
-                //Already on the recommend screen, so would be weird to recommend again!
-                if (view !== RECOMMEND) {
-                    addRecommendButton(swrlDiv, swrl, stateController);
-                }
-
-                swrlDiv.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    const swrlFullPage = new State(stateController.swrlView);
-                    swrlFullPage.swrl = latestSwrl;
-                    stateController.changeState(swrlFullPage);
-                })
-            })
+                showButtons(latestSwrl);
+            });
     } else {
         addStats(swrlDiv, swrl);
         addLoveButton(view, swrl, swrlDiv, firestore, null);

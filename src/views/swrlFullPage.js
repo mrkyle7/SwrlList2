@@ -7,7 +7,9 @@ import { State } from '../model/state';
 import { getSwrler } from '../firebase/swrler';
 import { swrlUser } from '../firebase/login';
 import { Collection } from '../constants/Collection';
-import { recommendationsInboxCache, recommendationsSentCache } from '../listeners/recommendations';
+import { recommendationsInboxCache, recommendationsSentCache, isRecommendedToMe } from '../listeners/recommendations';
+import { whenListEntriesReady } from '../listeners/listEntries';
+import { getEntriesForSwrl } from '../firebase/swrlEntries';
 import { Recommendation } from '../model/recommendation';
 import { Swrl } from '../model/swrl';
 import { addAddButton, addLoveButton, addRecommendButton, addDoneButton } from '../components/buttons';
@@ -59,6 +61,7 @@ const swrlImageLarge = document.getElementById('swrlImageLarge');
  */
 async function showSwrlFullPage(stateController) {
     swrlFullPageView.classList.remove('hidden');
+    socialCardsToken = Math.random();
     const swrl = stateController.currentState.swrl;
     const firestore = stateController.firestore;
     showAttribution('swrlAttribution', swrl.type.attribution);
@@ -87,8 +90,9 @@ async function showSwrlFullPage(stateController) {
 
     let swrlExists = false;
 
-    getDoc(doc(firestore, Collection.SWRLS, swrl.swrlID))
-        .then(docSnapshot => {
+    // my own entries must have loaded, or the buttons would all say "not on my list"
+    Promise.all([getDoc(doc(firestore, Collection.SWRLS, swrl.swrlID)), whenListEntriesReady()])
+        .then(([docSnapshot]) => {
             let currentSwrl = swrl;
             if (docSnapshot.exists()) {
                 try {
@@ -141,7 +145,7 @@ async function showSwrlFullPage(stateController) {
  */
 const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, firestore, stateController) => {
     try {
-        if (swrl.isRecommended.some(id => id === swrlUser.uid)
+        if (isRecommendedToMe(swrl.swrlID)
             || swrl.recommendations.some(id => recommendationsSentCache.hasOwnProperty(id))) {
             /** @type {HTMLElement} */
             // @ts-ignore
@@ -149,7 +153,7 @@ const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, 
             const $recommendationsCard = recommendationsCard.querySelector.bind(recommendationsCard);
             $recommendationsCard('.cardTitle').innerText = 'Recommendations';
             $recommendationsCard('.cardContent').querySelector('.loadingSpinnerSmall').classList.add('hidden');
-            if (swrl.isRecommended.some(id => id === swrlUser.uid)) {
+            if (isRecommendedToMe(swrl.swrlID)) {
                 /** @type {HTMLElement} */
                 // @ts-ignore
                 const subSection = swrlPageSubCardTemplate.content.cloneNode(true);
@@ -265,101 +269,69 @@ const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, 
         console.error('could not render recommendations');
         console.error(err);
     }
+    renderSwrlersCard(swrl, firestore, stateController);
+}
+
+/** Changes whenever the page is shown or closed, so a late result is not added to the wrong page. */
+let socialCardsToken = undefined;
+
+/** The Swrlers card's sections: title and the entry flag that puts someone in it. */
+const swrlersCardSections = [['Later', 'later'], ['Done', 'done'], ['Loved', 'loved']];
+
+/**
+ * The "Swrlers" card: who has the swrl on later, done or loved, as far as I
+ * may know. That is me (own entries) plus everyone with a public entry; more
+ * sources (my friends) are added in swrlersCardSources. The card only
+ * appears when someone qualifies. The counts on the swrl stay anonymous and
+ * include private entries, so they can be higher than the names shown.
+ *
+ * @param {Swrl} swrl
+ * @param {import('firebase/firestore').Firestore} firestore
+ * @param {StateController} stateController
+ */
+async function renderSwrlersCard(swrl, firestore, stateController) {
+    const token = socialCardsToken;
     try {
-        if (swrl.later.length > 0 || swrl.done.length > 0 || swrl.loved.length > 0) {
-            console.log('Show Swrlers');
+        const entries = await getEntriesForSwrl(swrl.swrlID, firestore);
+        if (token !== socialCardsToken) return;
+        if (!entries.some(entry => entry.later || entry.done || entry.loved)) return;
+        console.log('Show Swrlers');
+        /** @type {HTMLElement} */
+        // @ts-ignore
+        const swrlersCard = swrlPageCardTemplate.content.cloneNode(true);
+        const $swrlersCard = swrlersCard.querySelector.bind(swrlersCard);
+        $swrlersCard('.cardTitle').innerText = 'Swrlers';
+        $swrlersCard('.cardContent').querySelector('.loadingSpinnerSmall').classList.add('hidden');
+        swrlersCardSections.forEach(([title, flag]) => {
+            const uids = entries.filter(entry => entry[flag]).map(entry => entry.uid);
+            if (uids.length === 0) return;
             /** @type {HTMLElement} */
             // @ts-ignore
-            const swrlersCard = swrlPageCardTemplate.content.cloneNode(true);
-            const $swrlersCard = swrlersCard.querySelector.bind(swrlersCard);
-            $swrlersCard('.cardTitle').innerText = 'Swrlers';
-            $swrlersCard('.cardContent').querySelector('.loadingSpinnerSmall').classList.add('hidden');
-            if (swrl.later.length > 0) {
-                /** @type {HTMLElement} */
-                // @ts-ignore
-                const laterSubSection = swrlPageSubCardTemplate.content.cloneNode(true);
-                const $laterSubSection = laterSubSection.querySelector.bind(laterSubSection);
-                const laterSubSectionDiv = $laterSubSection('div');
-                $laterSubSection('.cardSubTitle').innerText = 'Later';
-                const spinner = $laterSubSection('.cardContent').querySelector('.loadingSpinnerSmall');
-                $swrlersCard('.cardContent').appendChild(laterSubSection);
-                swrl.later.forEach(async (uid, idx, arr) => {
-                    try {
-                        const swrler = await getSwrler(uid, firestore);
-                        if (laterSubSectionDiv) {
-                            const swrlerElement = getSwrlerSmall(swrler, stateController);
-                            laterSubSectionDiv.querySelector('.cardContent').appendChild(swrlerElement);
-                        }
+            const subSection = swrlPageSubCardTemplate.content.cloneNode(true);
+            const $subSection = subSection.querySelector.bind(subSection);
+            const subSectionDiv = $subSection('div');
+            $subSection('.cardSubTitle').innerText = title;
+            const spinner = $subSection('.cardContent').querySelector('.loadingSpinnerSmall');
+            $swrlersCard('.cardContent').appendChild(subSection);
+            uids.forEach(async (uid, idx, arr) => {
+                try {
+                    const swrler = await getSwrler(uid, firestore);
+                    if (swrler && subSectionDiv) {
+                        subSectionDiv.querySelector('.cardContent').appendChild(getSwrlerSmall(swrler, stateController));
                     }
-                    catch (err) {
-                        console.error('could not add swrler');
-                        console.error(err);
+                }
+                catch (err) {
+                    console.error('could not add swrler');
+                    console.error(err);
+                }
+                if (idx === arr.length - 1) {
+                    if (spinner) {
+                        spinner.classList.add('hidden');
                     }
-                    if (idx === arr.length - 1) {
-                        if (spinner) {
-                            spinner.classList.add('hidden');
-                        }
-                    }
-                });
-            }
-            if (swrl.done.length > 0) {
-                /** @type {HTMLElement} */
-                // @ts-ignore
-                const doneSubSection = swrlPageSubCardTemplate.content.cloneNode(true);
-                const $doneSubSection = doneSubSection.querySelector.bind(doneSubSection);
-                const doneSubSectionDiv = $doneSubSection('div');
-                $doneSubSection('.cardSubTitle').innerText = 'Done';
-                const spinner = $doneSubSection('.cardContent').querySelector('.loadingSpinnerSmall');
-                $swrlersCard('.cardContent').appendChild(doneSubSection);
-                swrl.done.forEach(async (uid, idx, arr) => {
-                    try {
-                        const swrler = await getSwrler(uid, firestore);
-                        if (doneSubSectionDiv) {
-                            const swrlerElement = getSwrlerSmall(swrler, stateController);
-                            doneSubSectionDiv.querySelector('.cardContent').appendChild(swrlerElement);
-                        }
-                    }
-                    catch (err) {
-                        console.error('could not add swrler');
-                        console.error(err);
-                    }
-                    if (idx === arr.length - 1) {
-                        if (spinner) {
-                            spinner.classList.add('hidden');
-                        }
-                    }
-                });
-            }
-            if (swrl.loved.length > 0) {
-                /** @type {HTMLElement} */
-                // @ts-ignore
-                const lovedSubSection = swrlPageSubCardTemplate.content.cloneNode(true);
-                const $lovedSubSection = lovedSubSection.querySelector.bind(lovedSubSection);
-                const lovedSubSectionDiv = $lovedSubSection('div');
-                $lovedSubSection('.cardSubTitle').innerText = 'Loved';
-                const spinner = $lovedSubSection('.cardContent').querySelector('.loadingSpinnerSmall');
-                $swrlersCard('.cardContent').appendChild(lovedSubSection);
-                swrl.loved.forEach(async (uid, idx, arr) => {
-                    try {
-                        const swrler = await getSwrler(uid, firestore);
-                        if (lovedSubSectionDiv) {
-                            const swrlerElement = getSwrlerSmall(swrler, stateController);
-                            lovedSubSectionDiv.querySelector('.cardContent').appendChild(swrlerElement);
-                        }
-                    }
-                    catch (err) {
-                        console.error('could not add swrler');
-                        console.error(err);
-                    }
-                    if (idx === arr.length - 1) {
-                        if (spinner) {
-                            spinner.classList.add('hidden');
-                        }
-                    }
-                });
-            }
-            swrlFullPageSocialCards.appendChild(swrlersCard);
-        }
+                }
+            });
+        });
+        swrlFullPageSocialCards.appendChild(swrlersCard);
     }
     catch (err) {
         console.error('could not render swrlers');
@@ -628,6 +600,7 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl, 
 }
 
 function destroySwrlFullPage() {
+    socialCardsToken = undefined;
     hideAttribution('swrlAttribution');
     hidePrivateComments();
     swrlFullPageView.classList.add('hidden');

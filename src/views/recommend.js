@@ -129,7 +129,6 @@ function bindRecommendSendButton(stateController, swrl, firestore) {
                         updateRecommendations.updated = serverTimestamp();
                         updateRecommendations.recommendations = arrayUnion(id);
                         // updateRecommendations.recommenders = arrayUnion(fromSwrler);
-                        updateRecommendations.isRecommended = arrayUnion(...toSwrlers)
 
                         setDoc(doc(firestore, Collection.SWRLS, swrlID), updateRecommendations,
                             { merge: true })

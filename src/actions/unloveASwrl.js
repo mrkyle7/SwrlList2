@@ -1,14 +1,13 @@
-import { doc, setDoc, arrayRemove } from 'firebase/firestore';
-import { swrlUser } from '../firebase/login';
-import { Collection } from '../constants/Collection';
+import { writeListEntry } from './writeListEntry';
 import { Swrl } from '../model/swrl';
 
 /**
- * @param {import('firebase/firestore').Firestore} firestore
+ * Unloves a swrl.
+ *
  * @param {Swrl} swrl
+ * @param {import('firebase/firestore').Firestore} firestore
+ * @return {Promise<void>}
  */
 export default function unloveASwrl(swrl, firestore) {
-   const fireStoreData = swrl.toPartialFireStoreData();
-   fireStoreData.loved = arrayRemove(swrlUser.uid);
-   return setDoc(doc(firestore, Collection.SWRLS, fireStoreData.swrlID), fireStoreData, { merge: true });
+   return writeListEntry(swrl, { loved: false }, firestore, {});
 }

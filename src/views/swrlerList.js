@@ -2,12 +2,14 @@ import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 export default { showList, destroyList };
 
 import { SWRLER_LATER, SWRLER_LOVED, SWRLER_DONE } from '../constants/View';
-import { Collection } from '../constants/Collection';
+import { listEntriesPath } from '../constants/Collection';
 import { Category } from '../constants/Category';
 import { swrlUser } from '../firebase/login';
 import { renderSwrl } from '../components/swrl';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
+import { ListEntry, sortListEntries, visibilitiesViewerMayQuery } from '../model/listEntry';
+import { whenListEntriesReady } from '../listeners/listEntries';
 import { UIView } from './UIView';
 import { StateController } from './stateController';
 import { Sort } from '../constants/Sort';
@@ -114,64 +116,78 @@ export function showList(swrler, view, firestore, stateController) {
     }
     currentSwrler = swrler
     currentView = view;
-    const swrlsRef = collection(firestore, Collection.SWRLS);
-    if (swrlsRef) {
-        runQuery(swrlsRef, swrler, view, stateController.currentState.sort, stateController.currentState.typeFilter)
-            .then(function (querySnapshot) {
-                if (currentID === resultsID) {
-                    document.getElementById('messageContainer').classList.add('hidden');
-                    document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
-                    document.querySelector('#swrlListView .loadingbar').classList.add('hidden');
+    const filters = stateController.currentState.filters;
+    const userId = swrlUser ? swrlUser.uid : undefined;
+    loadEntries(swrler, view, stateController.currentState.sort, stateController.currentState.typeFilter, firestore)
+        .then(function (entries) {
+            if (currentID === resultsID) {
+                document.getElementById('messageContainer').classList.add('hidden');
+                document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
+                document.querySelector('#swrlListView .loadingbar').classList.add('hidden');
 
-                    clearList();
-                    if (!querySnapshot.empty) {
-                        const swrls = [];
-                        querySnapshot.forEach(
-                            /**
-                             * @param {import('firebase/firestore').QueryDocumentSnapshot} docSnapshot
-                             */
-                            (docSnapshot) => {
-                                try {
-                                    const swrl = Swrl.fromFirestore(docSnapshot.data());
-                                    if (stateController.currentState.filters.every(f => f.match(swrl, swrlUser ? swrlUser.uid : undefined))) {
-                                        swrls.push(swrl);
-                                    }
-                                } catch (error) {
-                                    console.error(`Cannot get swrl ${docSnapshot.id}`);
-                                    console.error(docSnapshot.data());
-                                    console.error(error);
-                                }
-                            })
-                        if (swrls.length === 0) {
-                            showNoSwrlsView()
-                        } else {
-                            renderNextSwrls(swrls, stateController, view, firestore, true);
-                        }
-
-                    } else {
-                        console.log("No Swrls found");
-                        showNoSwrlsView();
-                    }
+                clearList();
+                // renderSwrl fetches the shared swrl of each card it shows (for the counts)
+                const swrls = entries.map(entry => entry.toSwrl()).filter(swrl => filters.every(f => f.match(swrl, userId)));
+                if (swrls.length === 0) {
+                    console.log("No Swrls found");
+                    showNoSwrlsView();
                 } else {
-                    console.log('View was changed');
+                    renderNextSwrls(swrls, stateController, view, firestore, true);
                 }
-            })
-            .catch(function (error) {
-                console.error(error);
-                console.error("Couldn't get swrls!");
-                showNoSwrlsView();
-            })
-    } else {
-        if (currentID === resultsID) {
-            console.log("No Swrls found");
+            } else {
+                console.log('View was changed');
+            }
+        })
+        .catch(function (error) {
+            console.error(error);
+            console.error("Couldn't get swrls!");
             showNoSwrlsView();
-        } else {
-            console.log('View was changed');
-        }
-    }
+        })
 }
 
-
+/**
+ * The swrler's entries for this tab, sorted, limited to what I may see. The
+ * visibility constraint is part of the query because rules are not filters:
+ * a query that could return something I may not read is refused outright.
+ * Friendship is not wired up yet, so I am never a friend here.
+ *
+ * @param {import('firebase/auth').User} swrler
+ * @param {Constant} view
+ * @param {Sort} sort
+ * @param {WhereFilter} typeFilter
+ * @param {import('firebase/firestore').Firestore} firestore
+ * @return {Promise<ListEntry[]>}
+ */
+async function loadEntries(swrler, view, sort, typeFilter, firestore) {
+    const listFields = new Map([[SWRLER_LATER, "later"], [SWRLER_LOVED, "loved"], [SWRLER_DONE, "done"]]);
+    /** @type {import('firebase/firestore').QueryConstraint[]} */
+    const constraints = [];
+    if (listFields.has(view)) {
+        constraints.push(where(listFields.get(view), "==", true));
+    }
+    if (typeFilter) constraints.push(where(typeFilter.column, '==', typeFilter.value));
+    const visibilities = visibilitiesViewerMayQuery(swrlUser ? swrlUser.uid : undefined, swrler.uid, false);
+    if (visibilities) constraints.push(where('visibility', 'in', visibilities));
+    const [querySnapshot] = await Promise.all([
+        getDocs(query(collection(firestore, listEntriesPath(swrler.uid).join('/')), ...constraints)),
+        whenListEntriesReady()]);
+    /** @type {ListEntry[]} */
+    const entries = [];
+    querySnapshot.forEach(
+        /**
+         * @param {import('firebase/firestore').QueryDocumentSnapshot} docSnapshot
+         */
+        (docSnapshot) => {
+            try {
+                entries.push(ListEntry.fromFirestore(docSnapshot.data()));
+            } catch (error) {
+                console.error(`Cannot get list entry ${docSnapshot.id}`);
+                console.error(docSnapshot.data());
+                console.error(error);
+            }
+        });
+    return sortListEntries(entries, sort);
+}
 
 /**
  * @param {Swrl[]} swrls
@@ -199,26 +215,6 @@ function renderNextSwrls(swrls, stateController, view, firestore, firstLoad) {
         })
         swrlsContainer.appendChild(showMoreSwrls);
     }
-}
-
-/**
- * @param {import('firebase/firestore').CollectionReference} db
- * @param {import('firebase/auth').User} swrler
- * @param {Constant} view
- * @param {Sort} sort
- * @param {WhereFilter} typeFilter
- * @return {Promise}
- */
-function runQuery(db, swrler, view, sort, typeFilter) {
-    const listFields = new Map([[SWRLER_LATER, "later"], [SWRLER_LOVED, "loved"], [SWRLER_DONE, "done"]]);
-    /** @type {import('firebase/firestore').QueryConstraint[]} */
-    const constraints = [];
-    if (listFields.has(view)) {
-        constraints.push(where(listFields.get(view), "array-contains", swrler.uid));
-    }
-    constraints.push(orderBy(sort.column, sort.direction));
-    if (typeFilter) constraints.push(where(typeFilter.column, '==', typeFilter.value));
-    return getDocs(query(db, ...constraints));
 }
 
 function clearList() {

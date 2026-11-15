@@ -84,16 +84,15 @@ export class ListEntry {
     }
 
     /**
-     * The entry as a Swrl, so the existing rendering code can show it. The
-     * uid arrays hold only the owner, and only for the flags that are set.
+     * The entry as a Swrl, so the existing rendering code can show it when
+     * the shared document is missing. The counts only cover this owner's own
+     * flags, since that is all the entry knows.
      *
      * @return {Swrl}
      */
     toSwrl() {
-        const mine = [this.uid];
-        return new Swrl(this.type, this.category, this.swrlID, this.details, this.added,
-            this.later ? mine : [], this.done ? mine : [], this.deleted ? mine : [], this.loved ? mine : [],
-            this.updated, [], []);
+        return new Swrl(this.type, this.category, this.swrlID, this.details, this.added, this.updated, [],
+            this.later ? 1 : 0, this.done ? 1 : 0, this.loved ? 1 : 0);
     }
 
     /**
@@ -141,4 +140,56 @@ export function visibilitiesViewerMayQuery(viewerUid, ownerUid, isFriend) {
  */
 export function effectiveVisibility(defaultVisibility, visibilityOverride, current) {
     return visibilityOverride && current ? current : (defaultVisibility || DEFAULT_VISIBILITY);
+}
+
+
+/**
+ * The comparison value of an entry for a Sort column. Dates still waiting for
+ * the server (a fresh local write) are undefined and count as newest.
+ *
+ * @param {ListEntry} entry
+ * @param {string} column 'details.title', 'added' or 'updated' (see constants/Sort)
+ * @return {string | number}
+ */
+function sortValue(entry, column) {
+    if (column === 'details.title') return (entry.details.title || '').toLowerCase();
+    const date = column === 'added' ? entry.added : entry.updated;
+    return date ? date.getTime() : Number.MAX_SAFE_INTEGER;
+}
+
+/**
+ * Sorts entries on the client, the same way the old Firestore `orderBy` on
+ * the shared swrls did, except titles compare case-insensitively. Returns a
+ * new array; ties break on swrlID so the order is stable.
+ *
+ * @param {ListEntry[]} entries
+ * @param {{column: string, direction: 'asc' | 'desc'}} sort
+ * @return {ListEntry[]}
+ */
+export function sortListEntries(entries, sort) {
+    const factor = sort.direction === 'desc' ? -1 : 1;
+    return [...entries].sort((a, b) => {
+        const left = sortValue(a, sort.column);
+        const right = sortValue(b, sort.column);
+        if (left < right) return -factor;
+        if (left > right) return factor;
+        return a.swrlID < b.swrlID ? -1 : a.swrlID > b.swrlID ? 1 : 0;
+    });
+}
+
+/**
+ * Combines entries from several sources (mine, public, later friends'),
+ * keeping one entry per owner. The first source to mention a uid wins, so
+ * pass the most trusted source first.
+ *
+ * @param {ListEntry[][]} sources
+ * @return {ListEntry[]}
+ */
+export function mergeEntriesByUid(...sources) {
+    /** @type {Map<string, ListEntry>} */
+    const byUid = new Map();
+    sources.forEach(entries => entries.forEach(entry => {
+        if (!byUid.has(entry.uid)) byUid.set(entry.uid, entry);
+    }));
+    return [...byUid.values()];
 }

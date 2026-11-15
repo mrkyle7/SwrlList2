@@ -12,6 +12,7 @@ import { StateController } from '../views/stateController';
 import { getSwrler } from '../firebase/swrler';
 import { State } from '../model/state';
 import { Swrl } from '../model/swrl';
+import { whenListEntriesReady } from '../listeners/listEntries';
 
 /**
  * 
@@ -66,6 +67,8 @@ export const renderRecommendation = async (stateController, view, recommendation
 
         $recommendation('.swrlButtons').appendChild(buttons);
 
+        // my own entries must have loaded, or the buttons would all say "not on my list"
+        await whenListEntriesReady();
         addStats(recommendationDiv, recommendation.swrl);
         addLoveButton(view, recommendation.swrl, recommendationDiv, firestore, recommendation);
         addAddButton(view, recommendationDiv, recommendation.swrl, firestore, null, recommendation);

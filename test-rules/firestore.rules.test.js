@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { initializeTestEnvironment, assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import {
     doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, addDoc, collection, collectionGroup,
-    query, where, serverTimestamp, arrayUnion
+    query, where, serverTimestamp, arrayUnion, writeBatch
 } from 'firebase/firestore';
 
 /** @type {import('@firebase/rules-unit-testing').RulesTestEnvironment} */
@@ -120,6 +120,45 @@ describe('collection group query on listEntries', () => {
         await assertFails(getDocs(query(collectionGroup(db, 'listEntries'), where('swrlID', '==', 'pub'))));
         await assertFails(getDocs(query(collectionGroup(db, 'listEntries'),
             where('swrlID', '==', 'fr'), where('visibility', 'in', ['public', 'friends']))));
+    });
+});
+
+describe('the queries and writes the client makes (Phase 2)', () => {
+    it('own list: an equality query on my entries, and the listener on the whole collection', async () => {
+        const db = as('owner');
+        await assertSucceeds(getDocs(query(collection(db, 'swrlers/owner/listEntries'),
+            where('category', '==', 1), where('later', '==', true), where('type', '==', 1))));
+        await assertSucceeds(getDocs(collection(db, 'swrlers/owner/listEntries')));
+    });
+    it('swrler list: later/loved/done + type + the visibility constraint, as a non-owner', async () => {
+        for (const field of ['later', 'loved', 'done']) {
+            await assertSucceeds(getDocs(query(collection(as('carol'), 'swrlers/owner/listEntries'),
+                where(field, '==', true), where('type', '==', 1), where('visibility', 'in', ['public']))));
+            await assertSucceeds(getDocs(query(collection(anon(), 'swrlers/owner/listEntries'),
+                where(field, '==', true), where('visibility', 'in', ['public']))));
+            await assertFails(getDocs(query(collection(as('carol'), 'swrlers/owner/listEntries'), where(field, '==', true))));
+        }
+        await assertSucceeds(getDocs(query(collection(as('bob'), 'swrlers/owner/listEntries'),
+            where('later', '==', true), where('visibility', 'in', ['public', 'friends']))));
+    });
+    it('an action batch: my entry (new, default visibility) plus the shared details, no arrays or counts', async () => {
+        const db = as('carol');
+        const batch = writeBatch(db);
+        batch.set(doc(db, 'swrlers/carol/listEntries/film-9'),
+            { ...entry('carol', 'film-9', 'friends'), added: serverTimestamp(), updated: serverTimestamp() }, { merge: true });
+        batch.set(doc(db, 'swrls/film-9'),
+            { swrlID: 'film-9', type: 1, category: 1, details: {}, added: serverTimestamp(), updated: serverTimestamp() }, { merge: true });
+        await assertSucceeds(batch.commit());
+        // a later merge write of a few flags leaves visibility alone and is allowed
+        await assertSucceeds(setDoc(doc(db, 'swrlers/carol/listEntries/film-9'),
+            { swrlID: 'film-9', uid: 'carol', type: 1, category: 1, details: {}, loved: true, updated: serverTimestamp() }, { merge: true }));
+    });
+    it('the same batch with a legacy array on the shared doc is refused', async () => {
+        const db = as('carol');
+        const batch = writeBatch(db);
+        batch.set(doc(db, 'swrlers/carol/listEntries/film-9'), entry('carol', 'film-9', 'friends'), { merge: true });
+        batch.set(doc(db, 'swrls/film-9'), { swrlID: 'film-9', later: arrayUnion('carol') }, { merge: true });
+        await assertFails(batch.commit());
     });
 });
 
