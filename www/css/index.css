@@ -1601,7 +1601,7 @@ body {
 
 
 /* Private comments on the Swrl page. */
-.privateCommentHint, .privateCommentStatus, .privateCommentDate {
+.privateCommentStatus, .privateCommentDate {
     margin: 4px;
     color: #666;
     font-size: 14px;
@@ -1903,7 +1903,7 @@ body {
     font-weight: bold;
 }
 
-.labelOptionsEmpty, .labelEditorHint {
+.labelOptionsEmpty {
     margin: 0;
     color: #5f6368;
     font-size: 13px;
@@ -1911,11 +1911,6 @@ body {
 
 .labelOptionsEmpty {
     padding: 8px 10px;
-}
-
-.labelEditorHint {
-    margin-top: 6px;
-    text-align: center;
 }
 
 @media (prefers-reduced-motion: reduce) {
