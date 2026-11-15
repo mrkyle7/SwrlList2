@@ -1,5 +1,6 @@
-import { collectionGroup, getDocs, query, where } from 'firebase/firestore';
-import { LIST_ENTRIES } from '../constants/Collection';
+import { collectionGroup, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
+import { LIST_ENTRIES, listEntryPath } from '../constants/Collection';
+import { getFriends, whenFriendsReady } from '../listeners/friends';
 import { getListEntry, whenListEntriesReady } from '../listeners/listEntries';
 import { ListEntry, mergeEntriesByUid } from '../model/listEntry';
 
@@ -44,13 +45,37 @@ export const publicEntriesSource = async (swrlID, firestore) => {
 };
 
 /**
+ * My friends' entries for the swrl: one getDoc per friend. A friend's
+ * `private` entry (or no entry at all: the rules cannot tell the two apart)
+ * is refused with permission-denied; that is expected and swallowed quietly.
+ * Anything else is logged and that friend skipped.
+ *
+ * @type {EntrySource}
+ */
+export const friendsEntriesSource = async (swrlID, firestore) => {
+    await whenFriendsReady();
+    const found = await Promise.all(getFriends().map(async friend => {
+        try {
+            const docSnapshot = await getDoc(doc(firestore, listEntryPath(friend.uid, swrlID).join('/')));
+            return docSnapshot.exists() ? ListEntry.fromFirestore(docSnapshot.data()) : undefined;
+        } catch (error) {
+            if (error && error.code !== 'permission-denied') {
+                console.error(`Cannot get list entry of friend ${friend.uid}`);
+                console.error(error);
+            }
+            return undefined;
+        }
+    }));
+    return found.filter(entry => entry !== undefined);
+};
+
+/**
  * The sources used by the full page's Swrlers card, most trusted first (the
- * merge keeps the first entry for a uid). Friends' entries become one more
- * source here.
+ * merge keeps the first entry for a uid): me, my friends, then everyone public.
  *
  * @type {EntrySource[]}
  */
-export const swrlersCardSources = [myEntrySource, publicEntriesSource];
+export const swrlersCardSources = [myEntrySource, friendsEntriesSource, publicEntriesSource];
 
 /**
  * Entries for one swrl from several sources, one per owner. A source that

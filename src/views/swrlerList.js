@@ -10,6 +10,8 @@ import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
 import { ListEntry, sortListEntries, visibilitiesViewerMayQuery } from '../model/listEntry';
 import { whenListEntriesReady } from '../listeners/listEntries';
+import { addFriendsChangeListener, isFriend, whenFriendsReady } from '../listeners/friends';
+import { renderFriendControl } from '../components/friendControl';
 import { UIView } from './UIView';
 import { StateController } from './stateController';
 import { Sort } from '../constants/Sort';
@@ -82,6 +84,11 @@ const swrlsContainer = document.getElementById('swrlList');
 let currentID;
 let currentSwrler;
 let currentView;
+/** The friendship the current list was loaded with, so a change reloads it. */
+let loadedAsFriend;
+let unsubscribeFriends;
+/** @type {HTMLElement} */
+let friendBar;
 
 /**
  * @param {import('firebase/auth').User} swrler
@@ -116,6 +123,16 @@ export function showList(swrler, view, firestore, stateController) {
     }
     currentSwrler = swrler
     currentView = view;
+    showFriendBar(swrler, firestore);
+    if (unsubscribeFriends) unsubscribeFriends();
+    unsubscribeFriends = addFriendsChangeListener(() => {
+        if (currentID !== resultsID) return;
+        renderFriendBar(swrler, firestore);
+        // Becoming (or ceasing to be) a friend changes which entries may be read.
+        if (loadedAsFriend !== undefined && loadedAsFriend !== isFriend(swrler.uid)) {
+            showList(swrler, view, firestore, stateController);
+        }
+    });
     const filters = stateController.currentState.filters;
     const userId = swrlUser ? swrlUser.uid : undefined;
     loadEntries(swrler, view, stateController.currentState.sort, stateController.currentState.typeFilter, firestore)
@@ -149,7 +166,7 @@ export function showList(swrler, view, firestore, stateController) {
  * The swrler's entries for this tab, sorted, limited to what I may see. The
  * visibility constraint is part of the query because rules are not filters:
  * a query that could return something I may not read is refused outright.
- * Friendship is not wired up yet, so I am never a friend here.
+ * A friend's pages also include the entries with `friends` visibility.
  *
  * @param {import('firebase/auth').User} swrler
  * @param {Constant} view
@@ -166,7 +183,11 @@ async function loadEntries(swrler, view, sort, typeFilter, firestore) {
         constraints.push(where(listFields.get(view), "==", true));
     }
     if (typeFilter) constraints.push(where(typeFilter.column, '==', typeFilter.value));
-    const visibilities = visibilitiesViewerMayQuery(swrlUser ? swrlUser.uid : undefined, swrler.uid, false);
+    // Friendship comes from the friends listener: wait for its first snapshot
+    // (it resolves at once for anonymous viewers, who are never friends).
+    await whenFriendsReady();
+    loadedAsFriend = isFriend(swrler.uid);
+    const visibilities = visibilitiesViewerMayQuery(swrlUser ? swrlUser.uid : undefined, swrler.uid, loadedAsFriend);
     if (visibilities) constraints.push(where('visibility', 'in', visibilities));
     const [querySnapshot] = await Promise.all([
         getDocs(query(collection(firestore, listEntriesPath(swrler.uid).join('/')), ...constraints)),
@@ -221,9 +242,45 @@ function clearList() {
     while (swrlsContainer.firstChild) {
         swrlsContainer.removeChild(swrlsContainer.firstChild);
     }
+    // the friendship bar stays at the top of the list
+    if (friendBar && !friendBar.classList.contains('hidden')) swrlsContainer.appendChild(friendBar);
+}
+
+/**
+ * Creates the friendship bar (once) and shows the control for this swrler.
+ *
+ * @param {import('firebase/auth').User} swrler
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+function showFriendBar(swrler, firestore) {
+    if (!friendBar) {
+        // @ts-ignore
+        friendBar = document.getElementById('swrlerFriendBar').content.cloneNode(true).querySelector('.swrlerFriendBar');
+    }
+    renderFriendBar(swrler, firestore);
+}
+
+/**
+ * Shows "Add friend" / "Request sent" / "Accept" / "Friends" above the list,
+ * or nothing on my own page and for anonymous viewers.
+ *
+ * @param {import('firebase/auth').User} swrler
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+function renderFriendBar(swrler, firestore) {
+    renderFriendControl(friendBar, swrler.uid, firestore);
+    if (friendBar.classList.contains('hidden')) {
+        if (friendBar.parentNode) friendBar.parentNode.removeChild(friendBar);
+    } else if (friendBar.parentNode !== swrlsContainer) {
+        swrlsContainer.insertBefore(friendBar, swrlsContainer.firstChild);
+    }
 }
 
 export function destroyList() {
+    if (unsubscribeFriends) unsubscribeFriends();
+    unsubscribeFriends = undefined;
+    if (friendBar && friendBar.parentNode) friendBar.parentNode.removeChild(friendBar);
+    loadedAsFriend = undefined;
     const tabs = document.getElementById('swrlerTabs');
     tabs.classList.add('hidden');
     document.getElementById('swrlList').classList.add('hidden');

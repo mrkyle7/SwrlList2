@@ -280,8 +280,8 @@ const swrlersCardSections = [['Later', 'later'], ['Done', 'done'], ['Loved', 'lo
 
 /**
  * The "Swrlers" card: who has the swrl on later, done or loved, as far as I
- * may know. That is me (own entries) plus everyone with a public entry; more
- * sources (my friends) are added in swrlersCardSources. The card only
+ * may know. That is me (own entries), my friends' entries I may read and
+ * everyone with a public entry (see swrlersCardSources). The card only
  * appears when someone qualifies. The counts on the swrl stay anonymous and
  * include private entries, so they can be higher than the names shown.
  *
