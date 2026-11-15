@@ -29,6 +29,29 @@ function recommendationMessage(tokens, recommender, swrl) {
 }
 
 /**
+ * The push notification sent to the receiver of a friend request.
+ *
+ * @param {string[]} tokens device tokens of the receiver
+ * @param {{displayName?: string}} requester
+ * @returns {import('firebase-admin/messaging').MulticastMessage}
+ */
+function friendRequestMessage(tokens, requester) {
+    const who = requester.displayName || 'Someone';
+    return {
+        tokens: tokens,
+        notification: {
+            title: 'New Friend Request',
+            body: `${who} wants to be your friend on Swrl List!`
+        },
+        webpush: {
+            headers: { TTL: String(60 * 60 * 24), Urgency: 'high' },
+            notification: { icon: `${SITE_URL}/img/logo.png` },
+            fcmOptions: { link: `${SITE_URL}/friends` }
+        }
+    };
+}
+
+/**
  * Tokens FCM says will never work again, so they can be deleted.
  *
  * @param {string[]} tokens
@@ -61,4 +84,4 @@ function userActivityText(before, after, ownerUid) {
     return after ? `User ${name} has just logged in.` : `User ${name} was deleted`;
 }
 
-module.exports = { recommendationMessage, deadTokens, userActivityText, SITE_URL };
+module.exports = { recommendationMessage, friendRequestMessage, deadTokens, userActivityText, SITE_URL };

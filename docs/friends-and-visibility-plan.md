@@ -205,6 +205,22 @@ Each phase ends with `npm test` and `cd functions && npm test` passing and
    migrated in that window are not carried over.
 5. A week or so later: `./scripts/migrate-list-entries.js --strip-arrays`.
 
+Notes:
+
+- `firestore.indexes.json` only holds the indexes the NEW queries need (the
+  `listEntries` collection-group queries on `swrlID` and `visibility`). The
+  indexes the legacy queries already have in the console are not reproduced
+  here, so do not deploy it with `--force`-style tooling that deletes indexes
+  missing from the file; add its entries in the console by hand.
+- The `listEntryCounts` function reacts to every entry the migration script
+  creates, asynchronously. Step 1 runs before the functions exist, so the
+  script's own recount is final. On the second run (step 4) the function is
+  live: after the script finishes, wait a minute and run
+  `./scripts/migrate-list-entries.js --recount` once more, so late
+  increments cannot leave the counts doubled.
+- `firestore.rules` is tested against the emulator with `npm run test:rules`
+  (needs Java; `test-rules/`, not part of `npm test`).
+
 Browsers still running the old cached app keep writing the legacy arrays
 until they refresh; once the rules are applied those writes are refused.
 
@@ -212,3 +228,33 @@ until they refresh; once the rules are applied those writes are refused.
 
 - Limiting recommendations to friends (recommend still lists all swrlers).
 - Blocking users.
+
+## Phase 1 decisions (recorded while building)
+
+- `swrlers/{uid}` is readable by any signed-in user, anonymous included
+  (`request.auth != null`), not by unauthenticated requests. The app signs
+  every visitor in anonymously (`src/firebase/login.js`), and the Firestore
+  SDK waits for that, so deep links to `/swrler/:id` and the full page work.
+  If anonymous sign-in ever fails, the profile reads fail too.
+- Clients cannot delete `swrlers/{uid}`; `create`/`update` only, with no
+  `email`, a matching `uid` if present, and a valid `defaultVisibility`.
+- A friend request create is also refused when the two are already friends,
+  must carry exactly `from, to, created, status`, and `created` must be the
+  server time.
+- `recommendations`: readable by `from` and members of `to`. The app's two
+  listeners (`to array-contains me`, `from == me`) fit that. The full page and
+  inbox read only those caches, so nothing needed loosening. A receiver may
+  update only `read` / `dismissed`, and only add or remove their own uid.
+  Clients cannot delete recommendations (none do today).
+- `messagingtokens` (doc id = token): any signed-in user may write a doc with
+  their own uid (a device handed to another user takes it over, as today);
+  only the current owner reads or deletes. `savedsearches`: owner only.
+- Any signed-in user, anonymous included, may write `swrls` details (as
+  spec'd). The legacy uid arrays and the counts are refused.
+- Pure Cloud Function logic is in `functions/listEntries.js` (counts, accept
+  transition, friend docs, legacy swrl to entries); push message in
+  `functions/messages.js`. No change to `deploy.yml` or terraform is needed:
+  the deploy runs `firebase deploy --only functions`, which picks up every
+  export of `functions/index.js`.
+- The migration's recount counts `later`/`done`/`loved` flags from entries,
+  including entries flagged `deleted`, exactly like `listEntryCounts`.
