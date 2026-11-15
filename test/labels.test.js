@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
     MAX_LABEL_LENGTH, MAX_LABELS_PER_SWRL, addLabel, allLabels, cleanLabel, hasLabel,
-    labelsFromFirestore, matchesLabels, removeLabel
+    labelSuggestions, labelsFromFirestore, matchesLabels, removeLabel
 } from '../src/model/labels';
 import { labelsPath } from '../src/constants/Collection';
 
@@ -48,6 +48,15 @@ describe('labels', function () {
         expect(labelsFromFirestore({ labels: ['a', '', 3, 'b'] })).to.deep.equal(['a', 'b']);
         expect(labelsFromFirestore({})).to.deep.equal([]);
         expect(labelsFromFirestore(undefined)).to.deep.equal([]);
+    });
+
+    it('suggests my other labels and offers to create a new one', function () {
+        const all = ['Comedy', 'date night', 'scary'];
+        expect(labelSuggestions(all, ['scary'], '')).to.deep.equal({ existing: ['Comedy', 'date night'], create: undefined });
+        expect(labelSuggestions(all, ['scary'], ' NIG')).to.deep.equal({ existing: ['date night'], create: 'NIG' });
+        expect(labelSuggestions(all, [], 'comedy')).to.deep.equal({ existing: ['Comedy'], create: undefined });
+        expect(labelSuggestions(all, ['scary'], 'Scary')).to.deep.equal({ existing: [], create: undefined });
+        expect(labelSuggestions([], [], 'a'.repeat(31))).to.deep.equal({ existing: [], create: undefined });
     });
 
     it('are stored under the owning user, per swrl', function () {

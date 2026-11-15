@@ -95,3 +95,22 @@ export function matchesLabels(swrlLabels, selected) {
 export function labelsFromFirestore(data) {
     return data && Array.isArray(data.labels) ? data.labels.filter(l => typeof l === 'string' && l.length > 0) : [];
 }
+
+/**
+ * What the label editor offers while the user types: my other labels that
+ * contain the typed text (all of them when nothing is typed), and the typed
+ * text itself as a new label when it is valid and not one I already have.
+ *
+ * @param {string[]} all every label I have used
+ * @param {string[]} current the labels already on this swrl
+ * @param {string} typed
+ * @return {{existing: string[], create: string | undefined}}
+ */
+export function labelSuggestions(all, current, typed) {
+    const cleaned = cleanLabel(typed);
+    const needle = (typed || '').trim().toLocaleLowerCase();
+    const existing = all.filter(label => !hasLabel(current, label)
+        && key(label).includes(needle));
+    const create = cleaned && !hasLabel(all, cleaned) && !hasLabel(current, cleaned) ? cleaned : undefined;
+    return { existing, create };
+}

@@ -1346,24 +1346,161 @@ body {
 
 /* The per-swrl "Visible to" control on the full page */
 
-.swrlVisibility {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin: 4px 0 8px 0;
-    font-size: 14px;
-    color: #444;
+#swrlImageContainer {
+    position: relative;
 }
 
-.swrlVisibility select {
-    font-family: inherit;
-    font-size: 14px;
-    padding: 4px 8px;
-    border: 2px solid #222222;
-    border-radius: 0;
+/* Who can see my entry for this swrl: a round icon button in the corner of
+   the poster area, with a menu to change it. */
+.swrlVisibility {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 5;
+}
+
+.swrlVisibility.saving .visibilityButton {
+    opacity: 0.5;
+}
+
+.visibilityButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid #dfe3e8;
+    border-radius: 50%;
     background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 120ms ease, box-shadow 120ms ease;
+}
+
+.visibilityButton svg {
+    width: 22px;
+    height: 22px;
+    fill: #5f6368;
+}
+
+.swrlVisibility[data-visibility="friends"] .visibilityButton svg {
+    fill: #4A90E2;
+}
+
+.swrlVisibility[data-visibility="public"] .visibilityButton svg {
+    fill: #2e9e6b;
+}
+
+.visibilityButton:hover, .visibilityButton[aria-expanded="true"] {
+    background: #f3f5f7;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
+}
+
+.visibilityButton:focus-visible, .visibilityMenuItem:focus-visible {
+    outline: 2px solid #4A90E2;
+    outline-offset: 2px;
+}
+
+.visibilityMenu {
+    position: absolute;
+    top: 48px;
+    right: 0;
+    box-sizing: border-box;
+    width: 264px;
+    max-width: calc(100vw - 32px);
+    padding: 6px;
+    border: 1px solid #e3e6ea;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    transform-origin: top right;
+    animation: popIn 120ms ease-out;
+}
+
+.visibilityMenuHeading {
+    margin: 0;
+    padding: 8px 10px 6px;
+    color: #5f6368;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.visibilityMenuItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin: 0;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: #222222;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.visibilityMenuItem:hover, .visibilityMenuItem:focus {
+    background: #f3f5f7;
+}
+
+.visibilityMenuIcon {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    fill: #5f6368;
+}
+
+.visibilityMenuText {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.visibilityMenuLabel {
+    font-size: 15px;
+    line-height: 20px;
+}
+
+.visibilityMenuItem[aria-checked="true"] .visibilityMenuLabel {
+    font-weight: bold;
+}
+
+.visibilityMenuWho {
+    color: #5f6368;
+    font-size: 13px;
+    line-height: 18px;
+}
+
+.visibilityMenuCheck {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    fill: #FF2E63;
+    visibility: hidden;
+}
+
+.visibilityMenuItem[aria-checked="true"] .visibilityMenuCheck {
+    visibility: visible;
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 @media only screen and (min-width: 1025px) {
@@ -1528,36 +1665,46 @@ body {
 }
 
 
-/* Private labels on the swrl page, and the label filter. */
-.labelChips {
+/* Private labels on the swrl page: a centred row of lozenges under the action
+   buttons, ending in a "+" lozenge that opens an inline editor. */
+.labels {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
     gap: 6px;
-    margin: 8px 4px;
+    margin: 6px 8px 12px;
+}
+
+.labelChips {
+    display: contents;
 }
 
 .labelChip {
     display: inline-flex;
     align-items: center;
     max-width: 100%;
-    padding: 2px 2px 2px 10px;
-    border-radius: 16px;
+    min-height: 28px;
+    box-sizing: border-box;
+    padding: 0 2px 0 12px;
+    border-radius: 14px;
     background: #eef1f4;
     color: #222222;
     font-size: 14px;
-    line-height: 24px;
+    line-height: 20px;
 }
 
 .labelChipText {
     overflow-wrap: anywhere;
 }
 
-.labelChipRemove {
+.labelChipRemove, .labelEditorClose {
     flex: none;
-    width: 28px;
-    height: 28px;
-    margin: 0 0 0 2px;
-    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
     border: 0;
     border-radius: 50%;
     background: transparent;
@@ -1565,45 +1712,216 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-.labelChipRemove svg {
-    display: block;
-    width: 16px;
-    height: 16px;
+.labelChipRemove {
+    width: 24px;
+    height: 24px;
+    margin-left: 2px;
 }
 
-.labelChipRemove path {
+.labelChipRemove svg, .labelEditorClose svg {
+    width: 14px;
+    height: 14px;
     fill: none;
     stroke: #5f6368;
-    stroke-width: 2;
+    stroke-width: 2.2;
     stroke-linecap: round;
 }
 
-.labelChipRemove:hover {
+.labelChipRemove:hover, .labelEditorClose:hover {
     background: #d9dee3;
 }
 
-.labelChipRemove:focus-visible {
-    outline: 2px solid #4A90E2;
+.labelAddButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 28px;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0 12px 0 8px;
+    border: 1.5px dashed #9aa0a6;
+    border-radius: 14px;
+    background: transparent;
+    color: #5f6368;
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 
-.labelForm {
+.labelAddButton svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+}
+
+.labelAddButton:hover {
+    border-color: #222222;
+    background: #f3f5f7;
+    color: #222222;
+}
+
+/* Beside other lozenges the button is just a "+". */
+.labels.hasLabels .labelAddButton {
+    width: 28px;
+    padding: 0;
+    justify-content: center;
+}
+
+.labels.hasLabels .labelAddText {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.labels.editing .labelAddButton {
+    display: none;
+}
+
+.labelChipRemove:focus-visible, .labelEditorClose:focus-visible, .labelAddButton:focus-visible {
+    outline: 2px solid #4A90E2;
+    outline-offset: 1px;
+}
+
+.labelEditor {
+    flex: 0 0 100%;
+    box-sizing: border-box;
+    max-width: 360px;
+    margin: 4px auto 0;
+    transform-origin: top center;
+    animation: labelEditorIn 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes labelEditorIn {
+    from {
+        opacity: 0;
+        transform: scaleX(0.4);
+    }
+    to {
+        opacity: 1;
+        transform: scaleX(1);
+    }
+}
+
+.labelEditorField {
     display: flex;
+    align-items: center;
     gap: 8px;
-    margin: 4px;
+    height: 40px;
+    box-sizing: border-box;
+    padding: 0 4px 0 12px;
+    border: 2px solid #222222;
+    border-radius: 20px;
+    background: #fff;
+}
+
+.labelEditorField:focus-within {
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.3);
+}
+
+.labelEditorField > svg {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: #5f6368;
+    stroke-width: 1.8;
+    stroke-linejoin: round;
+}
+
+.labelEditorField > svg circle {
+    fill: #5f6368;
+    stroke: none;
 }
 
 .labelInput {
     flex: 1;
     min-width: 0;
-    box-sizing: border-box;
-    border: 2px solid #222222;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
     font: inherit;
     font-size: 16px;
-    padding: 8px;
 }
 
-.labelAdd {
-    font-size: 16px;
+.labelEditorClose {
+    width: 30px;
+    height: 30px;
+}
+
+.labelOptions {
+    max-height: 196px;
+    margin-top: 6px;
+    padding: 4px;
+    overflow-y: auto;
+    border: 1px solid #e3e6ea;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+}
+
+.labelOption {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    width: 100%;
+    margin: 0;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: #222222;
+    font: inherit;
+    font-size: 15px;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.labelOption[aria-selected="true"], .labelOption:hover {
+    background: #f3f5f7;
+}
+
+.labelOptionText {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.labelOptionVerb {
+    flex: none;
+    color: #d81b4f;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.labelOptionsEmpty, .labelEditorHint {
+    margin: 0;
+    color: #5f6368;
+    font-size: 13px;
+}
+
+.labelOptionsEmpty {
+    padding: 8px 10px;
+}
+
+.labelEditorHint {
+    margin-top: 6px;
+    text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .labelEditor, .visibilityMenu {
+        animation: none;
+    }
 }
 
 #filters {
