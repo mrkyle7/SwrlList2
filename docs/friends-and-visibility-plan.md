@@ -269,10 +269,9 @@ Checklist:
 9. A week or so later, when old tabs and installed apps have refreshed:
    `./scripts/migrate-list-entries.js --strip-arrays --dry-run`, then for real
    (after an export). From then on the swrl docs hold no uids at all.
-10. Review `www/privacy_policy.html`: it is generic template text. It does not
-    yet mention friends, who can see your swrls (and the default of "friends"),
-    the public profile (name and photo), or account deletion. Update it before
-    or soon after step 4.
+10. Read `www/privacy_policy.html`. It was rewritten to describe what is stored,
+    who can see it, the visibility setting and account deletion. Check it says
+    what you want, in particular the contact route (a GitHub issue).
 11. Smoke test with a real account: Your List and Discover show the right swrls
     and counts; Settings changes the default; send a friend request between
     two accounts; check a stranger's page shows only public swrls.
@@ -548,8 +547,8 @@ Notes:
 - Known limits: other devices signed in as the deleted user keep a valid ID token
   for up to an hour and could still write; the Firestore offline cache in that
   browser is not wiped (logout does not wipe it either); the privacy policy page
-  (`www/privacy_policy.html`) is generic template text and does not mention
-  deletion, so it was left unchanged.
+  (`www/privacy_policy.html`) was rewritten afterwards and now describes
+  deletion.
 
 ## Phase 5 decisions and findings (integration test on the emulators)
 
