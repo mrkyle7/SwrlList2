@@ -2,12 +2,17 @@ import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 export default { showList, destroyList };
 
 import { SWRLER_LATER, SWRLER_LOVED, SWRLER_DONE } from '../constants/View';
-import { Collection } from '../constants/Collection';
+import { listEntriesPath } from '../constants/Collection';
 import { Category } from '../constants/Category';
 import { swrlUser } from '../firebase/login';
 import { renderSwrl } from '../components/swrl';
 import { Constant } from '../constants/Constant';
+import { emptySwrlerMessage } from '../model/visibilitySettings';
 import { Swrl } from '../model/swrl';
+import { ListEntry, sortListEntries, visibilitiesViewerMayQuery } from '../model/listEntry';
+import { whenListEntriesReady } from '../listeners/listEntries';
+import { addFriendsChangeListener, isFriend, whenFriendsReady } from '../listeners/friends';
+import { renderFriendControl } from '../components/friendControl';
 import { UIView } from './UIView';
 import { StateController } from './stateController';
 import { Sort } from '../constants/Sort';
@@ -80,6 +85,11 @@ const swrlsContainer = document.getElementById('swrlList');
 let currentID;
 let currentSwrler;
 let currentView;
+/** The friendship the current list was loaded with, so a change reloads it. */
+let loadedAsFriend;
+let unsubscribeFriends;
+/** @type {HTMLElement} */
+let friendBar;
 
 /**
  * @param {import('firebase/auth').User} swrler
@@ -114,64 +124,92 @@ export function showList(swrler, view, firestore, stateController) {
     }
     currentSwrler = swrler
     currentView = view;
-    const swrlsRef = collection(firestore, Collection.SWRLS);
-    if (swrlsRef) {
-        runQuery(swrlsRef, swrler, view, stateController.currentState.sort, stateController.currentState.typeFilter)
-            .then(function (querySnapshot) {
-                if (currentID === resultsID) {
-                    document.getElementById('messageContainer').classList.add('hidden');
-                    document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
-                    document.querySelector('#swrlListView .loadingbar').classList.add('hidden');
-
-                    clearList();
-                    if (!querySnapshot.empty) {
-                        const swrls = [];
-                        querySnapshot.forEach(
-                            /**
-                             * @param {import('firebase/firestore').QueryDocumentSnapshot} docSnapshot
-                             */
-                            (docSnapshot) => {
-                                try {
-                                    const swrl = Swrl.fromFirestore(docSnapshot.data());
-                                    if (stateController.currentState.filters.every(f => f.match(swrl, swrlUser ? swrlUser.uid : undefined))) {
-                                        swrls.push(swrl);
-                                    }
-                                } catch (error) {
-                                    console.error(`Cannot get swrl ${docSnapshot.id}`);
-                                    console.error(docSnapshot.data());
-                                    console.error(error);
-                                }
-                            })
-                        if (swrls.length === 0) {
-                            showNoSwrlsView()
-                        } else {
-                            renderNextSwrls(swrls, stateController, view, firestore, true);
-                        }
-
-                    } else {
-                        console.log("No Swrls found");
-                        showNoSwrlsView();
-                    }
-                } else {
-                    console.log('View was changed');
-                }
-            })
-            .catch(function (error) {
-                console.error(error);
-                console.error("Couldn't get swrls!");
-                showNoSwrlsView();
-            })
-    } else {
-        if (currentID === resultsID) {
-            console.log("No Swrls found");
-            showNoSwrlsView();
-        } else {
-            console.log('View was changed');
+    showFriendBar(swrler, firestore);
+    if (unsubscribeFriends) unsubscribeFriends();
+    unsubscribeFriends = addFriendsChangeListener(() => {
+        if (currentID !== resultsID) return;
+        renderFriendBar(swrler, firestore);
+        // Becoming (or ceasing to be) a friend changes which entries may be read.
+        if (loadedAsFriend !== undefined && loadedAsFriend !== isFriend(swrler.uid)) {
+            showList(swrler, view, firestore, stateController);
         }
-    }
+    });
+    const filters = stateController.currentState.filters;
+    const userId = swrlUser ? swrlUser.uid : undefined;
+    loadEntries(swrler, view, stateController.currentState.sort, stateController.currentState.typeFilter, firestore)
+        .then(function (entries) {
+            if (currentID === resultsID) {
+                document.getElementById('messageContainer').classList.add('hidden');
+                document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
+                document.querySelector('#swrlListView .loadingbar').classList.add('hidden');
+
+                clearList();
+                // renderSwrl fetches the shared swrl of each card it shows (for the counts)
+                const swrls = entries.map(entry => entry.toSwrl()).filter(swrl => filters.every(f => f.match(swrl, userId)));
+                if (swrls.length === 0) {
+                    console.log("No Swrls found");
+                    showNoSwrlsView(swrler);
+                } else {
+                    renderNextSwrls(swrls, stateController, view, firestore, true);
+                }
+            } else {
+                console.log('View was changed');
+            }
+        })
+        .catch(function (error) {
+            console.error(error);
+            console.error("Couldn't get swrls!");
+            showNoSwrlsView(swrler);
+        })
 }
 
-
+/**
+ * The swrler's entries for this tab, sorted, limited to what I may see. The
+ * visibility constraint is part of the query because rules are not filters:
+ * a query that could return something I may not read is refused outright.
+ * A friend's pages also include the entries with `friends` visibility.
+ *
+ * @param {import('firebase/auth').User} swrler
+ * @param {Constant} view
+ * @param {Sort} sort
+ * @param {WhereFilter} typeFilter
+ * @param {import('firebase/firestore').Firestore} firestore
+ * @return {Promise<ListEntry[]>}
+ */
+async function loadEntries(swrler, view, sort, typeFilter, firestore) {
+    const listFields = new Map([[SWRLER_LATER, "later"], [SWRLER_LOVED, "loved"], [SWRLER_DONE, "done"]]);
+    /** @type {import('firebase/firestore').QueryConstraint[]} */
+    const constraints = [];
+    if (listFields.has(view)) {
+        constraints.push(where(listFields.get(view), "==", true));
+    }
+    if (typeFilter) constraints.push(where(typeFilter.column, '==', typeFilter.value));
+    // Friendship comes from the friends listener: wait for its first snapshot
+    // (it resolves at once for anonymous viewers, who are never friends).
+    await whenFriendsReady();
+    loadedAsFriend = isFriend(swrler.uid);
+    const visibilities = visibilitiesViewerMayQuery(swrlUser ? swrlUser.uid : undefined, swrler.uid, loadedAsFriend);
+    if (visibilities) constraints.push(where('visibility', 'in', visibilities));
+    const [querySnapshot] = await Promise.all([
+        getDocs(query(collection(firestore, listEntriesPath(swrler.uid).join('/')), ...constraints)),
+        whenListEntriesReady()]);
+    /** @type {ListEntry[]} */
+    const entries = [];
+    querySnapshot.forEach(
+        /**
+         * @param {import('firebase/firestore').QueryDocumentSnapshot} docSnapshot
+         */
+        (docSnapshot) => {
+            try {
+                entries.push(ListEntry.fromFirestore(docSnapshot.data()));
+            } catch (error) {
+                console.error(`Cannot get list entry ${docSnapshot.id}`);
+                console.error(docSnapshot.data());
+                console.error(error);
+            }
+        });
+    return sortListEntries(entries, sort);
+}
 
 /**
  * @param {Swrl[]} swrls
@@ -201,33 +239,49 @@ function renderNextSwrls(swrls, stateController, view, firestore, firstLoad) {
     }
 }
 
-/**
- * @param {import('firebase/firestore').CollectionReference} db
- * @param {import('firebase/auth').User} swrler
- * @param {Constant} view
- * @param {Sort} sort
- * @param {WhereFilter} typeFilter
- * @return {Promise}
- */
-function runQuery(db, swrler, view, sort, typeFilter) {
-    const listFields = new Map([[SWRLER_LATER, "later"], [SWRLER_LOVED, "loved"], [SWRLER_DONE, "done"]]);
-    /** @type {import('firebase/firestore').QueryConstraint[]} */
-    const constraints = [];
-    if (listFields.has(view)) {
-        constraints.push(where(listFields.get(view), "array-contains", swrler.uid));
-    }
-    constraints.push(orderBy(sort.column, sort.direction));
-    if (typeFilter) constraints.push(where(typeFilter.column, '==', typeFilter.value));
-    return getDocs(query(db, ...constraints));
-}
-
 function clearList() {
     while (swrlsContainer.firstChild) {
         swrlsContainer.removeChild(swrlsContainer.firstChild);
     }
+    // the friendship bar stays at the top of the list
+    if (friendBar && !friendBar.classList.contains('hidden')) swrlsContainer.appendChild(friendBar);
+}
+
+/**
+ * Creates the friendship bar (once) and shows the control for this swrler.
+ *
+ * @param {import('firebase/auth').User} swrler
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+function showFriendBar(swrler, firestore) {
+    if (!friendBar) {
+        // @ts-ignore
+        friendBar = document.getElementById('swrlerFriendBar').content.cloneNode(true).querySelector('.swrlerFriendBar');
+    }
+    renderFriendBar(swrler, firestore);
+}
+
+/**
+ * Shows "Add friend" / "Request sent" / "Accept" / "Friends" above the list,
+ * or nothing on my own page and for anonymous viewers.
+ *
+ * @param {import('firebase/auth').User} swrler
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+function renderFriendBar(swrler, firestore) {
+    renderFriendControl(friendBar, swrler.uid, firestore);
+    if (friendBar.classList.contains('hidden')) {
+        if (friendBar.parentNode) friendBar.parentNode.removeChild(friendBar);
+    } else if (friendBar.parentNode !== swrlsContainer) {
+        swrlsContainer.insertBefore(friendBar, swrlsContainer.firstChild);
+    }
 }
 
 export function destroyList() {
+    if (unsubscribeFriends) unsubscribeFriends();
+    unsubscribeFriends = undefined;
+    if (friendBar && friendBar.parentNode) friendBar.parentNode.removeChild(friendBar);
+    loadedAsFriend = undefined;
     const tabs = document.getElementById('swrlerTabs');
     tabs.classList.add('hidden');
     document.getElementById('swrlList').classList.add('hidden');
@@ -240,10 +294,17 @@ export function destroyList() {
     currentID = undefined;
 }
 
-function showNoSwrlsView() {
+/**
+ * The empty state, worded for the viewer's relationship to the swrler. Nothing
+ * here says whether entries exist that the viewer may not see.
+ *
+ * @param {import('firebase/auth').User} swrler
+ */
+function showNoSwrlsView(swrler) {
     document.getElementById('messageContainer').classList.remove('hidden');
     document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
-    document.getElementById('message').innerText = 'No Swrls to see here :(';
+    document.getElementById('message').innerText = emptySwrlerMessage(
+        swrlUser ? swrlUser.uid : undefined, swrler.uid, swrler.displayName, isFriend(swrler.uid));
 }
 
 

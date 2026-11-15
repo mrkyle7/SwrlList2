@@ -58,17 +58,18 @@ One-shot: given a source-specific id (e.g. TMDB film id), return a full
 
 ## `swrlID` convention
 
-`swrlID` is the Firestore doc key and must be **deterministic and unique across
-types**. The pattern is `<type-prefix>-<source-id>`:
+`swrlID` is the Firestore doc key (of `swrls/{swrlID}` and of every user's
+`swrlers/{uid}/listEntries/{swrlID}`) and must be **deterministic and unique
+across types**. The pattern is `<SOURCE>_<source-id>` (built in `src/search/*`):
 
-- `film-<tmdbId>` — films (TMDB)
-- `tv-<tmdbId>` — TV shows (TMDB)
-- `book-<olid>` — books (OpenLibrary work id)
-- `album-<itunesId>`, `podcast-<itunesId>`
-- `boardgame-<bggId>`, `videogame-<bggId>`
+- `TMDBMOVIE_<tmdbId>`, `TMDBTV_<tmdbId>` - films and TV (TMDB)
+- `OPENLIBRARY-ISBN_<isbn>` - books (OpenLibrary)
+- `ITUNESALBUM_<collectionId>`, `ITUNESPODCAST_<collectionId>` - iTunes
+- `GEEK<type.geekType>_<bggId>` - board games and video games (BGG)
 
-When two users save "the same thing", they must produce identical `swrlID`s —
-that's how the `later`/`done`/`loved` uid arrays end up on a single shared doc.
+When two users save "the same thing", they must produce identical `swrlID`s:
+that is how their list entries point at the single shared `swrls` doc (details
+and counts).
 
 ## Existing integrations
 

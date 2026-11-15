@@ -10,6 +10,7 @@ import { showToasterMessage } from './toaster';
 import { Constant } from '../constants/Constant';
 import { DISCOVER, SEARCH, INBOX, YOUR_LIST } from '../constants/View';
 import { Swrl } from '../model/swrl';
+import { getListEntry } from '../listeners/listEntries';
 import { Recommendation } from '../model/recommendation';
 import { StateController } from '../views/stateController';
 import { State } from '../model/state';
@@ -156,14 +157,24 @@ export function addAddButton(view, div, swrl, firestore, swrlsContainer, recomme
  * @param {Swrl} swrl
  */
 const isOnList = (swrl) => {
-    return swrl.later && swrl.later.indexOf(swrlUser.uid) !== -1
+    const entry = getListEntry(swrl.swrlID);
+    return entry !== undefined && entry.later;
 }
 
 /**
  * @param {Swrl} swrl
  */
 function isLoved(swrl) {
-    return swrl.loved && swrl.loved.indexOf(swrlUser.uid) !== -1;
+    const entry = getListEntry(swrl.swrlID);
+    return entry !== undefined && entry.loved;
+}
+
+/**
+ * @param {Swrl} swrl
+ */
+function isDone(swrl) {
+    const entry = getListEntry(swrl.swrlID);
+    return entry !== undefined && entry.done;
 }
 
 /**
@@ -237,7 +248,7 @@ export function addDoneButton(swrlDiv, swrl, firestore, swrlsContainer, view) {
                 swrlDiv.querySelector('.swrlNotAdded').classList.remove('hidden');
             }
         });
-        if (swrl.done && swrl.done.indexOf(swrlUser.uid) !== -1) {
+        if (isDone(swrl)) {
             swrlDiv.querySelector('.swrlDone').classList.remove('hidden');
         } else {
             swrlDiv.querySelector('.swrlNotDone').classList.remove('hidden');

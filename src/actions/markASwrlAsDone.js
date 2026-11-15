@@ -1,17 +1,13 @@
-import { doc, setDoc, serverTimestamp, arrayUnion, arrayRemove } from 'firebase/firestore';
-import { swrlUser } from '../firebase/login';
-import { Collection } from '../constants/Collection';
+import { writeListEntry } from './writeListEntry';
 import { Swrl } from '../model/swrl';
 
 /**
- * @param {import('firebase/firestore').Firestore} firestore
+ * Marks a swrl as done (and off my list).
+ *
  * @param {Swrl} swrl
+ * @param {import('firebase/firestore').Firestore} firestore
+ * @return {Promise<void>}
  */
 export default function markASwrlAsDone(swrl, firestore) {
-   const fireStoreData = swrl.toPartialFireStoreData();
-   fireStoreData.updated = serverTimestamp();
-   fireStoreData.later = arrayRemove(swrlUser.uid);
-   fireStoreData.done = arrayUnion(swrlUser.uid);
-   fireStoreData.deleted = arrayRemove(swrlUser.uid);
-   return setDoc(doc(firestore, Collection.SWRLS, fireStoreData.swrlID), fireStoreData, { merge: true });
+   return writeListEntry(swrl, { later: false, done: true, deleted: false }, firestore, { updated: true });
 }

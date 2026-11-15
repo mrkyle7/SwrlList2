@@ -1,16 +1,13 @@
-import { doc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
-import { swrlUser } from '../firebase/login';
-import { Collection } from '../constants/Collection';
+import { writeListEntry } from './writeListEntry';
 import { Swrl } from '../model/swrl';
 
 /**
- * @param {import('firebase/firestore').Firestore} firestore
+ * Dismisses a swrl from Discover: off my list, not done, deleted.
+ *
  * @param {Swrl} swrl
+ * @param {import('firebase/firestore').Firestore} firestore
+ * @return {Promise<void>}
  */
 export default function deleteSwrl(swrl, firestore) {
-   const firestoreData = swrl.toPartialFireStoreData();
-   firestoreData.later = arrayRemove(swrlUser.uid);
-   firestoreData.done = arrayRemove(swrlUser.uid);
-   firestoreData.deleted = arrayUnion(swrlUser.uid);
-   return setDoc(doc(firestore, Collection.SWRLS, firestoreData.swrlID), firestoreData, { merge: true });
+   return writeListEntry(swrl, { later: false, done: false, deleted: true }, firestore, {});
 }

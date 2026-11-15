@@ -14,6 +14,10 @@ import { SwrlScreen } from "../screens/swrlScreen";
 import { SwrlFullPage } from "./swrlFullPage";
 import { SavedSearchesScreen } from "../screens/savedSearchesScreen";
 import { SavedSearches } from "./savedSearches";
+import { FriendsScreen } from "../screens/friendsScreen";
+import { Friends } from "./friends";
+import { SettingsScreen } from "../screens/settingsScreen";
+import { Settings } from "./settings";
 import { sortFromId } from "../constants/Sort";
 import { filterFromId } from "../constants/Filter";
 import { whereFilterFromId } from "../constants/WhereFilter";
@@ -35,6 +39,8 @@ export class StateController {
         this.recommendScreen = new RecommendScreen(this);
         this.swrlScreen = new SwrlScreen(this);
         this.savedSearches = new SavedSearchesScreen(this);
+        this.friendsScreen = new FriendsScreen(this);
+        this.settingsScreen = new SettingsScreen(this);
         //views
         this.homeView = new Home(this);
         this.inboxView = new InboxRecommendations(this);
@@ -48,6 +54,8 @@ export class StateController {
         this.recommendView = new Recommend(this);
         this.swrlView = new SwrlFullPage(this);
         this.savedSearchesView = new SavedSearches(this);
+        this.friendsView = new Friends(this);
+        this.settingsView = new Settings(this);
         //states
         /** @type {State[]} */
         this.previousStates = [];
@@ -300,6 +308,30 @@ export class StateController {
         savedSearchMenuItem.addEventListener('click', openSavedSearch);
         savedSearchMenuItem.addEventListener('touchstart', openSavedSearch);
         
+        const friendsMenuItem = document.getElementById('friendsMenu');
+        const openFriends = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            this._closeMenu();
+            if (swrlUser && !swrlUser.isAnonymous) {
+                this.changeState(new State(this.friendsView));
+            }
+        }
+        friendsMenuItem.addEventListener('click', openFriends);
+        friendsMenuItem.addEventListener('touchstart', openFriends);
+
+        const settingsMenuItem = document.getElementById('settingsMenu');
+        const openSettings = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            this._closeMenu();
+            if (swrlUser && !swrlUser.isAnonymous) {
+                this.changeState(new State(this.settingsView));
+            }
+        }
+        settingsMenuItem.addEventListener('click', openSettings);
+        settingsMenuItem.addEventListener('touchstart', openSettings);
+
         const currentUserMenuItem = document.getElementById('currentUserMenu');
         const openCurrentUserScreen = (e) => {
             e.stopPropagation();

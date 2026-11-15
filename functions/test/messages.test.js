@@ -29,3 +29,23 @@ test('user activity text', () => {
     assert.equal(userActivityText({ uid: 'owner' }, undefined, 'owner'), undefined);
     assert.equal(userActivityText(undefined, undefined, 'owner'), undefined);
 });
+
+test('an update that keeps lastLoginTime is not a login', () => {
+    const stamp = (seconds) => ({ seconds, nanoseconds: 0, toMillis: () => seconds * 1000, isEqual: (o) => o.seconds === seconds });
+    const profile = (seconds, extra) => Object.assign({ uid: 'u', displayName: 'Bob', lastLoginTime: stamp(seconds) }, extra);
+    // default visibility changed, same login time
+    assert.equal(userActivityText(profile(10), profile(10, { defaultVisibility: 'private' }), 'owner'), undefined);
+    // a new login time is a login
+    assert.equal(userActivityText(profile(10), profile(20), 'owner'), 'User Bob has just logged in.');
+    // plain Dates and numbers compare by value
+    assert.equal(userActivityText({ uid: 'u', lastLoginTime: new Date(5) }, { uid: 'u', lastLoginTime: new Date(5) }, 'owner'), undefined);
+    assert.equal(userActivityText({ uid: 'u', lastLoginTime: 5 }, { uid: 'u', lastLoginTime: 6 }, 'owner'), 'User An unnamed user has just logged in.');
+    // legacy profile without a login time that gains one
+    assert.equal(userActivityText({ uid: 'u', displayName: 'Bob' }, profile(10), 'owner'), 'User Bob has just logged in.');
+    // neither has one: nothing changed
+    assert.equal(userActivityText({ uid: 'u', displayName: 'Bob' }, { uid: 'u', displayName: 'Bob', defaultVisibility: 'public' }, 'owner'), undefined);
+    // creates and deletes behave as before; the owner is still skipped
+    assert.equal(userActivityText(undefined, profile(10), 'owner'), 'User Bob has just logged in.');
+    assert.equal(userActivityText(profile(10), undefined, 'owner'), 'User Bob was deleted');
+    assert.equal(userActivityText(profile(10, { uid: 'owner' }), profile(20, { uid: 'owner' }), 'owner'), undefined);
+});

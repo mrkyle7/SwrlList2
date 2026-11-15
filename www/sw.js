@@ -21,7 +21,7 @@ const SHELL = [
   '/img/NoPoster.jpg'
 ];
 // Deep links (/swrl/<id>, /watch, ...) are all the same single page.
-const APP_ROUTE = /^\/(swrl|swrler|recommend|savedsearches|recommendations|watch|listen|read|play)(\/[^/]*)?\/?$/;
+const APP_ROUTE = /^\/(swrl|swrler|recommend|savedsearches|friends|settings|recommendations|watch|listen|read|play)(\/[^/]*)?\/?$/;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

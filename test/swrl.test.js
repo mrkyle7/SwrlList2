@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 //@ts-check
 
 import { Swrl } from '../src/model/swrl';
+import { swrlStats } from '../src/components/stats';
 import { FILM, TV, ALBUM, BOOK } from '../src/constants/Type';
 import { WATCH, LISTEN, READ } from '../src/constants/Category';
 import { Details } from '../src/model/details';
@@ -24,7 +25,7 @@ describe('Can parse JSON to Swrl', function () {
                     undefined,
                     undefined,
                     undefined),
-                aDate, ['user1'], [], [], [], undefined, [], []);
+                aDate, undefined, [], 1);
             const swrl2 = new Swrl(FILM, WATCH, 'abc123',
                 new Details('film-123', 'A Film', 'http://img', undefined, undefined, '2019',
                     [], [], undefined, undefined, [], [], undefined, [], [], undefined, 1, '12 mins', '2', [],
@@ -34,7 +35,7 @@ describe('Can parse JSON to Swrl', function () {
                     undefined,
                     undefined,
                     undefined),
-                aDate, ['user1'], [], [], [], undefined, [], []);
+                aDate, undefined, [], 1);
             const swrl3 = new Swrl(TV, WATCH, 'abc1234',
                 new Details('tv-123', 'A TV Show', 'http://img', undefined, undefined, undefined,
                     [], [], undefined, undefined, [], [], undefined, [], [], undefined, 1, '12 mins', '2', [],
@@ -44,7 +45,7 @@ describe('Can parse JSON to Swrl', function () {
                     undefined,
                     undefined,
                     undefined),
-                aDate, [], [], [], [], undefined, [], []);
+                aDate, undefined, []);
             expect(swrl1).to.deep.equal(swrl2);
             expect(swrl1).to.not.deep.equal(swrl3);
         })
@@ -115,7 +116,7 @@ describe('Can parse JSON to Swrl', function () {
                     '2',
                     'nah',
                     'hours'),
-                new Date(1568452504000), [], [], ['user1'], [], undefined, [], []);
+                new Date(1568452504000), undefined, []);
             expect(Swrl.fromFirestore(data)).to.deep.equal(expected);
         })
 
@@ -146,7 +147,7 @@ describe('Can parse JSON to Swrl', function () {
                     undefined,
                     undefined,
                     undefined),
-                undefined, [], [], ['user1'], [], undefined, [], []);
+                undefined, undefined, []);
             expect(Swrl.fromFirestore(data)).to.deep.equal(expected);
         })
 
@@ -182,7 +183,7 @@ describe('Can parse JSON to Swrl', function () {
                     undefined,
                     undefined,
                     undefined),
-                new Date(), ['user1'], [], [], [], undefined, [], []);
+                new Date(), undefined, [], 1);
             expect(swrl.toPartialFireStoreData()).to.deep.equal(expectedJson);
         })
 
@@ -242,8 +243,44 @@ describe('Can parse JSON to Swrl', function () {
                     '2',
                     'nah',
                     'hours'),
-                new Date(), ['user1'], [], [], [], undefined, [], []);
+                new Date(), undefined, [], 1);
             expect(swrl.toPartialFireStoreData()).to.deep.equal(json);
         })
+    })
+})
+
+describe('Swrl counts', function () {
+    const base = { type: 1, category: 1, swrlID: 'film-1', details: { id: 'film-1', title: 'A Film', imageUrl: '/img' } };
+    it('reads the count fields from the shared document', function () {
+        const swrl = Swrl.fromFirestore({ ...base, laterCount: 3, doneCount: 2, lovedCount: 4, recommendations: ['r1'] });
+        expect([swrl.laterCount, swrl.doneCount, swrl.lovedCount]).to.deep.equal([3, 2, 4]);
+        expect(swrl.recommendations).to.deep.equal(['r1']);
+    })
+    it('falls back to the legacy array lengths when a count field is missing', function () {
+        const swrl = Swrl.fromFirestore({ ...base, later: ['a', 'b'], done: ['c'], loved: ['a', 'b', 'c'], deleted: ['z'] });
+        expect([swrl.laterCount, swrl.doneCount, swrl.lovedCount]).to.deep.equal([2, 1, 3]);
+    })
+    it('prefers a count field, even 0, over the legacy array', function () {
+        const swrl = Swrl.fromFirestore({ ...base, later: ['a'], laterCount: 0, loved: ['a'] });
+        expect([swrl.laterCount, swrl.doneCount, swrl.lovedCount]).to.deep.equal([0, 0, 1]);
+    })
+    it('is zero with neither', function () {
+        const swrl = Swrl.fromFirestore(base);
+        expect([swrl.laterCount, swrl.doneCount, swrl.lovedCount]).to.deep.equal([0, 0, 0]);
+    })
+    it('has no uid arrays on the model and writes none', function () {
+        const swrl = Swrl.fromFirestore({ ...base, later: ['a'], isRecommended: ['a'] });
+        ['later', 'done', 'deleted', 'loved', 'isRecommended'].forEach(field => expect(swrl).not.toHaveProperty(field));
+        expect(Object.keys(swrl.toPartialFireStoreData())).to.deep.equal(['type', 'category', 'swrlID', 'details']);
+    })
+    it('stats add later and done, then loved and recommendations', function () {
+        const swrl = Swrl.fromFirestore({ ...base, laterCount: 3, doneCount: 2, lovedCount: 4, recommendations: ['r1', 'r2'] });
+        expect(swrlStats(swrl)).to.deep.equal({ listCount: 5, recommendedCount: 2, lovedCount: 4 });
+    })
+    it('stats fall back to legacy arrays and never go negative', function () {
+        expect(swrlStats(Swrl.fromFirestore({ ...base, later: ['a'], done: ['b', 'c'], loved: ['a'] })))
+            .to.deep.equal({ listCount: 3, recommendedCount: 0, lovedCount: 1 });
+        expect(swrlStats(Swrl.fromFirestore({ ...base, laterCount: -1, doneCount: 0, lovedCount: -2 })))
+            .to.deep.equal({ listCount: 0, recommendedCount: 0, lovedCount: 0 });
     })
 })

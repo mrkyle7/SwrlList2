@@ -1,9 +1,27 @@
 export default { addStats };
 
+
+
 import { SEARCH } from '../constants/View';
 import { Collection } from '../constants/Collection';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
+
+/**
+ * The numbers shown on a swrl. The counts come from the shared doc (kept by a
+ * Cloud Function; Swrl.fromFirestore already falls back to the legacy array
+ * lengths on documents the migration has not reached).
+ *
+ * @param {Swrl} swrl
+ * @return {{listCount: number, recommendedCount: number, lovedCount: number}}
+ */
+export function swrlStats(swrl) {
+    return {
+        listCount: Math.max(0, swrl.laterCount + swrl.doneCount),
+        recommendedCount: swrl.recommendations ? swrl.recommendations.length : 0,
+        lovedCount: Math.max(0, swrl.lovedCount)
+    };
+}
 
 /**
  * 
@@ -14,13 +32,9 @@ import { Swrl } from '../model/swrl';
 
 export function addStats(div, swrl) {
 
-    const laterCount = swrl.later ? swrl.later.length : 0;
-    const doneCount = swrl.done ? swrl.done.length : 0;
-    const recommendedCount = swrl.recommendations ? swrl.recommendations.length : 0;
-    const lovedCount = swrl.loved ? swrl.loved.length : 0;
-
     if (div) {
-        updateStats(laterCount + doneCount, recommendedCount, lovedCount);
+        const stats = swrlStats(swrl);
+        updateStats(stats.listCount, stats.recommendedCount, stats.lovedCount);
     }
 
 

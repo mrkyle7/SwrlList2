@@ -64,6 +64,13 @@
       <li class="hidden" id="savedSearchesMenu"><img class="menu-image" src="img/search-24px-white.svg">
         <p>Saved searches</p>
       </li>
+      <li class="hidden" id="friendsMenu"><img class="menu-image" src="img/people-24px-white.svg">
+        <p>Friends</p>
+        <b class="menuBadge hidden" id="friendsBadge">0</b>
+      </li>
+      <li class="hidden" id="settingsMenu"><img class="menu-image" src="img/settings-24px-white.svg">
+        <p>Settings</p>
+      </li>
       <li class="hidden" id="logout">Logout</li>
     </ul>
   </div>
@@ -193,6 +200,69 @@
       <img class="loadingbar hidden" src="img/loadingbar.svg" />
       <div id="savedSearches" class="hidden swrlsContainer"></div>
     </div>
+    <div id="friendsView" class="hidden">
+      <div id="friends" class="swrlsContainer">
+        <p id="friendsLoading" class="friendsEmpty hidden">Loading your friends...</p>
+        <div id="friendRequestsSection" class="friendsSection hidden">
+          <h2 class="friendsHeading">Requests to you</h2>
+          <div id="friendRequestsList"></div>
+        </div>
+        <div class="friendsSection">
+          <h2 class="friendsHeading">Your friends</h2>
+          <div id="friendsList"></div>
+          <p id="friendsEmpty" class="friendsEmpty hidden">No friends yet. Find people by name below and send them a request.</p>
+        </div>
+        <div class="friendsSection">
+          <h2 class="friendsHeading">Add a friend</h2>
+          <form id="friendSearchForm" autocomplete="off">
+            <input id="friendSearch" class="friendSearchInput" type="search" placeholder="Search by name" autocomplete="off">
+          </form>
+          <p id="friendSearchHint" class="friendsEmpty">Type at least 2 letters of their name.</p>
+          <div id="friendSearchResults"></div>
+        </div>
+        <div id="friendSentSection" class="friendsSection hidden">
+          <h2 class="friendsHeading">Requests you sent</h2>
+          <div id="friendSentList"></div>
+        </div>
+      </div>
+    </div>
+    <div id="settingsView" class="hidden">
+      <div id="settings" class="swrlsContainer">
+        <p id="settingsSignedOut" class="friendsEmpty hidden">Log in to see your settings.</p>
+        <div id="settingsContent">
+          <div class="friendsSection">
+            <h2 class="friendsHeading">Who can see your swrls</h2>
+            <div class="settingsOptions" role="radiogroup" aria-label="Who can see your swrls">
+              <label class="settingsOption">
+                <input type="radio" name="defaultVisibility" value="private">
+                <span class="settingsOptionText"><span class="settingsOptionTitle">Private</span><span class="settingsOptionHint">Only you</span></span>
+              </label>
+              <label class="settingsOption">
+                <input type="radio" name="defaultVisibility" value="friends">
+                <span class="settingsOptionText"><span class="settingsOptionTitle">Friends</span><span class="settingsOptionHint">Only people you've added as friends</span></span>
+              </label>
+              <label class="settingsOption">
+                <input type="radio" name="defaultVisibility" value="public">
+                <span class="settingsOptionText"><span class="settingsOptionTitle">Public</span><span class="settingsOptionHint">Anyone</span></span>
+              </label>
+            </div>
+            <p class="settingsNote">You can set a different choice for an individual swrl from that swrl's page. The number of lists a swrl is on is always shown anonymously, whatever you choose.</p>
+          </div>
+          <div id="deleteAccountSection" class="friendsSection settingsDanger">
+            <h2 class="friendsHeading">Delete my account</h2>
+            <p class="settingsNote">This permanently deletes your account and everything in it: your lists, your private notes, your friends and friend requests, your saved searches and the recommendations you sent. It can't be undone.</p>
+            <button id="deleteAccountStart" class="settingsDangerButton settingsDangerButtonQuiet" type="button">Delete my account…</button>
+            <div id="deleteAccountConfirm" class="settingsConfirm hidden">
+              <p class="settingsConfirmText">Are you sure? Your account and all of its data will be gone for good.</p>
+              <div class="settingsConfirmButtons">
+                <button id="deleteAccountConfirmButton" class="settingsDangerButton" type="button">Yes, delete everything</button>
+                <button id="deleteAccountCancel" class="friendButton friendButtonQuiet" type="button">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="recommendationList" class="hidden swrlsContainer"></div>
     <div id="searchView" class="hidden">
       <div id="searchResults" class="hidden swrlsContainer">
@@ -233,6 +303,11 @@
         <div class="pageButtons">
 
         </div>
+      </div>
+
+      <div id="swrlFullPageVisibility" class="swrlVisibility hidden">
+        <label for="swrlVisibilitySelect">Visible to:</label>
+        <select id="swrlVisibilitySelect"></select>
       </div>
 
       <div id="swrlFullPageCards" class="cardsContainer"></div>
@@ -293,6 +368,18 @@
         <img class="runSavedSearch" src="img/search-24px.svg" />
       </div>
     </div>
+  </template>
+  <template id="friendRow">
+    <div class="friendRow">
+      <div class="friendRowMain">
+        <img class="swrlerSmallImage friendRowImage" src="img/emoji_people-24px.svg" />
+        <span class="friendRowName"></span>
+      </div>
+      <div class="friendRowActions"></div>
+    </div>
+  </template>
+  <template id="swrlerFriendBar">
+    <div class="swrlerFriendBar hidden"></div>
   </template>
   <template id="swrlPageCard">
     <div class="card">

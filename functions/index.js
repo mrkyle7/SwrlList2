@@ -6,9 +6,11 @@
 const functions = require('firebase-functions/v1');
 const { defineSecret } = require('firebase-functions/params');
 const { initializeApp } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
-const { recommendationMessage, deadTokens, userActivityText } = require('./messages');
+const { recommendationMessage, friendRequestMessage, deadTokens, userActivityText } = require('./messages');
+const { countDeltas, justAccepted, friendDocsFor } = require('./listEntries');
+const { deleteUserData } = require('./deleteUserData');
 
 initializeApp();
 const db = getFirestore();
@@ -60,10 +62,7 @@ exports.recommendationNotification = functions.firestore
         /** @type {string[]} */
         const receivers = recommendation.to || [];
 
-        const tokenSnapshots = await Promise.all(receivers.map(
-            uid => db.collection('messagingtokens').where('uid', '==', uid).get()));
-        const tokens = [];
-        tokenSnapshots.forEach(found => found.forEach(doc => tokens.push(doc.data().token)));
+        const tokens = await tokensFor(receivers);
         if (tokens.length === 0) {
             console.log('no tokens to send to');
             return;
@@ -78,12 +77,124 @@ exports.recommendationNotification = functions.firestore
             return;
         }
 
-        const result = await getMessaging().sendEachForMulticast(
-            recommendationMessage(tokens, recommenderDoc.data(), swrlDoc.data()));
-        console.log(`sent ${result.successCount} of ${tokens.length} notifications`);
-
-        // A browser that has unsubscribed never comes back under the same
-        // token, so stop sending to it.
-        await Promise.all(deadTokens(tokens, result.responses).map(
-            token => db.collection('messagingtokens').doc(token).delete()));
+        await sendAndCleanUp(recommendationMessage(tokens, recommenderDoc.data(), swrlDoc.data()));
     });
+
+/**
+ * Sends a push notification to the receiver of a new friend request.
+ */
+exports.friendRequestNotification = functions.firestore
+    .document('friendRequests/{requestID}')
+    .onCreate(async (snapshot) => {
+        const request = snapshot.data();
+        const tokens = await tokensFor([request.to]);
+        if (tokens.length === 0) {
+            console.log('no tokens to send to');
+            return;
+        }
+        const requesterDoc = await db.collection('swrlers').doc(request.from).get();
+        if (!requesterDoc.exists) {
+            console.log('no details for message');
+            return;
+        }
+        await sendAndCleanUp(friendRequestMessage(tokens, requesterDoc.data()));
+    });
+
+/**
+ * Keeps the shared counts on swrls/{swrlID} in step with the users' list
+ * entries. Clients can never write the count fields.
+ */
+exports.listEntryCounts = functions.firestore
+    .document('swrlers/{uid}/listEntries/{swrlID}')
+    .onWrite(async (change, context) => {
+        const deltas = countDeltas(
+            change.before.exists ? change.before.data() : undefined,
+            change.after.exists ? change.after.data() : undefined);
+        const update = {};
+        for (const [field, delta] of Object.entries(deltas)) {
+            update[field] = FieldValue.increment(delta);
+        }
+        if (Object.keys(update).length === 0) {
+            return;
+        }
+        await db.collection('swrls').doc(context.params.swrlID).set(update, { merge: true });
+    });
+
+/**
+ * When a friend request is accepted, makes the two users friends and removes
+ * the request. Friend docs can only be written from here.
+ */
+exports.friendRequestAccepted = functions.firestore
+    .document('friendRequests/{requestID}')
+    .onUpdate(async (change) => {
+        const before = change.before.data();
+        const after = change.after.data();
+        if (!justAccepted(before, after)) {
+            return;
+        }
+        const batch = db.batch();
+        for (const friend of friendDocsFor(after)) {
+            batch.set(db.doc(friend.path), { uid: friend.uid, since: FieldValue.serverTimestamp() });
+        }
+        batch.delete(change.after.ref);
+        await batch.commit();
+    });
+
+/**
+ * When one side unfriends, removes the other side's friend doc too.
+ * Idempotent: deleting the mirror triggers this once more, which finds
+ * nothing left to delete.
+ */
+exports.friendRemoved = functions.firestore
+    .document('swrlers/{uid}/friends/{friendUid}')
+    .onDelete(async (snapshot, context) => {
+        const { uid, friendUid } = context.params;
+        const mirror = db.doc(`swrlers/${friendUid}/friends/${uid}`);
+        if ((await mirror.get()).exists) {
+            await mirror.delete();
+        }
+    });
+
+/**
+ * Removes a user's data when their Auth account is deleted, whether from the
+ * app ("Delete my account") or from the Firebase console. The client deletes
+ * nothing in Firestore itself, so nothing is left half done if a tab closes.
+ * Idempotent, and retried on failure for as long as Cloud Functions retries
+ * (failurePolicy), which is safe because a rerun only finishes what is left.
+ */
+exports.userDeleted = functions
+    .runWith({ failurePolicy: true })
+    .auth.user()
+    .onDelete(async (user) => {
+        await deleteUserData(db, FieldValue, user.uid);
+    });
+
+/**
+ * Device tokens of the given users.
+ *
+ * @param {string[]} uids
+ * @returns {Promise<string[]>}
+ */
+async function tokensFor(uids) {
+    const tokenSnapshots = await Promise.all(uids.map(
+        uid => db.collection('messagingtokens').where('uid', '==', uid).get()));
+    const tokens = [];
+    tokenSnapshots.forEach(found => found.forEach(doc => tokens.push(doc.data().token)));
+    return tokens;
+}
+
+/**
+ * Sends a multicast message and deletes the tokens FCM reports as dead.
+ *
+ * @param {import('firebase-admin/messaging').MulticastMessage} message
+ */
+async function sendAndCleanUp(message) {
+    const tokens = message.tokens;
+    const result = await getMessaging().sendEachForMulticast(message);
+    console.log(`sent ${result.successCount} of ${tokens.length} notifications`);
+
+    // A browser that has unsubscribed never comes back under the same
+    // token, so stop sending to it.
+    await Promise.all(deadTokens(tokens, result.responses).map(
+        token => db.collection('messagingtokens').doc(token).delete()));
+}

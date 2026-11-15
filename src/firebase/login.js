@@ -8,6 +8,8 @@ import {
 import { deleteField, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { Collection } from '../constants/Collection';
 import { setUpRecommendationsListener, cancelRecommendationsListener } from '../listeners/recommendations';
+import { setUpListEntriesListener, cancelListEntriesListener } from '../listeners/listEntries';
+import { setUpFriendsListener, cancelFriendsListener } from '../listeners/friends';
 import swrl from '../components/swrl';
 import { updateDeviceToken } from './messaging';
 /** @type {import('firebase/auth').Auth} */
@@ -123,6 +125,8 @@ function handleLoginSuccess(firestore) {
 
     updateSwrlerDetails(firestore);
     setUpRecommendationsListener(firestore);
+    setUpListEntriesListener(firestore);
+    setUpFriendsListener(firestore);
     showLoginButtons();
     updateDeviceToken(firestore);
     /** @type {HTMLImageElement} */
@@ -143,6 +147,8 @@ function handleLoginSuccess(firestore) {
     document.getElementById("userPhoto").classList.remove('hidden');
     document.getElementById("logout").classList.remove('hidden');
     document.getElementById("savedSearchesMenu").classList.remove('hidden');
+    document.getElementById("friendsMenu").classList.remove('hidden');
+    document.getElementById("settingsMenu").classList.remove('hidden');
     document.getElementById("login").classList.add('hidden');
     document.getElementById("loginStatus").innerHTML = swrlUser.displayName;
 }
@@ -167,22 +173,54 @@ function handleAnonymous() {
     document.querySelector("#inboxDisplay").classList.add('hidden');
     document.querySelector("#logout").classList.add('hidden');
     document.querySelector("#savedSearchesMenu").classList.add('hidden');
+    document.querySelector("#friendsMenu").classList.add('hidden');
+    document.querySelector("#settingsMenu").classList.add('hidden');
     document.querySelector("#login").classList.remove('hidden');
     document.querySelector("#userPhoto").classList.add('hidden');
     document.querySelector("#loginStatus").innerHTML = "Mystery Swrler";
     cancelRecommendationsListener();
+    cancelListEntriesListener();
+    cancelFriendsListener();
     loggingInView.classList.add('hidden');
     loggingInAnonymousView.classList.add('hidden');
 }
 
-function handleLogout() {
+/**
+ * Stops my Firestore listeners (and forgets their caches) without signing out.
+ * Used while my account is being deleted, when they would only fail.
+ */
+export function pauseUserListeners() {
+    cancelRecommendationsListener();
+    cancelListEntriesListener();
+    cancelFriendsListener();
+}
+
+/**
+ * Starts my Firestore listeners again after pauseUserListeners, when the
+ * account turned out not to be deleted.
+ *
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+export function resumeUserListeners(firestore) {
+    if (!swrlUser || swrlUser.isAnonymous) return;
+    setUpRecommendationsListener(firestore);
+    setUpListEntriesListener(firestore);
+    setUpFriendsListener(firestore);
+}
+
+/** Puts the page into its signed-out state and stops my listeners. */
+export function handleLogout() {
     document.querySelector("#inboxDisplay").classList.add('hidden');
     document.querySelector("#logout").classList.add('hidden');
     document.querySelector("#savedSearchesMenu").classList.add('hidden');
+    document.querySelector("#friendsMenu").classList.add('hidden');
+    document.querySelector("#settingsMenu").classList.add('hidden');
     document.querySelector("#login").classList.remove('hidden');
     document.querySelector("#userPhoto").classList.add('hidden');
     document.querySelector("#loginStatus").innerHTML = "Not Logged In";
     cancelRecommendationsListener();
+    cancelListEntriesListener();
+    cancelFriendsListener();
     loggingInView.classList.add('hidden');
     loggingInAnonymousView.classList.add('hidden');
 }

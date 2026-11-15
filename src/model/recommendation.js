@@ -46,3 +46,15 @@ export class Recommendation {
             data.dismissed);
     }
 }
+
+/**
+ * Whether any recommendation in an inbox cache is for the given swrl, i.e.
+ * the swrl was recommended to the inbox's owner.
+ *
+ * @param {Object<string, Recommendation>} inboxCache recommendations keyed by id
+ * @param {string} swrlID
+ * @return {boolean}
+ */
+export function inboxHasSwrl(inboxCache, swrlID) {
+    return Object.keys(inboxCache).some(id => inboxCache[id].swrlID === swrlID);
+}

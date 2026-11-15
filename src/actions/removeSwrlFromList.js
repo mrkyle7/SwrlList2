@@ -1,15 +1,13 @@
-import { doc, setDoc, serverTimestamp, arrayRemove } from 'firebase/firestore';
-import { swrlUser } from '../firebase/login';
-import { Collection } from '../constants/Collection';
+import { writeListEntry } from './writeListEntry';
 import { Swrl } from '../model/swrl';
 
 /**
- * @param {import('firebase/firestore').Firestore} firestore
+ * Takes a swrl off my list.
+ *
  * @param {Swrl} swrl
+ * @param {import('firebase/firestore').Firestore} firestore
+ * @return {Promise<void>}
  */
 export default function removeSwrlFromList(swrl, firestore) {
-   const firestoreData = swrl.toPartialFireStoreData();
-   firestoreData.updated = serverTimestamp();
-   firestoreData.later = arrayRemove(swrlUser.uid);
-   return setDoc(doc(firestore, Collection.SWRLS, firestoreData.swrlID), firestoreData, { merge: true });
+   return writeListEntry(swrl, { later: false }, firestore, { updated: true });
 }
