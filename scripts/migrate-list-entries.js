@@ -14,6 +14,8 @@
 //   (default)      create every user's missing entry from the legacy arrays
 //                  (never overwriting an existing entry), then recount
 //                  laterCount / doneCount / lovedCount for every swrl
+//                  A uid in the arrays with no swrlers profile (an account that
+//                  was deleted) gets no entry; the script says which were skipped.
 //   --dry-run      report only; writes nothing (combine with any mode)
 //   --recount      only redo the counts, from the entries
 //   --strip-arrays remove the legacy arrays from every swrl doc. Run this
@@ -30,7 +32,7 @@ const functionsDir = path.join(__dirname, '..', 'functions');
 const functionsModules = { paths: [functionsDir] };
 const { initializeApp } = require(require.resolve('firebase-admin/app', functionsModules));
 const { getFirestore, FieldValue } = require(require.resolve('firebase-admin/firestore', functionsModules));
-const { entriesFromLegacySwrl, addToCounts, legacyArraysPresent } = require(path.join(functionsDir, 'listEntries.js'));
+const { entriesFromLegacySwrl, splitByProfile, addToCounts, legacyArraysPresent } = require(path.join(functionsDir, 'listEntries.js'));
 
 const BATCH_SIZE = 400;
 const ALREADY_EXISTS = 6;
@@ -76,8 +78,15 @@ async function createEntries(db) {
     const swrlSnapshot = await db.collection('swrls').get();
     let existing = 0;
     const missing = [];
+    /** @type {Object<string, number>} uid without a profile -> entries skipped */
+    const skippedUsers = {};
     for (const swrlDoc of swrlSnapshot.docs) {
-        const entries = entriesFromLegacySwrl(swrlDoc.data(), swrlDoc.id, defaults);
+        // A uid with no swrlers profile is an account deleted before account
+        // deletion existed: no entry is created for it (it would be an orphan
+        // nobody can see, still counted in the totals).
+        const { known: entries, skipped } = splitByProfile(
+            entriesFromLegacySwrl(swrlDoc.data(), swrlDoc.id, defaults), defaults);
+        skipped.forEach(s => { skippedUsers[s.uid] = (skippedUsers[s.uid] || 0) + 1; });
         if (entries.length === 0) continue;
         const refs = entries.map(e => db.doc(`swrlers/${e.uid}/listEntries/${swrlDoc.id}`));
         const found = await db.getAll(...refs);
@@ -87,6 +96,11 @@ async function createEntries(db) {
         });
     }
     console.log(`${swrlSnapshot.size} swrls: ${missing.length} entries to create, ${existing} already exist`);
+    const skippedUids = Object.keys(skippedUsers);
+    if (skippedUids.length > 0) {
+        console.log(`Skipped ${skippedUids.length} uids that have no swrlers profile (deleted accounts): `
+            + skippedUids.map(uid => `${uid} (${skippedUsers[uid]} entries)`).join(', '));
+    }
     if (dryRun) return { created: 0, existing, planned: missing.map(m => m.data) };
 
     let created = 0;

@@ -1,7 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const {
-    countDeltas, justAccepted, friendDocsFor, entriesFromLegacySwrl, normaliseVisibility,
+    countDeltas, justAccepted, friendDocsFor, entriesFromLegacySwrl, splitByProfile, normaliseVisibility,
     addToCounts, legacyArraysPresent
 } = require('../listEntries');
 const { friendRequestMessage } = require('../messages');
@@ -104,4 +104,15 @@ test('counts are totalled per swrl from entries', () => {
 test('legacy arrays present on a swrl doc', () => {
     assert.deepEqual(legacyArraysPresent({ later: [], loved: [], recommendations: [] }), ['later', 'loved']);
     assert.deepEqual(legacyArraysPresent({}), []);
+});
+
+test('entries of users without a profile are split off', () => {
+    const entries = [{ uid: 'a', data: {} }, { uid: 'gone', data: {} }, { uid: 'b', data: {} }];
+    // a profile without defaultVisibility is still a profile (value undefined)
+    const { known, skipped } = splitByProfile(entries, { a: undefined, b: 'private' });
+    assert.deepEqual(known.map(e => e.uid), ['a', 'b']);
+    assert.deepEqual(skipped.map(e => e.uid), ['gone']);
+    assert.deepEqual(splitByProfile(entries, {}).known, []);
+    // a uid such as "constructor" is not a profile just because Object has it
+    assert.equal(splitByProfile([{ uid: 'constructor', data: {} }], {}).known.length, 0);
 });

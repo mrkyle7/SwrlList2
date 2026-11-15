@@ -87,6 +87,26 @@ function entriesFromLegacySwrl(swrl, swrlID, defaultVisibilities) {
 }
 
 /**
+ * Splits entries into those whose user still has a profile and those whose
+ * user does not (an account deleted before account deletion existed, still
+ * named in the legacy arrays). Entries under a missing profile would be
+ * orphans nobody can see or clean up, and would keep counting towards the
+ * shared counts, so the migration skips them.
+ *
+ * @param {{uid: string, data: Object}[]} entries
+ * @param {Object<string, any>} profiles uid -> anything, one key per existing swrlers doc
+ * @returns {{known: {uid: string, data: Object}[], skipped: {uid: string, data: Object}[]}}
+ */
+function splitByProfile(entries, profiles) {
+    const known = [];
+    const skipped = [];
+    for (const entry of entries) {
+        (Object.prototype.hasOwnProperty.call(profiles, entry.uid) ? known : skipped).push(entry);
+    }
+    return { known, skipped };
+}
+
+/**
  * @param {string | undefined} value
  * @returns {'private' | 'friends' | 'public'} the value, or 'friends' when unknown or missing
  */
@@ -120,6 +140,6 @@ function legacyArraysPresent(swrl) {
 }
 
 module.exports = {
-    countDeltas, justAccepted, friendDocsFor, entriesFromLegacySwrl, normaliseVisibility,
+    countDeltas, justAccepted, friendDocsFor, entriesFromLegacySwrl, splitByProfile, normaliseVisibility,
     addToCounts, legacyArraysPresent, LEGACY_ARRAYS
 };
