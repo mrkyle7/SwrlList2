@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseShare, recogniseLink } from '../src/model/share';
+import { parseShare, recogniseLink, shareText, shareUrl } from '../src/model/share';
 
 describe('shared links', function () {
     it('recognises IMDb title pages', function () {
@@ -39,5 +39,22 @@ describe('shared links', function () {
         expect(parseShare({ url: 'https://example.com/x' })).to.deep.equal({ link: undefined, query: '' });
         expect(parseShare({})).to.deep.equal({ link: undefined, query: '' });
         expect(parseShare({ text: 'a'.repeat(300) }).query).to.have.length(200);
+    });
+});
+
+describe('sharing a swrl outside the app', function () {
+    it('says who swrled it and what they said', function () {
+        expect(shareText({ title: 'Dune', category: 1, fromName: 'Alice', message: ' You will love it ' }))
+            .to.equal('Alice swrled you Dune: “You will love it”');
+        expect(shareText({ title: 'Dune', category: 2, fromName: 'Alice' })).to.equal('Alice swrled you Dune.');
+    });
+    it('without a name, says what to do with it', function () {
+        expect(shareText({ title: 'Dune', category: 2 })).to.equal('You should read Dune.');
+        expect(shareText({ title: 'Serial', category: 3, message: 'hi' })).to.equal('You should listen to Serial: “hi”');
+        expect(shareText({ title: 'X', category: 99 })).to.equal('You should try X.');
+    });
+    it('links to the swrl, and to the share when there is one', function () {
+        expect(shareUrl('https://swrl-list.com', 'TMDBMOVIE_603')).to.equal('https://swrl-list.com/swrl/TMDBMOVIE_603');
+        expect(shareUrl('https://swrl-list.com', 'OPENLIBRARY-ISBN_1', 'abc')).to.equal('https://swrl-list.com/swrl/OPENLIBRARY-ISBN_1?from=abc');
     });
 });

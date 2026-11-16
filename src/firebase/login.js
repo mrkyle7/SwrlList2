@@ -26,6 +26,7 @@ export let initialisedLogin = false;
  */
 export function setUpLogin(firebaseApp, firestore) {
     auth = getAuth(firebaseApp);
+    loginFirestore = firestore;
     document.querySelector("#logout").addEventListener("click", logout);
     document.querySelector("#logout").addEventListener("touchstart", logout);
     document.querySelector("#login").addEventListener("click", () => login(firestore));
@@ -87,6 +88,17 @@ function logout() {
     const openSidebarMenuElement = document.querySelector("#openSidebarMenu");
     openSidebarMenuElement.checked = false;
     handleLogout();
+}
+
+/** @type {import('firebase/firestore').Firestore} */
+let loginFirestore;
+
+/**
+ * Starts the Google log-in, as the menu's Log in button does. Call it from a
+ * tap: it opens a popup.
+ */
+export function loginWithGoogle() {
+    login(loginFirestore);
 }
 
 /** @param {import('firebase/firestore').Firestore} firestore */

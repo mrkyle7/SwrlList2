@@ -155,6 +155,18 @@ and add a test in `test-rules/firestore.rules.test.js`. Rules the owner relies o
 private comments owner-only, `swrls` counts and legacy arrays not writable by
 clients, friends docs not writable by clients, `swrlers` never with an email.
 
+### Shared links
+
+`shares/{id}` holds `{ from, fromName, message, swrlID, created }`: something a
+signed-in person shared outside the app (`src/actions/shareSwrl.js`). The link
+is `/swrl/{swrlID}?from={id}`, so it still opens the swrl if the share can't be
+read. Anyone holding the link may `get` that one doc, signed in or not; nobody
+can list them. `server.js` reads it (and the swrl) over the Firestore REST API
+with no credentials to fill in the link preview (og: tags) for WhatsApp and the
+like; `FIRESTORE_EMULATOR_HOST` points it at the emulator. The share id is made
+on the client without waiting for the network, because browsers only open the
+share sheet straight after a tap. Account deletion removes a user's shares.
+
 ### Private labels
 
 `swrlers/{uid}/labels/{swrlID}` holds `{ labels: string[], updated }`: one
