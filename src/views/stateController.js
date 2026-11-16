@@ -18,6 +18,8 @@ import { FriendsScreen } from "../screens/friendsScreen";
 import { Friends } from "./friends";
 import { SettingsScreen } from "../screens/settingsScreen";
 import { Settings } from "./settings";
+import { AboutScreen } from "../screens/aboutScreen";
+import { About } from "./about";
 import { sortFromId } from "../constants/Sort";
 import { getAllMyLabels } from "../listeners/labels";
 import { hasLabel } from "../model/labels";
@@ -43,6 +45,7 @@ export class StateController {
         this.savedSearches = new SavedSearchesScreen(this);
         this.friendsScreen = new FriendsScreen(this);
         this.settingsScreen = new SettingsScreen(this);
+        this.aboutScreen = new AboutScreen(this);
         //views
         this.homeView = new Home(this);
         this.inboxView = new InboxRecommendations(this);
@@ -58,6 +61,7 @@ export class StateController {
         this.savedSearchesView = new SavedSearches(this);
         this.friendsView = new Friends(this);
         this.settingsView = new Settings(this);
+        this.aboutView = new About(this);
         //states
         /** @type {State[]} */
         this.previousStates = [];
@@ -366,6 +370,16 @@ export class StateController {
         }
         settingsMenuItem.addEventListener('click', openSettings);
         settingsMenuItem.addEventListener('touchstart', openSettings);
+
+        const aboutMenuItem = document.getElementById('aboutMenu');
+        const openAbout = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            this._closeMenu();
+            this.changeState(new State(this.aboutView));
+        }
+        aboutMenuItem.addEventListener('click', openAbout);
+        aboutMenuItem.addEventListener('touchstart', openAbout);
 
         const currentUserMenuItem = document.getElementById('currentUserMenu');
         const openCurrentUserScreen = (e) => {

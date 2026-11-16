@@ -26,7 +26,7 @@ see the `swrl-firebase` skill.
 `server.js` serves `dist/`, returns `index.html` for the client-side routes
 (`/swrl/:id`, `/swrler/:id`, `/recommend/:id`, `/watch`, `/read`, `/listen`,
 `/play`, `/recommendations`, `/savedsearches`, `/friends`, `/settings`,
-`/search`, `/share`; the
+`/search`, `/share`, `/about`; the
 `appRoutes` list in `server.js`, mirrored in `www/sw.js` and `src/index.js`) and proxies the third-party
 APIs that need a key (`/api/v1/tmdb/*`, `/api/v1/omdb`, `/api/v1/geek/*`).
 Searches need `TMDB_API_KEY`, `OMDB_API_KEY` and `BGG_API_TOKEN` in the

@@ -303,7 +303,7 @@ const appRoutes = [
   '/',
   '/swrl/:id', '/swrler/:id', '/recommend/:id',
   '/savedsearches', '/friends', '/settings', '/recommendations', '/watch', '/listen', '/read', '/play',
-  '/search', '/share'
+  '/search', '/share', '/about'
 ];
 
 app.get(appRoutes, function (req, res) {

@@ -590,7 +590,7 @@ body {
     position: absolute;
 }
 
-#swrlList, #searchResults, #searchView, #recommend, #recommendationList, #swrlFullPage, #savedSearches, #friendsView, #settingsView {
+#swrlList, #searchResults, #searchView, #recommend, #recommendationList, #swrlFullPage, #savedSearches, #friendsView, #settingsView, #aboutView {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -620,7 +620,7 @@ body {
     display: contents;
 }
 
-#recommend, #swrlFullPage, #savedSearches, #friendsView, #settingsView {
+#recommend, #swrlFullPage, #savedSearches, #friendsView, #settingsView, #aboutView {
     top: 56px;
     overflow: scroll;
 }
@@ -1521,13 +1521,13 @@ body {
     #searchResults, #searchView, #savedSearchesCard {
         top: 156px;
     }
-    #recommend, #swrlFullPage, #savedSearches, #friendsView, #settingsView {
+    #recommend, #swrlFullPage, #savedSearches, #friendsView, #settingsView, #aboutView {
         top: 56px;
     }
     .main .section {
         padding-left: 0px;
     }
-    .main .section, #centre, .tabs, #swrlSearchBar, .swrlsContainer, #recommend, #swrlFullPage, #friendsView, #settingsView, #loggingInView {
+    .main .section, #centre, .tabs, #swrlSearchBar, .swrlsContainer, #recommend, #swrlFullPage, #friendsView, #settingsView, #aboutView, #loggingInView {
         margin-left: auto;
         margin-right: auto;
         width: 640px;
@@ -2235,4 +2235,120 @@ button.pageActionPrimary:hover {
     .swrlButton, .sheetApply {
         transition: none;
     }
+}
+
+/* "What's a Swrl?": the word set out like a dictionary entry. */
+.dictionary {
+    box-sizing: border-box;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 24px 20px 40px;
+    color: #222222;
+    overflow: visible;
+}
+
+.dictionaryHead {
+    padding-bottom: 16px;
+    border-bottom: 2px solid #222222;
+}
+
+.dictionaryWord {
+    margin: 0;
+    font-size: 56px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.dictionarySay {
+    margin: 10px 0 0;
+    color: #5f6368;
+    font-size: 16px;
+}
+
+.dictionaryPhonetic {
+    margin-right: 8px;
+    color: #222222;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.dictionaryOrigin {
+    margin: 10px 0 0;
+    font-size: 16px;
+}
+
+.dictionaryOrigin strong {
+    color: #FF2E63;
+}
+
+.dictionaryEntry {
+    padding: 20px 0 4px;
+    border-bottom: 1px solid #e3e6ea;
+}
+
+.dictionaryPart {
+    display: inline;
+    margin: 0;
+    color: #FF2E63;
+    font-size: 16px;
+    font-style: italic;
+    font-weight: 600;
+}
+
+.dictionaryForms {
+    display: inline;
+    margin: 0 0 0 10px;
+    color: #5f6368;
+    font-size: 15px;
+}
+
+.dictionaryRelated {
+    margin: 0;
+}
+
+.dictionaryWordSmall {
+    margin-right: 8px;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.dictionarySenses {
+    margin: 10px 0 0;
+    padding-left: 24px;
+}
+
+.dictionarySenses li {
+    margin-bottom: 14px;
+    padding-left: 4px;
+    font-weight: 600;
+}
+
+.dictionaryMeaning {
+    margin: 0;
+    font-size: 17px;
+    font-weight: normal;
+    line-height: 1.5;
+}
+
+.dictionaryExample {
+    margin: 4px 0 0;
+    color: #5f6368;
+    font-size: 15px;
+    font-style: italic;
+    font-weight: normal;
+    line-height: 1.5;
+}
+
+.dictionaryNote {
+    margin: 24px 0 0;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.recommendNoFriends {
+    margin: 16px 8px;
+    font-size: 16px;
+}
+
+.recommendNoFriends p {
+    margin: 0 0 12px;
 }

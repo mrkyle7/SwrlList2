@@ -71,6 +71,9 @@
       <li class="hidden" id="settingsMenu"><img class="menu-image" src="img/settings-24px-white.svg">
         <p>Settings</p>
       </li>
+      <li id="aboutMenu"><img class="menu-image" src="img/menu_book-24px-white.svg">
+        <p>What's a Swrl?</p>
+      </li>
       <li class="hidden" id="logout">Logout</li>
     </ul>
     <div class="sidebarMenuFooter">
@@ -111,7 +114,7 @@
         </div>
         <div class="chips">
           <input type="checkbox" id="recommended" name="filter" value="1">
-          <label for="recommended">Recommended to you</label>
+          <label for="recommended">Swrled to you</label>
         </div>
         <div id="labelFilters" class="hidden">
           <h3>Your labels</h3>
@@ -240,6 +243,53 @@
         </div>
       </div>
     </div>
+    <div id="aboutView" class="hidden">
+      <article class="dictionary swrlsContainer">
+        <header class="dictionaryHead">
+          <h2 class="dictionaryWord">swrl</h2>
+          <p class="dictionarySay"><span class="dictionaryPhonetic">/sw&#604;&#720;l/</span> say &ldquo;swirl&rdquo;</p>
+          <p class="dictionaryOrigin">From <strong>S</strong>hould <strong>W</strong>atch, <strong>R</strong>ead or <strong>L</strong>isten.</p>
+        </header>
+
+        <section class="dictionaryEntry">
+          <p class="dictionaryPart">verb</p>
+          <p class="dictionaryForms">swrls, swrled, swrling</p>
+          <ol class="dictionarySenses">
+            <li>
+              <p class="dictionaryMeaning">To recommend something to someone because you know them well enough to know they'll love it.</p>
+              <p class="dictionaryExample">&ldquo;I swrled her that podcast about octopuses.&rdquo;</p>
+              <p class="dictionaryExample">&ldquo;Swrl it to me, I'll watch it this weekend.&rdquo;</p>
+            </li>
+          </ol>
+        </section>
+
+        <section class="dictionaryEntry">
+          <p class="dictionaryPart">noun</p>
+          <p class="dictionaryForms">plural swrls</p>
+          <ol class="dictionarySenses">
+            <li>
+              <p class="dictionaryMeaning">A film, show, book, album, podcast or game that a friend recommended to you.</p>
+              <p class="dictionaryExample">&ldquo;Three new swrls from Sam this week.&rdquo;</p>
+            </li>
+            <li>
+              <p class="dictionaryMeaning">Anything on your list because you'll probably love it.</p>
+              <p class="dictionaryExample">&ldquo;What should we watch tonight? Check your swrls.&rdquo;</p>
+            </li>
+          </ol>
+        </section>
+
+        <section class="dictionaryEntry">
+          <p class="dictionaryRelated"><span class="dictionaryWordSmall">swrler</span> <span class="dictionaryPart">noun</span></p>
+          <ol class="dictionarySenses">
+            <li>
+              <p class="dictionaryMeaning">A person who swrls.</p>
+            </li>
+          </ol>
+        </section>
+
+        <p class="dictionaryNote">A friend who knows you beats a star rating from strangers. That's the idea behind Swrl List.</p>
+      </article>
+    </div>
     <div id="settingsView" class="hidden">
       <div id="settings" class="swrlsContainer">
         <p id="settingsSignedOut" class="friendsEmpty hidden">Log in to see your settings.</p>
@@ -301,11 +351,15 @@
       <div id="recommendedSwrl" class="swrlsContainer"></div>
       <div class="autocomplete">
         <form id="recommendToForm" autocomplete="off">
-          <input id="recommendTo" type="text" placeholder="Who do want to recommend this to?" autofocus>
+          <input id="recommendTo" type="text" placeholder="Which friends?" autofocus>
         </form>
       </div>
       <div id="selectedSwrlers"></div>
-      <textarea id="recommendMessage" placeholder="Why are you recommending this?" rows="4" cols="50"></textarea>
+      <div id="recommendNoFriends" class="recommendNoFriends hidden">
+        <p>You can swrl things to your friends. Add a friend first.</p>
+        <button type="button" id="recommendFindFriends" class="friendButton">Find friends</button>
+      </div>
+      <textarea id="recommendMessage" placeholder="Why will they love it?" rows="4" cols="50"></textarea>
     </div>
     <div id="swrlFullPage" class="hidden">
       <div id="swrlImageContainer">
@@ -493,7 +547,7 @@
     <button type="button" class="swrlDelete swrlButton hidden" aria-label="Dismiss" title="Dismiss"><img src="img/delete.svg" alt="" /></button>
     <button type="button" class="swrlLoved swrlButton hidden" aria-label="Loved. Tap to undo" title="Loved. Tap to undo"><img src="img/loved.svg" alt="" /></button>
     <button type="button" class="swrlNotLoved swrlButton hidden" aria-label="Love" title="Love"><img src="img/notLoved.svg" alt="" /></button>
-    <button type="button" class="swrlRecommend swrlButton hidden" aria-label="Recommend to someone" title="Recommend to someone"><img src="img/logo_transparent.svg" alt="" /></button>
+    <button type="button" class="swrlRecommend swrlButton hidden" aria-label="Swrl to a friend" title="Swrl to a friend"><img src="img/logo_transparent.svg" alt="" /></button>
     <button type="button" class="swrlDone swrlButton hidden" aria-label="Done. Tap to undo" title="Done. Tap to undo"><img src="img/check_circle-24px.svg" alt="" /></button>
     <button type="button" class="swrlNotDone swrlButton hidden" aria-label="Mark as done" title="Mark as done"><img src="img/check_circle_outline-24px.svg" alt="" /></button>
     <button type="button" class="swrlAdded swrlButton hidden" aria-label="On your list. Tap to remove" title="On your list. Tap to remove"><img src="img/playlist_add_check-24px.svg" alt="" /></button>
@@ -503,7 +557,7 @@
     <div class="pageActions">
       <button type="button" class="swrlNotAdded swrlButton pageAction pageActionPrimary hidden"><img src="img/playlist_add-24px-white.svg" alt="" /><span class="swrlButtonLabel">Add to your list</span></button>
       <button type="button" class="swrlAdded swrlButton pageAction pageActionOn hidden" title="Tap to remove from your list"><img src="img/playlist_add_check-24px.svg" alt="" /><span class="swrlButtonLabel">On your list</span></button>
-      <button type="button" class="swrlRecommend swrlButton pageAction hidden"><img src="img/logo_transparent.svg" alt="" /><span class="swrlButtonLabel">Recommend</span></button>
+      <button type="button" class="swrlRecommend swrlButton pageAction hidden"><img src="img/logo_transparent.svg" alt="" /><span class="swrlButtonLabel">Swrl to a friend</span></button>
     </div>
     <div class="pageToggles">
       <img class="swrlButtonSpinner swrlButton hidden" src="img/spinner.gif" alt="Loading" />

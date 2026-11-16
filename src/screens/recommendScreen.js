@@ -16,7 +16,7 @@ export class RecommendScreen extends Screen {
         const backButton = document.getElementById('backButtonDiv');
         backButton.classList.remove('hidden');
         const titleText = document.getElementById('titleText');
-        titleText.innerText = 'Recommend';
+        titleText.innerText = 'Swrl to friends';
         const header = document.getElementById('header');
         header.style.backgroundColor = '#4990E2';
         const recommendSendContainer = document.getElementById('recommendSendContainer');

@@ -261,9 +261,9 @@ describe('why a swrl is on my list', function () {
         expect(recommendationReason(['Alice'], ' You will love this ')).to.equal('Alice: \u201cYou will love this\u201d');
     });
     it('names the people when there is no message or more than one', function () {
-        expect(recommendationReason(['Alice'], '')).to.equal('Recommended by Alice');
-        expect(recommendationReason(['Alice', 'Bob'], 'hi')).to.equal('Recommended by Alice and Bob');
-        expect(recommendationReason(['Alice', 'Bob', 'Cara', 'Dev'], 'hi')).to.equal('Recommended by Alice and 3 others');
+        expect(recommendationReason(['Alice'], '')).to.equal('Swrled to you by Alice');
+        expect(recommendationReason(['Alice', 'Bob'], 'hi')).to.equal('Swrled to you by Alice and Bob');
+        expect(recommendationReason(['Alice', 'Bob', 'Cara', 'Dev'], 'hi')).to.equal('Swrled to you by Alice and 3 others');
     });
     it('says nothing when nobody is known', function () {
         expect(recommendationReason([], 'hi')).to.equal('');

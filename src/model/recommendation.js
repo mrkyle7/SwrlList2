@@ -74,5 +74,5 @@ export function recommendationReason(names, message) {
         : known.length === 2 ? `${known[0]} and ${known[1]}`
             : `${known[0]} and ${known.length - 1} others`;
     const words = (message || '').trim();
-    return known.length === 1 && words ? `${who}: \u201c${words}\u201d` : `Recommended by ${who}`;
+    return known.length === 1 && words ? `${who}: \u201c${words}\u201d` : `Swrled to you by ${who}`;
 }

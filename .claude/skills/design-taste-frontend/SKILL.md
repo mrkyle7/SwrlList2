@@ -33,6 +33,13 @@ This is a **guidance-only** copy of [taste-skill](https://github.com/Leonxlnx/ta
   ("what should we watch tonight"); social, because a friend's recommendation beats the internet's
   rating; and enough detail kept to remember why something is on your list.
 
+- **The app's own words.** "Swrl" is a coined word, like "tweet", and stays (so does "swrler").
+  It stands for Should Watch, Read or Listen. Verb: to swrl something to someone is to recommend
+  what you know they will love. Noun: a swrl is something recommended to you, or on your list
+  because you will probably love it. The action is labelled "Swrl to a friend", never a bare
+  "Swrl" (the noun and the verb would blur for someone new). The `/about` page ("What's a Swrl?")
+  sets it out as a dictionary entry; keep new copy consistent with it.
+
 The kit's own text follows, unchanged.
 
 # tasteskill 2.5
