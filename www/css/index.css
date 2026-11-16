@@ -2486,8 +2486,14 @@ button.pageActionPrimary:hover {
 /* The top of a category's list: rows of posters from friends. */
 .categoryStrips {
     padding: 4px 0 4px;
-    border-bottom: 1px solid #e3e6ea;
     margin-bottom: 4px;
+}
+
+.stripListHeading {
+    margin: 12px 0 0;
+    padding: 16px 12px 0;
+    border-top: 1px solid #e3e6ea;
+    font-size: 17px;
 }
 
 .strip {

@@ -48,6 +48,13 @@ export async function renderCategoryStrips(container, category, firestore, state
         if (activity.length > 0) {
             strips.appendChild(strip('Your friends are into', activity, stateController));
         }
+        // a heading for the list below the rows, so the two read as separate
+        if (container.querySelector('.swrl')) {
+            const rest = document.createElement('h3');
+            rest.className = 'stripListHeading';
+            rest.textContent = 'More to discover';
+            strips.appendChild(rest);
+        }
         container.querySelectorAll(':scope > .categoryStrips').forEach(old => old.remove());
         container.prepend(strips);
     } catch (error) {
