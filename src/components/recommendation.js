@@ -171,7 +171,7 @@ export const renderRecommendation = async (stateController, view, recommendation
             // @ts-ignore
             const recommendationCreatedMessageFragment = recommendationMessageTemplate.content.cloneNode(true);
             const $recommendationCreatedMessage = recommendationCreatedMessageFragment.querySelector.bind(recommendationCreatedMessageFragment);
-            $recommendationCreatedMessage('.recommenderMessage').innerText = recommendation.created.toUTCString();
+            $recommendationCreatedMessage('.recommenderMessage').innerText = recommendation.created.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
             $recommendationCreatedMessage('.recommenderMessage').classList.add('date');
             recommendationDiv.appendChild(recommendationCreatedMessageFragment);
         }
@@ -203,7 +203,7 @@ export const renderRecommendation = async (stateController, view, recommendation
                     e.stopPropagation();
                     e.preventDefault();
                     markRecommendationAsRead(recommendationDiv, recommendation, firestore);
-                    showToasterMessage('Marked ' + recommendation.swrl.details.title + ' as Read');
+                    showToasterMessage('Marked ' + recommendation.swrl.details.title + ' as read');
 
                 });
             $recommendationActions('.markUnRead').addEventListener('click',

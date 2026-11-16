@@ -161,7 +161,7 @@ const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, 
             // @ts-ignore
             const recommendationsCard = swrlPageCardTemplate.content.cloneNode(true);
             const $recommendationsCard = recommendationsCard.querySelector.bind(recommendationsCard);
-            $recommendationsCard('.cardTitle').innerText = 'Recommendations';
+            $recommendationsCard('.cardTitle').innerText = 'Swrls';
             $recommendationsCard('.cardContent').querySelector('.loadingSpinnerSmall').classList.add('hidden');
             if (isRecommendedToMe(swrl.swrlID)) {
                 /** @type {HTMLElement} */
@@ -169,7 +169,7 @@ const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, 
                 const subSection = swrlPageSubCardTemplate.content.cloneNode(true);
                 const $subSection = subSection.querySelector.bind(subSection);
                 const subSectionDiv = $subSection('div');
-                $subSection('.cardSubTitle').innerText = 'Inbox';
+                $subSection('.cardSubTitle').innerText = 'To you';
                 const spinner = $subSection('.cardContent').querySelector('.loadingSpinnerSmall');
                 $recommendationsCard('.cardContent').appendChild(subSection);
                 const subContent = $subSection('.cardContent');
@@ -215,7 +215,7 @@ const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, 
                 const subSection = swrlPageSubCardTemplate.content.cloneNode(true);
                 const $subSection = subSection.querySelector.bind(subSection);
                 const subSectionDiv = $subSection('div');
-                $subSection('.cardSubTitle').innerText = 'Sent';
+                $subSection('.cardSubTitle').innerText = 'From you';
                 const spinner = $subSection('.cardContent').querySelector('.loadingSpinnerSmall');
                 $recommendationsCard('.cardContent').appendChild(subSection);
                 /** @type Recommendation[] */

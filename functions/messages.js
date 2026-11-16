@@ -17,8 +17,8 @@ function recommendationMessage(tokens, recommender, swrl) {
     return {
         tokens: tokens,
         notification: {
-            title: 'New Swrl Recommendation',
-            body: `${who} recommended ${what} to you!`
+            title: 'New swrl',
+            body: `${who} swrled ${what} to you`
         },
         webpush: {
             headers: { TTL: String(60 * 60 * 24), Urgency: 'high' },

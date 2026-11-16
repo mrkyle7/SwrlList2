@@ -192,7 +192,7 @@ export function addRecommendButton(div, swrl, stateController) {
             e.stopPropagation();
             e.preventDefault();
             if (!swrlUser || swrlUser.isAnonymous) {
-                showRequireLoginScreen('to recommend a Swrl');
+                showRequireLoginScreen('to swrl this to a friend');
             } else {
                 const recommendView = new State(stateController.recommendView);
                 recommendView.swrl = swrl;

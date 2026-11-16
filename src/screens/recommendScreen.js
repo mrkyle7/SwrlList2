@@ -30,7 +30,7 @@ export class RecommendScreen extends Screen {
      * @param {boolean} newScreen
      */
     updateLocationHistory(newScreen) {
-        const title = `Recommend ${this.stateController.currentState.swrl.details.getFullTitle()}`;
+        const title = `Swrl ${this.stateController.currentState.swrl.details.getFullTitle()}`;
         const state = {
             pageTitle: title,
             stateId: this.stateController.currentState.id
