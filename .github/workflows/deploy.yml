@@ -243,7 +243,7 @@ jobs:
         run: |
           gcloud auth configure-docker $REGION-docker.pkg.dev --quiet
           IMAGE_URI=$REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE_NAME:${{ github.sha }}
-          docker build -t $IMAGE_URI .
+          docker build --build-arg GIT_SHA=${{ github.sha }} -t $IMAGE_URI .
           docker push $IMAGE_URI
 
       # Copies each GitHub Actions secret into the Secret Manager secret

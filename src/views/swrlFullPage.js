@@ -94,10 +94,14 @@ async function showSwrlFullPage(stateController) {
     pageButtons.querySelector('.swrlButtonSpinner').classList.remove('hidden');
 
     let swrlExists = false;
+    // The page may be left (or shown again for another swrl) before the
+    // lookups below answer; a late answer must not touch the page then.
+    const thisVisit = socialCardsToken;
 
     // my own entries must have loaded, or the buttons would all say "not on my list"
     Promise.all([getDoc(doc(firestore, Collection.SWRLS, swrl.swrlID)), whenListEntriesReady()])
         .then(([docSnapshot]) => {
+            if (socialCardsToken !== thisVisit) return;
             let currentSwrl = swrl;
             if (docSnapshot.exists()) {
                 try {
@@ -125,6 +129,7 @@ async function showSwrlFullPage(stateController) {
         .catch(err => {
             console.error('Could not get data for swrl');
             console.error(err);
+            if (socialCardsToken !== thisVisit) return;
 
             pageButtons.querySelector('.swrlButtonSpinner').classList.add('hidden');
 

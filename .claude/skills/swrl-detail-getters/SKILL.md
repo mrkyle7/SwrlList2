@@ -11,6 +11,19 @@ A "Swrl" is any item the user might save. Items are grouped into:
 - **Type** (`src/constants/Type.js`): `FILM`, `TV`, `BOOK`, `ALBUM`, `PODCAST`,
   `BOARDGAME`, `VIDEOGAME`, `APP`, `WEBSITE`, ...
 
+There is also `ALL` ("search everything", `/search`): not a list, left out of
+`Categories`, whose `AllSearch` (`src/search/allSearch.js`) runs every
+category's search and interleaves the results; its filter offers every type.
+A new Category's search must be added to `AllSearch` too.
+
+**Sharing to the app.** The manifest's `share_target` sends shares to `/share`
+(`shareRoute` in `src/index.js`). `src/model/share.js` (pure, tested)
+recognises IMDb title links and TMDB film/TV links; `src/search/sharedLink.js`
+turns one into a Swrl (IMDb ids go through `/api/v1/tmdb/find/{ttId}`) and its
+page opens. Anything else becomes an `ALL` search for the shared words. A
+manifest can declare only one share target. To recognise another site, extend
+`recogniseLink` and `swrlFromLink`.
+
 Each **Category** owns a `Search` strategy; each **Type** owns a
 `DetailGetter`. The pair drives: user searches → results list → user picks
 one → details fetched → saved to Firestore.

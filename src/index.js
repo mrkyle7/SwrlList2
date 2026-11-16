@@ -29,7 +29,10 @@ import { State } from './model/state';
 import { initMessaging } from './firebase/messaging';
 import { Collection } from './constants/Collection';
 import { Swrl } from './model/swrl';
-import { Category, WATCH, LISTEN, READ, PLAY } from './constants/Category';
+import { Category, WATCH, LISTEN, READ, PLAY, ALL } from './constants/Category';
+import { parseShare } from './model/share';
+import { swrlFromLink } from './search/sharedLink';
+import { showToasterMessage } from './components/toaster';
 import { inboxReady } from './listeners/recommendations';
 import { getSwrler } from './firebase/swrler';
 import { initSearchClearButtons } from './components/searchClear';
@@ -60,6 +63,7 @@ const app = {
             stateController = new StateController(firestore);
             stateController.initialiseAllViews();
             initSearchClearButtons();
+            document.getElementById('appVersion').textContent = APP_VERSION;
 
             window.onpopstate =
                 /**
@@ -79,6 +83,7 @@ const app = {
                 }
 
             const originalPath = document.location.pathname;
+            const originalParams = new URLSearchParams(document.location.search);
             const startState = new State(stateController.homeView);
             stateController.previousStates.push(startState);
             stateController.currentState = startState;
@@ -119,6 +124,12 @@ const app = {
                         break;
                     case 'savedsearches':
                         savedSearchesRoute();
+                        break;
+                    case 'search':
+                        searchEverythingRoute(originalParams.get('q') || '');
+                        break;
+                    case 'share':
+                        shareRoute(originalParams, firestore);
                         break;
                     case 'friends':
                         friendsRoute(startState);
@@ -174,6 +185,56 @@ function listRoute(category) {
     state.selectedCategory = category;
     document.getElementById('loadingView').classList.add('hidden');
     stateController.changeState(state);
+}
+
+/**
+ * The "search everything" page, optionally with a search already typed.
+ *
+ * @param {string} searchText
+ */
+function searchEverythingRoute(searchText) {
+    const state = new State(stateController.searchView);
+    state.selectedCategory = ALL;
+    state.searchTerms = searchText;
+    document.getElementById('loadingView').classList.add('hidden');
+    stateController.changeState(state);
+}
+
+/**
+ * Something shared to the app from another app (the manifest's share_target).
+ * A link we recognise (an IMDb or TMDB film or TV page) opens that swrl's
+ * page, ready to add or recommend. Anything else becomes a search of every
+ * source for the shared words.
+ *
+ * @param {URLSearchParams} params title, text and url, as the sharing app gave them
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+async function shareRoute(params, firestore) {
+    const { link, query } = parseShare({ title: params.get('title'), text: params.get('text'), url: params.get('url') });
+    if (link) {
+        document.getElementById('loadingView').classList.remove('hidden');
+        try {
+            const shared = await swrlFromLink(link);
+            if (shared) {
+                // The stored doc, when someone already has it, carries the counts.
+                const docSnapshot = await getDoc(doc(firestore, Collection.SWRLS, shared.swrlID)).catch(() => undefined);
+                const swrl = docSnapshot && docSnapshot.exists() ? Swrl.fromFirestore(docSnapshot.data()) : shared;
+                const state = new State(stateController.swrlView);
+                state.swrl = swrl;
+                state.selectedCategory = swrl.category;
+                document.getElementById('loadingView').classList.add('hidden');
+                stateController.changeState(state);
+                return;
+            }
+        } catch (error) {
+            console.error('Could not open the shared link');
+            console.error(error);
+        }
+        showToasterMessage(query ? "Couldn't open that link, searching instead" : "Couldn't open that link");
+    } else if (!query) {
+        showToasterMessage("Couldn't find anything to search for in what was shared");
+    }
+    searchEverythingRoute(query);
 }
 
 function recommendationsRoute() {
