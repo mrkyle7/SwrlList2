@@ -2482,3 +2482,120 @@ button.pageActionPrimary:hover {
         animation: none;
     }
 }
+
+/* The top of a category's list: rows of posters from friends. */
+.categoryStrips {
+    padding: 4px 0 4px;
+    border-bottom: 1px solid #e3e6ea;
+    margin-bottom: 4px;
+}
+
+.strip {
+    margin: 8px 0 4px;
+}
+
+.stripHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+}
+
+.stripHead h3 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.stripAll {
+    height: 44px;
+    padding: 0 4px;
+    border: 0;
+    background: none;
+    color: #d81b4f;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.stripRow {
+    display: flex;
+    gap: 12px;
+    padding: 4px 12px 8px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.stripRow::-webkit-scrollbar {
+    display: none;
+}
+
+.stripTile {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    width: 104px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #222222;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    scroll-snap-align: start;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.stripPoster {
+    width: 104px;
+    height: 156px;
+    border-radius: 8px;
+    background: #eef1f4;
+    object-fit: cover;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    transition: transform 120ms ease;
+}
+
+.stripTile:hover .stripPoster {
+    transform: translateY(-2px);
+}
+
+.stripTile:active .stripPoster {
+    transform: scale(0.97);
+}
+
+.stripTitle {
+    display: -webkit-box;
+    margin-top: 6px;
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.stripCaption {
+    display: -webkit-box;
+    margin-top: 2px;
+    overflow: hidden;
+    color: #5f6368;
+    font-size: 13px;
+    line-height: 17px;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .stripPoster {
+        transition: none;
+    }
+}
+
+/* Discover cards have five buttons, not four: the stats need more room. */
+.swrlHasDismiss .swrlStats {
+    margin-right: 208px;
+}
