@@ -13,7 +13,9 @@ RUN npm ci
 COPY webpack.config.js ./
 COPY src ./src
 COPY www ./www
-RUN npm run build
+# The commit being built, shown with the version in the app's menu.
+ARG GIT_SHA=
+RUN GIT_SHA=$GIT_SHA npm run build
 
 FROM mirror.gcr.io/library/node:24-slim
 WORKDIR /app

@@ -53,7 +53,9 @@ var swipedetect = function (el, callback) {
         startX = touchobj.pageX
         startY = touchobj.pageY
         startTime = new Date().getTime() // record time when finger first makes contact with surface
-        e.preventDefault()
+        // A link inside the surface (the menu's Privacy and Support links)
+        // must still get its click, which preventDefault would cancel.
+        if (!isOnLink(e)) e.preventDefault()
     }, false)
 
     touchsurface.addEventListener('touchmove', function (e) {
@@ -77,8 +79,17 @@ var swipedetect = function (el, callback) {
             }
         }
         handleswipe(swipedir)
-        e.preventDefault()
+        if (swipedir !== 'none' || !isOnLink(e)) e.preventDefault()
     }, false)
+}
+
+/**
+ * @param {TouchEvent} e
+ * @return {boolean} whether the touch is on a link
+ */
+function isOnLink(e) {
+    // @ts-ignore
+    return Boolean(e.target && e.target.closest && e.target.closest('a'));
 }
 
 function openCloseMenu(swipedir) {

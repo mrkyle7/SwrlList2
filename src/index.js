@@ -60,6 +60,7 @@ const app = {
             stateController = new StateController(firestore);
             stateController.initialiseAllViews();
             initSearchClearButtons();
+            document.getElementById('appVersion').textContent = APP_VERSION;
 
             window.onpopstate =
                 /**

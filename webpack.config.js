@@ -10,8 +10,13 @@ const dist = path.resolve(__dirname, 'dist');
 // `--env emulators` (npm run build:emulators) points the app at the local
 // Firebase emulators instead of the live project, for testing.
 module.exports = (env = {}) => {
+  // Shown discreetly in the menu: the package version, plus the commit it was
+  // built from when the build is told (GIT_SHA, set by the deploy's Docker build).
+  const commit = (process.env.GIT_SHA || '').slice(0, 7);
+  const version = 'v' + require('./package.json').version + (commit ? ' · ' + commit : '');
   const define = new webpack.DefinePlugin({
-    USE_FIREBASE_EMULATORS: JSON.stringify(Boolean(env.emulators))
+    USE_FIREBASE_EMULATORS: JSON.stringify(Boolean(env.emulators)),
+    APP_VERSION: JSON.stringify(version)
   });
 
   return [
