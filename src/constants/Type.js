@@ -92,3 +92,12 @@ export const typeFromId =
     (id) => {
         return types.find(t => t.id === id);
     }
+
+/**
+ * How a type is written on a card: its display name in sentence case
+ * ("Film", "TV show", "Board game").
+ *
+ * @param {Type} type
+ * @return {string}
+ */
+export const typeLabel = (type) => type.displayName.charAt(0).toUpperCase() + type.displayName.slice(1);

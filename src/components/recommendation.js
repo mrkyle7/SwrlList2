@@ -12,6 +12,7 @@ import { StateController } from '../views/stateController';
 import { getSwrler } from '../firebase/swrler';
 import { State } from '../model/state';
 import { Swrl } from '../model/swrl';
+import { typeLabel } from '../constants/Type';
 import { whenListEntriesReady } from '../listeners/listEntries';
 
 /**
@@ -58,7 +59,7 @@ export const renderRecommendation = async (stateController, view, recommendation
             : recommendation.swrl.details.artist ? recommendation.swrl.details.artist : undefined;
         let title = creator ? recommendation.swrl.details.title + ' by ' + creator : recommendation.swrl.details.title;
         $recommendation('.swrlTitle').innerText = title;
-        $recommendation('.swrlType').innerText = recommendation.swrl.type.name;
+        $recommendation('.swrlType').innerText = typeLabel(recommendation.swrl.type);
 
         /** @type {HTMLTemplateElement} */
         // @ts-ignore

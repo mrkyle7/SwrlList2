@@ -88,50 +88,45 @@
   <div id="menuSwipeable"></div>
   <div id='centre' class="main">
     <div id="fade" class="hidden"></div>
-    <div id="filters" class="hidden">
+    <div id="filters" class="hidden" role="dialog" aria-label="Filter and sort">
       <form>
-        <h3>Filters</h3>
-        <input type="radio" id="filmFilter" name="whereFilter" value="1">
-        <label for="filmFilter">Films<br></label> 
-        
-        <input type="radio" id="tvFilter" name="whereFilter" value="2">
-        <label for="tvFilter">TV<br></label>
-
-        <input type="radio" id="bookFilter" name="whereFilter" value="3">
-        <label for="bookFilter">Books<br></label>
-
-        <input type="radio" id="albumFilter" name="whereFilter" value="4">
-        <label for="albumFilter">Albums<br></label>
-
-        <input type="radio" id="podcastFilter" name="whereFilter" value="5">
-        <label for="podcastFilter">Podcasts<br></label>
-
-        <input type="radio" id="boardGameFilter" name="whereFilter" value="6">
-        <label for="boardGameFilter">Boardgames<br></label>
-
-        <input type="radio" id="videoGames" name="whereFilter" value="7">
-        <label for="videoGames">Video games<br></label>
-
-        <input type="radio" id="allTypes" name="whereFilter" value="-1">
-        <label for="allTypes">All</label>
-        <br><br><input type="checkbox" id="recommended" name="filter" value="1">
-        <label for="recommended">Recommended to you</label><br>
+        <h3>Show</h3>
+        <div class="chips">
+          <input type="radio" id="allTypes" name="whereFilter" value="-1">
+          <label for="allTypes">All</label>
+          <input type="radio" id="filmFilter" name="whereFilter" value="1">
+          <label for="filmFilter">Films</label>
+          <input type="radio" id="tvFilter" name="whereFilter" value="2">
+          <label for="tvFilter">TV</label>
+          <input type="radio" id="bookFilter" name="whereFilter" value="3">
+          <label for="bookFilter">Books</label>
+          <input type="radio" id="albumFilter" name="whereFilter" value="4">
+          <label for="albumFilter">Albums</label>
+          <input type="radio" id="podcastFilter" name="whereFilter" value="5">
+          <label for="podcastFilter">Podcasts</label>
+          <input type="radio" id="boardGameFilter" name="whereFilter" value="6">
+          <label for="boardGameFilter">Board games</label>
+          <input type="radio" id="videoGames" name="whereFilter" value="7">
+          <label for="videoGames">Video games</label>
+        </div>
+        <div class="chips">
+          <input type="checkbox" id="recommended" name="filter" value="1">
+          <label for="recommended">Recommended to you</label>
+        </div>
         <div id="labelFilters" class="hidden">
           <h3>Your labels</h3>
-          <div id="labelFilterList"></div>
+          <div id="labelFilterList" class="chips"></div>
         </div>
-        <h3>Sort</h3>
-        <input type="radio" id="alphabetical" name="sort" value="1">
-        <label for="alphabetical">Alphabetical</label><br>
-        <input type="radio" id="recentlyadded" name="sort" value="2">
-        <label for="recentlyadded">Recently Added</label><br>
-        <input type="radio" id="recentlyupdated" name="sort" value="3" checked>
-        <label for="recentlyupdated">Recently Updated</label>
-        <br>
-        <br>
-        <div class="center">
-          <input type="submit" id="submitFilters" value="Apply">
+        <h3>Sort by</h3>
+        <div class="chips">
+          <input type="radio" id="recentlyupdated" name="sort" value="3" checked>
+          <label for="recentlyupdated">Recently updated</label>
+          <input type="radio" id="recentlyadded" name="sort" value="2">
+          <label for="recentlyadded">Recently added</label>
+          <input type="radio" id="alphabetical" name="sort" value="1">
+          <label for="alphabetical">A to Z</label>
         </div>
+        <input type="submit" id="submitFilters" class="sheetApply" value="Show results">
       </form>
     </div>
     <div id="sections" class="sections hidden">
@@ -166,32 +161,32 @@
 
     <div id="tabs" class="hidden tabs">
       <div id="yourListTab">
-        <a>YOUR LIST</a>
+        <a>Your list</a>
       </div>
       <div id="discoverTab">
-        <a>DISCOVER</a>
+        <a>Discover</a>
       </div>
       <div id="searchTab">
-        <a>SEARCH</a>
+        <a>Search</a>
       </div>
     </div>
     <div id="swrlerTabs" class="hidden tabs">
       <div id="swrlerLaterTab">
-        <a>LATER</a>
+        <a>Later</a>
       </div>
       <div id="swrlerLovedTab">
-        <a>LOVED</a>
+        <a>Loved</a>
       </div>
       <div id="swrlerDoneTab">
-        <a>DONE</a>
+        <a>Done</a>
       </div>
     </div>
     <div id="recommendationTabs" class="hidden tabs">
       <div id="inboxTab">
-        <a>INBOX</a>
+        <a>Inbox</a>
       </div>
       <div id="sentTab">
-        <a>SENT</a>
+        <a>Sent</a>
       </div>
     </div>
     <div id="loggingInView">
@@ -359,20 +354,12 @@
         <img class="swrlImage" src="" />
         <div class="swrlDetails">
           <p class="swrlTitle"></p>
+          <p class="swrlReason hidden"><img class="swrlMiniIcon" src="img/logo_transparent.svg" alt="" /><span class="swrlReasonText"></span></p>
           <p class="swrlStats">
             <span class="swrlType"></span>
-
-            <span> &middot; <img class="swrlMiniIcon" src="img/list.svg" /></span>
-            <img class="swrlSpinnerListCount swrlMiniIcon hidden" src="img/spinner.gif" />
-            <span class="swrlListCount"></span>
-
-            <span> &middot; <img class="swrlMiniIcon" src="img/logo_transparent.svg" /></span>
-            <img class="swrlSpinnerRecommendedCount swrlMiniIcon hidden" src="img/spinner.gif" />
-            <span class="swrlRecommendedCount"></span>
-
-            <span> &middot; <img class="swrlMiniIcon" src="img/loved.svg" /></span>
-            <img class="swrlSpinnerLoveCount swrlMiniIcon hidden" src="img/spinner.gif" />
-            <span class="swrlLoveCount"></span>
+            <span class="swrlStat swrlStatList" title="People with this on a list"><img class="swrlMiniIcon" src="img/list.svg" alt="On lists:" /><img class="swrlSpinnerListCount swrlMiniIcon hidden" src="img/spinner.gif" alt="" /><span class="swrlListCount"></span></span>
+            <span class="swrlStat swrlStatRecommended" title="Times recommended"><img class="swrlMiniIcon" src="img/logo_transparent.svg" alt="Recommended:" /><img class="swrlSpinnerRecommendedCount swrlMiniIcon hidden" src="img/spinner.gif" alt="" /><span class="swrlRecommendedCount"></span></span>
+            <span class="swrlStat swrlStatLoved" title="People who love this"><img class="swrlMiniIcon" src="img/loved.svg" alt="Loved by:" /><img class="swrlSpinnerLoveCount swrlMiniIcon hidden" src="img/spinner.gif" alt="" /><span class="swrlLoveCount"></span></span>
           </p>
         </div>
       </div>
@@ -489,20 +476,11 @@
           <div class="swrlDetails">
             <p class="swrlTitle"></p>
             <p class="swrlStats">
-              <span class="swrlType"></span>
-
-              <span> &middot; <img class="swrlMiniIcon" src="img/list.svg" /></span>
-              <img class="swrlSpinnerListCount swrlMiniIcon hidden" src="img/spinner.gif" />
-              <span class="swrlListCount"></span>
-
-              <span> &middot; <img class="swrlMiniIcon" src="img/logo_transparent.svg" /></span>
-              <img class="swrlSpinnerRecommendedCount swrlMiniIcon hidden" src="img/spinner.gif" />
-              <span class="swrlRecommendedCount"></span>
-
-              <span> &middot; <img class="swrlMiniIcon" src="img/loved.svg" /></span>
-              <img class="swrlSpinnerLoveCount swrlMiniIcon hidden" src="img/spinner.gif" />
-              <span class="swrlLoveCount"></span>
-            </p>
+            <span class="swrlType"></span>
+            <span class="swrlStat swrlStatList" title="People with this on a list"><img class="swrlMiniIcon" src="img/list.svg" alt="On lists:" /><img class="swrlSpinnerListCount swrlMiniIcon hidden" src="img/spinner.gif" alt="" /><span class="swrlListCount"></span></span>
+            <span class="swrlStat swrlStatRecommended" title="Times recommended"><img class="swrlMiniIcon" src="img/logo_transparent.svg" alt="Recommended:" /><img class="swrlSpinnerRecommendedCount swrlMiniIcon hidden" src="img/spinner.gif" alt="" /><span class="swrlRecommendedCount"></span></span>
+            <span class="swrlStat swrlStatLoved" title="People who love this"><img class="swrlMiniIcon" src="img/loved.svg" alt="Loved by:" /><img class="swrlSpinnerLoveCount swrlMiniIcon hidden" src="img/spinner.gif" alt="" /><span class="swrlLoveCount"></span></span>
+          </p>
           </div>
         </div>
         <div class="swrlButtons">
@@ -511,15 +489,30 @@
     </div>
   </template>
   <template id="swrlButtons">
-    <img class="swrlButtonSpinner swrlButton hidden" src="img/spinner.gif" />
-    <img class="swrlDelete swrlButton hidden" src="img/delete.svg" />
-    <img class="swrlLoved swrlButton hidden" src="img/loved.svg" />
-    <img class="swrlNotLoved swrlButton hidden" src="img/notLoved.svg" />
-    <img class="swrlRecommend swrlButton hidden" src="img/logo_transparent.svg" />
-    <img class="swrlDone swrlButton hidden" src="img/check_circle-24px.svg" />
-    <img class="swrlNotDone swrlButton hidden" src="img/check_circle_outline-24px.svg" />
-    <img class="swrlAdded swrlButton hidden" src="img/playlist_add_check-24px.svg" />
-    <img class="swrlNotAdded swrlButton hidden" src="img/playlist_add-24px.svg" />
+    <img class="swrlButtonSpinner swrlButton hidden" src="img/spinner.gif" alt="Loading" />
+    <button type="button" class="swrlDelete swrlButton hidden" aria-label="Dismiss" title="Dismiss"><img src="img/delete.svg" alt="" /></button>
+    <button type="button" class="swrlLoved swrlButton hidden" aria-label="Loved. Tap to undo" title="Loved. Tap to undo"><img src="img/loved.svg" alt="" /></button>
+    <button type="button" class="swrlNotLoved swrlButton hidden" aria-label="Love" title="Love"><img src="img/notLoved.svg" alt="" /></button>
+    <button type="button" class="swrlRecommend swrlButton hidden" aria-label="Recommend to someone" title="Recommend to someone"><img src="img/logo_transparent.svg" alt="" /></button>
+    <button type="button" class="swrlDone swrlButton hidden" aria-label="Done. Tap to undo" title="Done. Tap to undo"><img src="img/check_circle-24px.svg" alt="" /></button>
+    <button type="button" class="swrlNotDone swrlButton hidden" aria-label="Mark as done" title="Mark as done"><img src="img/check_circle_outline-24px.svg" alt="" /></button>
+    <button type="button" class="swrlAdded swrlButton hidden" aria-label="On your list. Tap to remove" title="On your list. Tap to remove"><img src="img/playlist_add_check-24px.svg" alt="" /></button>
+    <button type="button" class="swrlNotAdded swrlButton hidden" aria-label="Add to your list" title="Add to your list"><img src="img/playlist_add-24px.svg" alt="" /></button>
+  </template>
+  <template id="swrlPageButtons">
+    <div class="pageActions">
+      <button type="button" class="swrlNotAdded swrlButton pageAction pageActionPrimary hidden"><img src="img/playlist_add-24px-white.svg" alt="" /><span class="swrlButtonLabel">Add to your list</span></button>
+      <button type="button" class="swrlAdded swrlButton pageAction pageActionOn hidden" title="Tap to remove from your list"><img src="img/playlist_add_check-24px.svg" alt="" /><span class="swrlButtonLabel">On your list</span></button>
+      <button type="button" class="swrlRecommend swrlButton pageAction hidden"><img src="img/logo_transparent.svg" alt="" /><span class="swrlButtonLabel">Recommend</span></button>
+    </div>
+    <div class="pageToggles">
+      <img class="swrlButtonSpinner swrlButton hidden" src="img/spinner.gif" alt="Loading" />
+      <button type="button" class="swrlNotLoved swrlButton pageToggle hidden"><img src="img/notLoved.svg" alt="" /><span class="swrlButtonLabel">Love</span></button>
+      <button type="button" class="swrlLoved swrlButton pageToggle pageToggleOn hidden" title="Tap to undo"><img src="img/loved.svg" alt="" /><span class="swrlButtonLabel">Loved</span></button>
+      <button type="button" class="swrlNotDone swrlButton pageToggle hidden"><img src="img/check_circle_outline-24px.svg" alt="" /><span class="swrlButtonLabel">Mark as done</span></button>
+      <button type="button" class="swrlDone swrlButton pageToggle pageToggleOn hidden" title="Tap to undo"><img src="img/check_circle-24px.svg" alt="" /><span class="swrlButtonLabel">Done</span></button>
+      <button type="button" class="swrlDelete swrlButton pageToggle hidden"><img src="img/delete.svg" alt="" /><span class="swrlButtonLabel">Dismiss</span></button>
+    </div>
   </template>
   <template id="recommender">
     <div class="recommender">

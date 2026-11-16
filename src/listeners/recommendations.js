@@ -143,3 +143,16 @@ const updateInboxCount = () => {
             .length;
     inboxCount.innerText = count.toString();
 }
+
+/**
+ * The recommendations I have been sent for one swrl, newest first: the "why
+ * is this on my list" shown on its card.
+ *
+ * @param {string} swrlID
+ * @return {Recommendation[]}
+ */
+export function inboxRecommendationsFor(swrlID) {
+    return Object.values(recommendationsInboxCache)
+        .filter(recommendation => recommendation.swrlID === swrlID)
+        .sort((a, b) => (b.created ? b.created.getTime() : 0) - (a.created ? a.created.getTime() : 0));
+}

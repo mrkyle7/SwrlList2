@@ -11,6 +11,10 @@ import { addLoveButton, addAddButton, addRecommendButton, addDoneButton } from '
 import { showToasterMessage } from './toaster';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
+import { typeLabel } from '../constants/Type';
+import { inboxRecommendationsFor } from '../listeners/recommendations';
+import { getSwrlerCached } from '../firebase/swrler';
+import { recommendationReason } from '../model/recommendation';
 import { StateController } from '../views/stateController';
 import { Collection } from '../constants/Collection';
 import { State } from '../model/state';
@@ -49,7 +53,8 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
         : swrl.details.artist ? swrl.details.artist : undefined;
     var title = creator ? swrl.details.getFullTitle() + ' by ' + creator : swrl.details.getFullTitle();
     $swrl('.swrlTitle').innerText = title;
-    $swrl('.swrlType').innerText = swrl.type.name;
+    $swrl('.swrlType').innerText = typeLabel(swrl.type);
+    showReason(swrlDiv, swrl, firestore);
 
     $swrl('.swrlListCount').classList.add('hidden');
     $swrl('.swrlSpinnerListCount').classList.remove('hidden');
@@ -169,4 +174,29 @@ function addDeleteButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer) 
             }
         });
     }
+}
+
+/**
+ * Shows who recommended this swrl to me, and their message, on its card.
+ *
+ * @param {HTMLElement} swrlDiv
+ * @param {Swrl} swrl
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+function showReason(swrlDiv, swrl, firestore) {
+    const recommendations = inboxRecommendationsFor(swrl.swrlID);
+    if (recommendations.length === 0) return;
+    const senders = [...new Set(recommendations.map(recommendation => recommendation.from))];
+    Promise.all(senders.map(uid => getSwrlerCached(uid, firestore)))
+        .then(swrlers => {
+            const text = recommendationReason(swrlers.map(swrler => swrler && swrler.displayName), recommendations[0].message);
+            if (!text) return;
+            /** @type {HTMLElement} */
+            const reason = swrlDiv.querySelector('.swrlReason');
+            // textContent, never innerHTML: the message is whatever a user typed.
+            reason.querySelector('.swrlReasonText').textContent = text;
+            reason.title = text;
+            reason.classList.remove('hidden');
+        })
+        .catch(error => console.error(error));
 }

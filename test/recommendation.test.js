@@ -6,7 +6,8 @@ import { Swrl } from '../src/model/swrl';
 import { ALBUM } from '../src/constants/Type';
 import { LISTEN } from '../src/constants/Category';
 import { Details } from '../src/model/details';
-import { Recommendation, inboxHasSwrl } from '../src/model/recommendation';
+import { Recommendation, inboxHasSwrl, recommendationReason } from '../src/model/recommendation';
+import { typeLabel, FILM, TV, BOARDGAME } from '../src/constants/Type';
 import { Link } from '../src/model/link';
 import { Rating } from '../src/model/rating';
 
@@ -254,3 +255,26 @@ describe('inboxHasSwrl', function () {
         expect(inboxHasSwrl({}, 'film-1')).toBe(false);
     })
 })
+
+describe('why a swrl is on my list', function () {
+    it('quotes one person and their message', function () {
+        expect(recommendationReason(['Alice'], ' You will love this ')).to.equal('Alice: \u201cYou will love this\u201d');
+    });
+    it('names the people when there is no message or more than one', function () {
+        expect(recommendationReason(['Alice'], '')).to.equal('Recommended by Alice');
+        expect(recommendationReason(['Alice', 'Bob'], 'hi')).to.equal('Recommended by Alice and Bob');
+        expect(recommendationReason(['Alice', 'Bob', 'Cara', 'Dev'], 'hi')).to.equal('Recommended by Alice and 3 others');
+    });
+    it('says nothing when nobody is known', function () {
+        expect(recommendationReason([], 'hi')).to.equal('');
+        expect(recommendationReason([undefined], 'hi')).to.equal('');
+    });
+});
+
+describe('type labels', function () {
+    it('are the display name in sentence case', function () {
+        expect(typeLabel(FILM)).to.equal('Film');
+        expect(typeLabel(TV)).to.equal('TV show');
+        expect(typeLabel(BOARDGAME)).to.equal('Board game');
+    });
+});

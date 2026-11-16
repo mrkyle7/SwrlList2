@@ -23,7 +23,7 @@ const swrlFullPageView = document.getElementById('swrlFullPage');
 const pageButtons = swrlFullPageView.querySelector('.pageButtons');
 /** @type {HTMLTemplateElement} */
 // @ts-ignore
-const swrlButtonsTemplate = document.getElementById('swrlButtons');
+const swrlButtonsTemplate = document.getElementById('swrlPageButtons');
 const swrlFullPageCards = document.getElementById('swrlFullPageCards');
 const swrlFullPageSocialCards = document.getElementById('swrlFullPageSocialCards');
 const swrlFullPageRecommendations = document.getElementById('swrlFullPageRecommendations');
