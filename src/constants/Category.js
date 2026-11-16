@@ -2,6 +2,7 @@ import { WatchSearch } from '../search/watchSearch';
 import { ReadSearch } from '../search/readSearch';
 import { ListenSearch } from '../search/listenSearch';
 import { PlaySearch } from '../search/playSearch';
+import { AllSearch } from '../search/allSearch';
 import { Constant } from './Constant';
 import { Attribution, TMDB_ATTRIBUTION, BGG_ATTRIBUTION } from './Attribution';
 import { Search } from '../search/search';
@@ -94,6 +95,24 @@ export const PLAY = new Category(
     [BOARDGAME_FILTER, VIDEOGAME_FILTER],
     BGG_ATTRIBUTION);
 
+/**
+ * Not a list of its own: "search everything", for when we do not know what
+ * kind of thing is wanted (a share from another app, the /search page). It is
+ * left out of `Categories`, so it has no home section, list or Discover.
+ */
+export const ALL = new Category(
+    5,
+    'search',
+    'Search',
+    'Nothing here.',
+    'Nothing here.',
+    'Search films, TV, books, music, podcasts and games all at once',
+    'Search everything',
+    new AllSearch(),
+    '#FF2E63',
+    'img/search-24px-white.svg',
+    [FILM_FILTER, TV_FILTER, BOOK_FILTER, ALBUM_FILTER, PODCAST_FILTER, BOARDGAME_FILTER, VIDEOGAME_FILTER]);
+
 export const Categories = Object.freeze([WATCH, READ, LISTEN, PLAY]);
 
 export const categoryFromId =
@@ -102,5 +121,5 @@ export const categoryFromId =
      * @return {Category}
      */
     (id) => {
-        return Categories.find(c => c.id === id);
+        return Categories.find(c => c.id === id) || (id === ALL.id ? ALL : undefined);
     }

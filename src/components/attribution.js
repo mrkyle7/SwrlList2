@@ -84,3 +84,15 @@ export function appendAttribution(list, attribution) {
         list.appendChild(createAttribution(attribution));
     }
 }
+
+/**
+ * Like appendAttribution, for a list whose items come from several sources:
+ * one credit per distinct source.
+ *
+ * @param {HTMLElement} list
+ * @param {(Attribution | undefined)[]} attributions
+ */
+export function appendAttributions(list, attributions) {
+    list.querySelectorAll(':scope > .attribution').forEach(existing => list.removeChild(existing));
+    new Set(attributions.filter(Boolean)).forEach(attribution => list.appendChild(createAttribution(attribution)));
+}

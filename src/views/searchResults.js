@@ -1,6 +1,6 @@
-import { appendAttribution } from '../components/attribution';
+import { appendAttribution, appendAttributions } from '../components/attribution';
 import { collection, doc, getDocs, addDoc, deleteDoc, query, where } from 'firebase/firestore';
-import { Category } from '../constants/Category';
+import { ALL, Category } from '../constants/Category';
 import { SEARCH } from '../constants/View';
 import { renderSwrl } from '../components/swrl';
 import { Swrl } from '../model/swrl';
@@ -50,6 +50,8 @@ const searching = document.getElementById('searching');
 const loadingbar = searchResultsContainer.querySelector('.loadingbar');
 const searchingMessage = document.getElementById('searchingMessage');
 const searchTab = document.getElementById('searchTab');
+const yourListTab = document.getElementById('yourListTab');
+const discoverTab = document.getElementById('discoverTab');
 const savedSearchesCard = document.getElementById('savedSearchesCard');
 const savedSearches = document.getElementById('savedSearchesSearchView');
 const tabs = document.getElementById('tabs');
@@ -77,6 +79,9 @@ function showSearch(category, searchText, firestore, stateController) {
     searchBar.focus();
     searchBar.placeholder = category.searchPlaceholder;
     searchResultsContainer.classList.remove('hidden');
+    // "Search everything" is not a list: only the Search tab applies.
+    yourListTab.classList.toggle('hidden', category === ALL);
+    discoverTab.classList.toggle('hidden', category === ALL);
 
     if (category !== currentCategory) {
         clearResults();
@@ -183,6 +188,8 @@ function destroySearch() {
     searchBar.classList.add('hidden');
     tabs.classList.add('hidden');
     searchTab.classList.remove('selected');
+    yourListTab.classList.remove('hidden');
+    discoverTab.classList.remove('hidden');
     searchResultsContainer.classList.add('hidden');
     hideAllMessages();
 }
@@ -335,6 +342,10 @@ function processResults(results, firestore, searchText, stateController) {
             renderSwrl(stateController, SEARCH, swrl, firestore, searchResulList);
         });
         // Part of the results, so it is only there when results are.
-        appendAttribution(searchResulList, currentCategory.attribution);
+        if (currentCategory === ALL) {
+            appendAttributions(searchResulList, results.map(swrl => swrl.type.attribution));
+        } else {
+            appendAttribution(searchResulList, currentCategory.attribution);
+        }
     }
 }

@@ -147,6 +147,12 @@ function tmdbPath(parts, query) {
     const term = searchTerm(query.query);
     return term && '/3/search/' + parts[1] + '?' + querystring.stringify({ query: term });
   }
+  // Look up a film or TV show by its IMDb id (a link shared from IMDb).
+  if (parts[0] === 'find') {
+    return /^tt\d{5,12}$/.test(parts[1])
+      ? '/3/find/' + parts[1] + '?external_source=imdb_id'
+      : undefined;
+  }
   if (!/^\d{1,10}$/.test(parts[1])) {
     return undefined;
   }
@@ -296,7 +302,8 @@ app.use('/__', function (req, res) {
 const appRoutes = [
   '/',
   '/swrl/:id', '/swrler/:id', '/recommend/:id',
-  '/savedsearches', '/friends', '/settings', '/recommendations', '/watch', '/listen', '/read', '/play'
+  '/savedsearches', '/friends', '/settings', '/recommendations', '/watch', '/listen', '/read', '/play',
+  '/search', '/share'
 ];
 
 app.get(appRoutes, function (req, res) {

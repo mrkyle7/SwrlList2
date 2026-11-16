@@ -98,7 +98,7 @@ const releaseYear = (releaseDate) => {
 * @param {{ title: string; release_date: string; id: string; poster_path: string; }} result
 * @return {Swrl}    
 */
-const tmdbFilmToSwrl = (result) => {
+export const tmdbFilmToSwrl = (result) => {
     return new Swrl(FILM, WATCH, 'TMDBMOVIE_' + result.id,
         new Details(result.id,
             result.title || 'No Title',
@@ -132,7 +132,7 @@ const tmdbFilmToSwrl = (result) => {
 * @param {{ name: any; id: string; poster_path: string; first_air_date: string}} result
 * @return {Swrl}
 */
-const tmdbTVToSwrl = (result) => {
+export const tmdbTVToSwrl = (result) => {
     return new Swrl(TV, WATCH, 'TMDBTV_' + result.id,
         new Details(result.id,
             result.name || 'No Title',
