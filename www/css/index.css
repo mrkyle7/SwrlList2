@@ -103,7 +103,7 @@ body {
     border-radius: 50%;
     background: #4990E2;
     color: white;
-    font-size: 12px;
+    font-size: 13px;
     width: 24px;
     line-height: 24px;
     text-align: center;
@@ -546,7 +546,7 @@ body {
 
 .swrlerSmallText {
     line-height: 32px;
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .personLinkText {
@@ -664,7 +664,7 @@ body {
 }
 
 .recommenderMessage.date {
-    font-size: 12px;
+    font-size: 13px;
     color: gray;
 }
 
@@ -751,7 +751,7 @@ body {
 }
 
 .swrlStats {
-    font-size: 12px;
+    font-size: 13px;
     padding-left: 4px;
     margin-top: 12px;
 }
@@ -830,7 +830,7 @@ body {
 
 .sidebarMenuInner li span {
     display: block;
-    font-size: 12px;
+    font-size: 13px;
     color: rgba(255, 255, 255, 0.50);
 }
 
@@ -853,7 +853,7 @@ body {
     padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     display: flex;
     gap: 16px;
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .sidebarMenuFooter a {
@@ -892,21 +892,6 @@ body {
     background: black;
     z-index: 9;
     opacity: 0.5;
-}
-
-#filters {
-    position: absolute;
-    top: 118px;
-    left: 48px;
-    right: 48px;
-    background: black;
-    color: white;
-    z-index: 10;
-    padding-bottom: 8px;
-}
-
-#filters h3 {
-    margin: 8px;
 }
 
 .center {
@@ -1116,7 +1101,7 @@ body {
     border-radius: 10px;
     background: #fff;
     color: var(--swrl-hot-pink);
-    font-size: 12px;
+    font-size: 13px;
     line-height: 20px;
     text-align: center;
 }
@@ -1437,7 +1422,7 @@ body {
     margin: 0;
     padding: 8px 10px 6px;
     color: #5f6368;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: bold;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -1567,10 +1552,6 @@ body {
         margin-left: 184px;
     }
 
-    #filters {
-        left: 480px;
-        right: 480px;
-    }
     .selected .recommendTitle {
         font-size: 2vw;
     }
@@ -1581,7 +1562,7 @@ body {
     margin: 24px 12px 16px 12px;
     text-align: center;
     color: #555;
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .attributionLink {
@@ -1609,7 +1590,7 @@ body {
 
 .attributionNotice {
     margin: 8px 0 0 0;
-    font-size: 12px;
+    font-size: 13px;
 }
 
 
@@ -1932,17 +1913,326 @@ body {
     }
 }
 
+/* ------------------------------------------------------------------------
+   Polish pass. One card shape, 44px touch targets, text no smaller than
+   13px, one filled main action per view, and a visible focus ring.
+   ------------------------------------------------------------------------ */
+
+:focus-visible {
+    outline: 2px solid #4A90E2;
+    outline-offset: 2px;
+}
+
+button {
+    font-family: inherit;
+}
+
+.swrl, .recommendation, .card {
+    border-radius: 8px;
+}
+
+.swrl {
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.swrlInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.swrlImage {
+    flex: none;
+    align-self: stretch;
+    width: 48px;
+    height: auto;
+    min-height: 72px;
+    margin: 0;
+    object-fit: cover;
+}
+
+.swrlDetails {
+    flex: 1;
+    min-width: 0;
+    height: auto;
+    padding: 6px 8px 0 10px;
+}
+
+.swrlTitle {
+    margin: 0;
+    font-size: 18px;
+    line-height: 24px;
+}
+
+/* Why it is on my list: who recommended it, and what they said. */
+.swrlReason {
+    margin: 0;
+    color: #444;
+    font-size: 13px;
+    line-height: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* The stats share the bottom row with the buttons, which sit to their right. */
+.swrlStats {
+    height: 42px;
+    margin: 0 168px 0 0;
+    padding: 0;
+    color: #5f6368;
+    font-size: 13px;
+    line-height: 42px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.swrlStat::before {
+    content: '\00b7';
+    margin: 0 5px;
+}
+
+.swrlMiniIcon {
+    height: 12px;
+    margin-right: 3px;
+    vertical-align: -1px;
+    opacity: 0.7;
+}
+
+.swrlBanner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+    margin: 0;
+    line-height: 1.2;
+}
+
+/* Icon buttons on a card: a 24px icon in a 40 by 44px target. */
+.swrlButton {
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 40px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 22px;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 120ms ease, transform 80ms ease;
+}
+
+.swrlButton img {
+    display: block;
+    width: 24px;
+    height: 24px;
+}
+
+img.swrlButton {
+    width: 24px;
+    height: 24px;
+    margin: 10px 8px;
+    border-radius: 0;
+}
+
+button.swrlButton:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+button.swrlButton:active {
+    transform: scale(0.94);
+}
+
+.swrlButtons {
+    align-items: center;
+    padding-right: 2px;
+}
+
+/* The swrl page: one filled main action, one outlined, two quiet toggles. */
+.pageButtons {
+    display: block;
+    width: auto;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 0 12px;
+}
+
+.pageActions {
+    display: flex;
+    gap: 8px;
+}
+
+.pageAction, .pageToggle {
+    width: auto;
+    gap: 8px;
+    color: #222222;
+    font-size: 16px;
+    white-space: nowrap;
+}
+
+.pageAction {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 46px;
+    padding: 0 12px;
+    border: 1.5px solid #222222;
+    border-radius: 23px;
+    background: #fff;
+    font-weight: 600;
+}
+
+button.pageAction:hover {
+    background: #f3f5f7;
+}
+
+.pageActionPrimary, button.pageActionPrimary:hover {
+    border-color: #FF2E63;
+    background: #FF2E63;
+    color: #fff;
+}
+
+button.pageActionPrimary:hover {
+    filter: brightness(0.95);
+}
+
+.pageActionOn, button.pageActionOn:hover {
+    border-color: #ffd3de;
+    background: #fff0f4;
+}
+
+.pageToggles {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.pageToggle {
+    height: 44px;
+    padding: 0 14px;
+    color: #444;
+    font-size: 15px;
+}
+
+.pageToggleOn {
+    color: #222222;
+    font-weight: 600;
+}
+
+/* Tabs in sentence case. */
+.tabs a {
+    font-size: 16px;
+}
+
+/* Filter and sort: a sheet that rises from the bottom, with chips to tap. */
 #filters {
-    max-height: calc(100% - 134px);
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    box-sizing: border-box;
+    max-width: 640px;
+    max-height: 80%;
+    margin: 0 auto;
+    padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px));
     overflow-y: auto;
+    border-radius: 16px 16px 0 0;
+    background: #fff;
+    color: #222222;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.18);
+    animation: sheetUp 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-#labelFilterList {
-    max-height: 168px;
-    overflow-y: auto;
+@keyframes sheetUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
 }
 
-.labelFilterRow label {
-    margin-left: 4px;
+#filters h3 {
+    margin: 16px 0 8px;
+    font-size: 16px;
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+/* The input stays in the page for the keyboard and screen readers; its label is the chip. */
+.chips input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.chips label {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    box-sizing: border-box;
+    padding: 0 16px;
+    border: 1.5px solid #c9ced4;
+    border-radius: 20px;
+    font-size: 15px;
     overflow-wrap: anywhere;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.chips input:checked + label {
+    border-color: #222222;
+    background: #222222;
+    color: #fff;
+}
+
+.chips input:focus-visible + label {
+    outline: 2px solid #4A90E2;
+    outline-offset: 2px;
+}
+
+.sheetApply {
+    display: block;
+    width: 100%;
+    height: 48px;
+    margin-top: 16px;
+    border: 0;
+    border-radius: 24px;
+    background: #FF2E63;
+    color: #fff;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.sheetApply:active {
+    transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #filters {
+        animation: none;
+    }
+    .swrlButton, .sheetApply {
+        transition: none;
+    }
 }

@@ -25,3 +25,25 @@ export const getSwrler = (uid, firestore) => {
             })
     });
 }
+
+/** @type {Map<string, Promise<import('firebase/auth').User>>} */
+const swrlerLookups = new Map();
+
+/**
+ * getSwrler, remembered for the life of the page: a list of cards asks for
+ * the same few people again and again.
+ *
+ * @param {String} uid
+ * @param {import('firebase/firestore').Firestore} firestore
+ * @return {Promise<import('firebase/auth').User>}
+ */
+export const getSwrlerCached = (uid, firestore) => {
+    if (!swrlerLookups.has(uid)) {
+        swrlerLookups.set(uid, getSwrler(uid, firestore).then(swrler => {
+            // a failed or empty lookup is tried again next time
+            if (!swrler) swrlerLookups.delete(uid);
+            return swrler;
+        }));
+    }
+    return swrlerLookups.get(uid);
+}

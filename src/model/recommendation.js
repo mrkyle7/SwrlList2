@@ -58,3 +58,21 @@ export class Recommendation {
 export function inboxHasSwrl(inboxCache, swrlID) {
     return Object.keys(inboxCache).some(id => inboxCache[id].swrlID === swrlID);
 }
+
+/**
+ * The one line on a card that says why a swrl is there: who recommended it
+ * and what they said.
+ *
+ * @param {string[]} names who recommended it, newest first
+ * @param {string} [message] the newest recommendation's message
+ * @return {string} empty when nobody did
+ */
+export function recommendationReason(names, message) {
+    const known = names.filter(Boolean);
+    if (known.length === 0) return '';
+    const who = known.length === 1 ? known[0]
+        : known.length === 2 ? `${known[0]} and ${known[1]}`
+            : `${known[0]} and ${known.length - 1} others`;
+    const words = (message || '').trim();
+    return known.length === 1 && words ? `${who}: \u201c${words}\u201d` : `Recommended by ${who}`;
+}

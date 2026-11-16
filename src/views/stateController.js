@@ -319,11 +319,9 @@ export class StateController {
             const text = document.createElement('label');
             text.htmlFor = input.id;
             text.textContent = label;
-            const row = document.createElement('div');
-            row.className = 'labelFilterRow';
-            row.appendChild(input);
-            row.appendChild(text);
-            list.appendChild(row);
+            // input then label, side by side: the label is styled as a chip
+            list.appendChild(input);
+            list.appendChild(text);
         });
     }
 

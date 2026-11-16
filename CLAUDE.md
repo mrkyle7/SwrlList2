@@ -78,6 +78,7 @@ counts are written by Cloud Functions. Details in the `swrl-firebase` skill.
 | Adding a new content source (new Type or 3rd-party API) | `swrl-detail-getters` |
 | Building, running or deploying (webpack, Docker, CI, Cloud Run) | `swrl-build-deploy` |
 | Writing or running tests, or fixing type errors | `swrl-testing` |
+| Designing, restyling or polishing the UI, or writing interface copy | `design-taste-frontend` (third-party, guidance only; read its "In this repository" section) |
 | Building a user-visible feature end-to-end | launch the `swrl-feature-builder` agent |
 
 ## Versioning and shipping

@@ -44,6 +44,12 @@ export function addStats(div, swrl) {
      * @param {number} loveCount
      */
     function updateStats(listCount, recommendedCount, loveCount) {
+        // A zero says nothing, so a stat only shows once it has a number.
+        [['.swrlStatList', listCount], ['.swrlStatRecommended', recommendedCount], ['.swrlStatLoved', loveCount]]
+            .forEach(([selector, count]) => {
+                const stat = div.querySelector(String(selector));
+                if (stat) stat.classList.toggle('hidden', count === 0);
+            });
         div.querySelector('.swrlListCount').classList.remove('hidden');
         div.querySelector('.swrlSpinnerListCount').classList.add('hidden');
 
