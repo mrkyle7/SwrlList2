@@ -1,4 +1,5 @@
 const express = require('express');
+const fs = require('fs');
 const https = require('https');
 const path = require('path');
 const querystring = require('querystring');
@@ -306,8 +307,142 @@ const appRoutes = [
   '/search', '/share', '/about'
 ];
 
-app.get(appRoutes, function (req, res) {
+// ---------------------------------------------------------------------------
+// Link previews. WhatsApp, Messages and the like read a page's og: tags
+// without running its JavaScript, so for a link to a swrl (/swrl/:id, and
+// /swrl/:id?from=<share> when a person shared it) the server fills them in:
+// the title, the poster and, for a share, who sent it and what they said.
+//
+// The swrl and share documents are public (see firestore.rules), so they are
+// read over Firestore's REST API with no credentials. Anything that goes
+// wrong falls back to the plain page.
+// ---------------------------------------------------------------------------
+const FIREBASE_PROJECT = process.env.FIREBASE_PROJECT || 'swrl-1118';
+const firestoreBase = (process.env.FIRESTORE_EMULATOR_HOST
+  ? 'http://' + process.env.FIRESTORE_EMULATOR_HOST
+  : 'https://firestore.googleapis.com')
+  + '/v1/projects/' + FIREBASE_PROJECT + '/databases/(default)/documents/';
+const SITE = 'https://swrl-list.com';
+const PREVIEW_CACHE_MILLIS = 10 * 60 * 1000;
+const PREVIEW_CACHE_SIZE = 500;
+/** @type {Map<string, {at: number, value: any}>} */
+const previewCache = new Map();
+/** @type {string | undefined} */
+let indexTemplate;
+
+/** A Firestore REST value as plain JavaScript (strings, maps and arrays are all we need). */
+function fromFirestoreValue(value) {
+  if (!value) return undefined;
+  if ('stringValue' in value) return value.stringValue;
+  if ('integerValue' in value) return Number(value.integerValue);
+  if ('mapValue' in value) return fromFirestoreFields(value.mapValue.fields);
+  if ('arrayValue' in value) return (value.arrayValue.values || []).map(fromFirestoreValue);
+  return undefined;
+}
+
+function fromFirestoreFields(fields) {
+  const result = {};
+  Object.keys(fields || {}).forEach(key => { result[key] = fromFirestoreValue(fields[key]); });
+  return result;
+}
+
+/**
+ * @param {string} collection
+ * @param {string} id
+ * @returns {Promise<Object | undefined>} the document, or undefined if it cannot be read
+ */
+async function publicDocument(collection, id) {
+  if (!/^[\w.~:-]{1,200}$/.test(id)) return undefined;
+  const key = collection + '/' + id;
+  const cached = previewCache.get(key);
+  if (cached && Date.now() - cached.at < PREVIEW_CACHE_MILLIS) return cached.value;
+  let value;
+  try {
+    const response = await fetch(firestoreBase + collection + '/' + encodeURIComponent(id),
+      { signal: AbortSignal.timeout(1500) });
+    value = response.ok ? fromFirestoreFields((await response.json()).fields) : undefined;
+  } catch (error) {
+    value = undefined;
+  }
+  if (previewCache.size >= PREVIEW_CACHE_SIZE) previewCache.delete(previewCache.keys().next().value);
+  previewCache.set(key, { at: Date.now(), value: value });
+  return value;
+}
+
+function escapeAttribute(text) {
+  return String(text).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/**
+ * index.html with its title, description and og: tags replaced.
+ *
+ * @param {string} html
+ * @param {{title: string, description: string, image?: string, url: string}} preview
+ * @returns {string}
+ */
+function withPreview(html, preview) {
+  const content = (attribute, name, value) => {
+    // matches the tag whether or not the build minified away its quotes
+    const tag = new RegExp('<meta ' + attribute + '=["\']?' + name + '["\']?\\s+content=(?:"[^"]*"|[^\\s>]*)\\s*/?>');
+    html = html.replace(tag, () => '<meta ' + attribute + '="' + name + '" content="' + escapeAttribute(value) + '">');
+  };
+  html = html.replace(/<title>[^<]*<\/title>/, () => '<title>' + escapeAttribute(preview.title) + '</title>');
+  content('property', 'og:title', preview.title);
+  content('name', 'description', preview.description);
+  content('property', 'og:description', preview.description);
+  content('property', 'og:url', preview.url);
+  if (preview.image && /^https:\/\//.test(preview.image)) content('property', 'og:image', preview.image);
+  return html;
+}
+
+const VERBS = { 1: 'watch', 2: 'read', 3: 'listen to', 4: 'play' };
+
+/**
+ * @param {string} path the request path
+ * @param {any} shareID the ?from= of a link someone shared
+ * @returns {Promise<{title: string, description: string, image?: string, url: string} | undefined>}
+ */
+async function previewFor(path, shareID) {
+  const match = /^\/swrl\/([^/]+)\/?$/.exec(path);
+  if (!match) return undefined;
+  const swrlID = decodeURIComponent(match[1]);
+  const [swrl, found] = await Promise.all([
+    publicDocument('swrls', swrlID),
+    typeof shareID === 'string' ? publicDocument('shares', shareID) : Promise.resolve(undefined)
+  ]);
+  // a share only speaks for the swrl it was made for
+  const share = found && found.swrlID === swrlID ? found : undefined;
+  if (!swrl || !swrl.details || !swrl.details.title) return undefined;
+  const title = swrl.details.title;
+  const verb = VERBS[swrl.category] || 'try';
+  const cut = (text, length) => text.length > length ? text.substring(0, length - 1) + '\u2026' : text;
+  if (share && share.fromName) {
+    return {
+      title: cut(share.fromName + ' swrled you ' + title, 110),
+      description: cut(share.message ? '\u201c' + share.message + '\u201d' : share.fromName + ' thinks you should ' + verb + ' this.', 200),
+      image: swrl.details.imageUrl,
+      url: SITE + path + '?from=' + encodeURIComponent(shareID)
+    };
+  }
+  return {
+    title: cut(title + ' on Swrl List', 110),
+    description: 'You should ' + verb + ' this. Save it to your list, or swrl it to a friend.',
+    image: swrl.details.imageUrl,
+    url: SITE + path
+  };
+}
+
+app.get(appRoutes, async function (req, res) {
   res.setHeader('Cache-Control', 'no-cache');
+  try {
+    const preview = await previewFor(req.path, req.query.from);
+    if (preview) {
+      if (indexTemplate === undefined) indexTemplate = fs.readFileSync(indexHtml, 'utf8');
+      return res.type('html').send(withPreview(indexTemplate, preview));
+    }
+  } catch (error) {
+    console.error('Could not build a link preview for ' + req.path, error);
+  }
   res.sendFile(indexHtml);
 });
 app.use(express.static(www, staticOptions));

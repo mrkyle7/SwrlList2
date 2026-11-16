@@ -4,6 +4,7 @@ export const Collection = {
     RECOMMENDATIONS: 'recommendations',
     MESSAGINGTOKENS: 'messagingtokens',
     SAVEDSEARCHES: 'savedsearches',
+    SHARES: 'shares',
     FRIENDREQUESTS: 'friendRequests'
 }
 Object.freeze(Collection);

@@ -15,6 +15,7 @@ import { StateController } from './stateController';
 import { State } from '../model/state';
 import { getFriends, whenFriendsReady } from '../listeners/friends';
 import { getSwrlerCached } from '../firebase/swrler';
+import shareSwrl from '../actions/shareSwrl';
 
 export class Recommend extends UIView {
 
@@ -69,6 +70,20 @@ export function showRecommend(stateController) {
 
     bindRecommendSendButton(stateController, swrl, firestore);
 
+    // Someone not on Swrl List gets a link, with the message typed here.
+    /** @type {HTMLButtonElement} */
+    // @ts-ignore
+    const shareLink = document.getElementById('recommendShareLink');
+    shareLink.onclick = (e) => {
+        e.preventDefault();
+        shareSwrl(swrl, recommendMessage.value, firestore).then(shared => {
+            if (shared) {
+                recommendMessage.value = '';
+                stateController.showPreviousScreen();
+            }
+        });
+    };
+
     // You swrl to friends: people who know you, and who agreed to hear from you.
     const noFriends = document.getElementById('recommendNoFriends');
     noFriends.classList.add('hidden');
@@ -83,7 +98,6 @@ export function showRecommend(stateController) {
             if (swrlers.length === 0) {
                 noFriends.classList.remove('hidden');
                 recommendToInput.classList.add('hidden');
-                recommendMessage.classList.add('hidden');
                 document.getElementById('recommendFindFriends').onclick = () =>
                     stateController.changeState(new State(stateController.friendsView));
             }

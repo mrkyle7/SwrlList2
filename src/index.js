@@ -99,7 +99,7 @@ const app = {
             if (match && match.length > 1) {
                 switch (match[1]) {
                     case 'swrl':
-                        swrlRoute(match, firestore, startState);
+                        swrlRoute(match, firestore, startState, originalParams.get('from'));
                         break;
                     case 'swrler':
                         swrlerRoute(match, firestore, startState);
@@ -285,19 +285,28 @@ function settingsRoute(startState) {
  * @param {any[]} match
  * @param {import('firebase/firestore').Firestore} firestore
  * @param {State} startState
+ * @param {string | null} [shareID] the ?from= of a link someone shared
  */
-function swrlRoute(match, firestore, startState) {
-    const swrlId = match[2];
+function swrlRoute(match, firestore, startState, shareID) {
+    const swrlId = match[2] ? decodeURIComponent(match[2]) : match[2];
     if (swrlId) {
         console.log(`Found deep link for swrl, id: ${swrlId}`);
         document.getElementById('loadingView').classList.remove('hidden');
-        getDoc(doc(firestore, Collection.SWRLS, swrlId))
-            .then(docSnapshot => {
+        // A link someone shared names its share: who sent it and what they said.
+        const share = shareID
+            ? getDoc(doc(firestore, Collection.SHARES, shareID)).catch(() => undefined)
+            : Promise.resolve(undefined);
+        Promise.all([getDoc(doc(firestore, Collection.SWRLS, swrlId)), share])
+            .then(([docSnapshot, shareSnapshot]) => {
                 if (docSnapshot.exists()) {
                     const swrl = Swrl.fromFirestore(docSnapshot.data());
                     const category = swrl.category;
                     const swrlFullPage = new State(stateController.swrlView);
                     swrlFullPage.swrl = swrl;
+                    const shared = shareSnapshot && shareSnapshot.exists() ? shareSnapshot.data() : undefined;
+                    if (shared && shared.swrlID === swrlId && shared.fromName) {
+                        swrlFullPage.share = { fromName: shared.fromName, message: shared.message || '' };
+                    }
                     swrlFullPage.selectedCategory = category;
                     document.getElementById('loadingView').classList.add('hidden');
                     stateController.changeState(swrlFullPage);

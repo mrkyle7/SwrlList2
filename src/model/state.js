@@ -29,6 +29,10 @@ export class State {
     /** @type {import('firebase/auth').User} */
     swrler;
 
+    /** When a swrl was opened from a link someone shared: who sent it and what they said.
+     * @type {{fromName: string, message: string} | undefined} */
+    share = undefined;
+
     /**
      * @param {UIView} view
      */

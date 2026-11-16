@@ -63,9 +63,9 @@ async function deleteUserData(db, FieldValue, uid) {
     await commitInBatches(db, [...requestRefs.values()].map(ref => batch => batch.delete(ref)));
     counts['friend requests'] = requestRefs.size;
 
-    // devices and saved searches
-    for (const [collection, name] of [['messagingtokens', 'messaging tokens'], ['savedsearches', 'saved searches']]) {
-        const found = await db.collection(collection).where('uid', '==', uid).get();
+    // devices, saved searches and links shared outside the app
+    for (const [collection, name, field] of [['messagingtokens', 'messaging tokens', 'uid'], ['savedsearches', 'saved searches', 'uid'], ['shares', 'shared links', 'from']]) {
+        const found = await db.collection(collection).where(field, '==', uid).get();
         await commitInBatches(db, found.docs.map(item => batch => batch.delete(item.ref)));
         counts[name] = found.size;
     }

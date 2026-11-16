@@ -356,12 +356,21 @@
       </div>
       <div id="selectedSwrlers"></div>
       <div id="recommendNoFriends" class="recommendNoFriends hidden">
-        <p>You can swrl things to your friends. Add a friend first.</p>
+        <p>None of your friends are on Swrl List yet. Send them a link instead, or find them by name.</p>
         <button type="button" id="recommendFindFriends" class="friendButton">Find friends</button>
       </div>
-      <textarea id="recommendMessage" placeholder="Why will they love it?" rows="4" cols="50"></textarea>
+      <textarea id="recommendMessage" placeholder="Why will they love it?" rows="4" cols="50" maxlength="500"></textarea>
+      <div class="recommendLink">
+        <p class="recommendLinkHint">Not on Swrl List? Send it on WhatsApp, Messages or anywhere else.</p>
+        <button type="button" id="recommendShareLink" class="recommendLinkButton"><img src="img/share-24px.svg" alt="" />Send as a link</button>
+      </div>
     </div>
     <div id="swrlFullPage" class="hidden">
+      <div id="swrlFullPageShare" class="sharedBanner hidden">
+        <p class="sharedBannerWho"></p>
+        <p class="sharedBannerMessage hidden"></p>
+        <p class="sharedBannerNew hidden">New here? <a href="/about" class="sharedBannerAbout">What's a swrl?</a></p>
+      </div>
       <div id="swrlImageContainer">
         <img class="loadingbar hidden" src="img/loadingbar.svg" />
         <img id="swrlImageLarge" src="" />
@@ -396,6 +405,13 @@
       <img class="swrlSpinnerListCount loadingSpinner" src="img/spinner.gif" />
     </div>
 
+    <div id="loginSheetBackdrop" class="sheetBackdrop hidden"></div>
+    <div id="loginSheet" class="bottomSheet hidden" role="dialog" aria-modal="true" aria-labelledby="loginSheetTitle">
+      <h3 id="loginSheetTitle">Log in</h3>
+      <p class="loginSheetText">Swrl List keeps your list and lets you swrl things to your friends. It's free, and you log in with your Google account.</p>
+      <button type="button" id="loginSheetGo" class="sheetApply">Log in with Google</button>
+      <button type="button" id="loginSheetCancel" class="sheetCancel">Not now</button>
+    </div>
     <div id="toasterMessage">
       <span id="toasterMessageText"></span>
     </div>
@@ -566,6 +582,7 @@
       <button type="button" class="swrlNotDone swrlButton pageToggle hidden"><img src="img/check_circle_outline-24px.svg" alt="" /><span class="swrlButtonLabel">Mark as done</span></button>
       <button type="button" class="swrlDone swrlButton pageToggle pageToggleOn hidden" title="Tap to undo"><img src="img/check_circle-24px.svg" alt="" /><span class="swrlButtonLabel">Done</span></button>
       <button type="button" class="swrlDelete swrlButton pageToggle hidden"><img src="img/delete.svg" alt="" /><span class="swrlButtonLabel">Dismiss</span></button>
+      <button type="button" class="swrlShare swrlButton pageToggle"><img src="img/share-24px.svg" alt="" /><span class="swrlButtonLabel">Share</span></button>
     </div>
   </template>
   <template id="recommender">

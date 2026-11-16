@@ -72,3 +72,40 @@ export function parseShare(shared) {
     const query = (words(text) || words(title)).substring(0, MAX_QUERY_LENGTH).trim();
     return { link, query };
 }
+
+/** What each category's things are for: "you should watch this". */
+const VERBS = { 1: 'watch', 2: 'read', 3: 'listen to', 4: 'play' };
+
+/**
+ * The words that go with a link shared outside the app (WhatsApp, Messages),
+ * before the link itself.
+ *
+ * @param {{title: string, category: number, fromName?: string, message?: string}} share
+ * @return {string}
+ */
+export function shareText(share) {
+    const verb = VERBS[share.category] || 'try';
+    const message = (share.message || '').trim();
+    const opening = share.fromName
+        ? `${share.fromName} swrled you ${share.title}`
+        : `You should ${verb} ${share.title}`;
+    return message ? `${opening}: “${message}”` : `${opening}.`;
+}
+
+/**
+ * The link for a swrl, with the share it came from when there is one. The
+ * swrl's id is in the path so the link still opens the swrl if the share
+ * cannot be read.
+ *
+ * @param {string} origin e.g. https://swrl-list.com
+ * @param {string} swrlID
+ * @param {string} [shareID]
+ * @return {string}
+ */
+export function shareUrl(origin, swrlID, shareID) {
+    const url = `${origin}/swrl/${encodeURIComponent(swrlID)}`;
+    return shareID ? `${url}?from=${encodeURIComponent(shareID)}` : url;
+}
+
+/** The longest message a share may carry (the rules allow 500). */
+export const MAX_SHARE_MESSAGE = 500;

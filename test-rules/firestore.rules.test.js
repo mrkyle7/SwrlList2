@@ -399,6 +399,28 @@ describe('private labels', () => {
     });
 });
 
+describe('shares (links sent outside the app)', () => {
+    const share = (from, extra = {}) => ({ from, fromName: 'Owner', message: 'You will love it', swrlID: 'film-1', created: serverTimestamp(), ...extra });
+    const google = (uid) => env.authenticatedContext(uid, { firebase: { sign_in_provider: 'google.com' } }).firestore();
+    it('are created by a signed-in person as themselves, read by link, never listed', async () => {
+        const created = await assertSucceeds(addDoc(collection(google('owner'), 'shares'), share('owner')));
+        // anyone with the link, even signed out
+        await assertSucceeds(getDoc(doc(signedOut(), created.path)));
+        await assertSucceeds(getDoc(doc(google('bob'), created.path)));
+        await assertFails(getDocs(collection(signedOut(), 'shares')));
+        await assertFails(getDocs(query(collection(google('owner'), 'shares'), where('from', '==', 'owner'))));
+        // not as someone else, not anonymously, not oversized, no extra fields, no edits
+        await assertFails(addDoc(collection(google('bob'), 'shares'), share('owner')));
+        await assertFails(addDoc(collection(anon(), 'shares'), share('anon1')));
+        await assertFails(addDoc(collection(google('owner'), 'shares'), share('owner', { message: 'a'.repeat(501) })));
+        await assertFails(addDoc(collection(google('owner'), 'shares'), share('owner', { fromName: '' })));
+        await assertFails(addDoc(collection(google('owner'), 'shares'), share('owner', { extra: 1 })));
+        await assertFails(updateDoc(doc(google('owner'), created.path), { message: 'changed' }));
+        await assertFails(deleteDoc(doc(google('bob'), created.path)));
+        await assertSucceeds(deleteDoc(doc(google('owner'), created.path)));
+    });
+});
+
 describe('recommendations', () => {
     const recommendation = (from, to) => ({ from, to, message: 'm', swrlID: 'film-1', created: serverTimestamp() });
     beforeEach(async () => {

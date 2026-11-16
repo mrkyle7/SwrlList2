@@ -201,6 +201,30 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid;
     }
 
+    // ---------------------------------------------------------------------
+    // shares/{id}: something a person shared by link with someone outside
+    // the app (WhatsApp, Messages). Anyone holding the link may read that one
+    // doc, signed in or not, which is how the link's page and its preview
+    // show who sent it and what they said; nobody can list them. Created by a
+    // signed-in (not anonymous) user as themselves; only they may delete it.
+    // ---------------------------------------------------------------------
+    match /shares/{shareID} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if isOwner(request.resource.data.from)
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && request.resource.data.keys().hasOnly(['from', 'fromName', 'message', 'swrlID', 'created'])
+        && request.resource.data.fromName is string
+        && request.resource.data.fromName.size() > 0
+        && request.resource.data.fromName.size() <= 100
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 500
+        && request.resource.data.swrlID is string
+        && request.resource.data.swrlID.size() <= 200
+        && request.resource.data.created == request.time;
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.from;
+    }
+
     // Everything else is denied.
     match /{document=**} {
       allow read, write: if false;

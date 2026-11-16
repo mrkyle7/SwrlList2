@@ -1,5 +1,6 @@
 import { showPrivateComments, hidePrivateComments } from '../components/privateComments';
 import { showLabels, hideLabels } from '../components/labels';
+import shareSwrl from '../actions/shareSwrl';
 import { showAttribution, hideAttribution } from '../components/attribution';
 import { showSwrlVisibility, hideSwrlVisibility } from '../components/swrlVisibility';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -71,6 +72,7 @@ async function showSwrlFullPage(stateController) {
     showLabels(swrl, firestore);
     showPrivateComments(swrl, firestore);
     showSwrlVisibility(swrl, firestore);
+    showShareBanner(stateController);
 
     swrlImageLarge.src = swrl.details.imageUrl;
     swrlImageLarge.addEventListener('error',
@@ -90,6 +92,11 @@ async function showSwrlFullPage(stateController) {
     const buttons = swrlButtonsTemplate.content.cloneNode(true);
 
     pageButtons.appendChild(buttons);
+    pageButtons.querySelector('.swrlShare').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        shareSwrl(swrl, '', firestore);
+    });
 
     pageButtons.querySelector('.swrlButtonSpinner').classList.remove('hidden');
 
@@ -610,6 +617,7 @@ function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl, 
 }
 
 function destroySwrlFullPage() {
+    shareBanner.classList.add('hidden');
     socialCardsToken = undefined;
     hideAttribution('swrlAttribution');
     hideLabels();
@@ -679,4 +687,30 @@ function getSwrlerSmall(swrler, stateController) {
         })
 
     return swrlerSmall;
+}
+
+const shareBanner = document.getElementById('swrlFullPageShare');
+
+/**
+ * When the swrl was opened from a link someone shared: who sent it, what they
+ * said, and, for someone not logged in, what a swrl is.
+ *
+ * @param {StateController} stateController
+ */
+function showShareBanner(stateController) {
+    const share = stateController.currentState.share;
+    shareBanner.classList.toggle('hidden', !share);
+    if (!share) return;
+    // textContent, never innerHTML: both are whatever a person typed
+    shareBanner.querySelector('.sharedBannerWho').textContent = `${share.fromName} swrled you this`;
+    const message = shareBanner.querySelector('.sharedBannerMessage');
+    message.textContent = share.message ? `\u201c${share.message}\u201d` : '';
+    message.classList.toggle('hidden', !share.message);
+    shareBanner.querySelector('.sharedBannerNew').classList.toggle('hidden', Boolean(swrlUser && !swrlUser.isAnonymous));
+    /** @type {HTMLAnchorElement} */
+    const about = shareBanner.querySelector('.sharedBannerAbout');
+    about.onclick = (e) => {
+        e.preventDefault();
+        stateController.changeState(new State(stateController.aboutView));
+    };
 }
