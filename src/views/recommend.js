@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, setDoc, addDoc, serverTimestamp, arrayUnion } from 'firebase/firestore';
+import { collection, doc, setDoc, addDoc, serverTimestamp, arrayUnion } from 'firebase/firestore';
 export default { showRecommend, destroyRecommend };
 
 // @ts-ignore
@@ -12,6 +12,9 @@ import { showToasterMessage } from '../components/toaster';
 import { Swrl } from '../model/swrl';
 import { UIView } from './UIView';
 import { StateController } from './stateController';
+import { State } from '../model/state';
+import { getFriends, whenFriendsReady } from '../listeners/friends';
+import { getSwrlerCached } from '../firebase/swrler';
 
 export class Recommend extends UIView {
 
@@ -66,24 +69,28 @@ export function showRecommend(stateController) {
 
     bindRecommendSendButton(stateController, swrl, firestore);
 
-    getDocs(collection(firestore, Collection.SWRLERS))
-        .then(function (querySnapshot) {
-            if (!querySnapshot.empty) {
-                swrlers = [];
-                querySnapshot.forEach(function (snapshot) {
-                    var swrler = snapshot.data();
-                    if (swrler.uid !== swrlUser.uid) {
-                        swrlers.push(swrler);
-                    }
-                });
-                sortSwrlers();
-                if (!autocompleteInitialised) setupAutocomplete(recommendToInput);
-            } else {
-                recommendFailAndAbort(stateController, firestore);
+    // You swrl to friends: people who know you, and who agreed to hear from you.
+    const noFriends = document.getElementById('recommendNoFriends');
+    noFriends.classList.add('hidden');
+    recommendToInput.classList.remove('hidden');
+    recommendMessage.classList.remove('hidden');
+    swrlers = [];
+    whenFriendsReady()
+        .then(() => Promise.all(getFriends().map(friend => getSwrlerCached(friend.uid, firestore))))
+        .then(function (friends) {
+            swrlers = friends.filter(friend => friend && friend.uid !== swrlUser.uid);
+            sortSwrlers();
+            if (swrlers.length === 0) {
+                noFriends.classList.remove('hidden');
+                recommendToInput.classList.add('hidden');
+                recommendMessage.classList.add('hidden');
+                document.getElementById('recommendFindFriends').onclick = () =>
+                    stateController.changeState(new State(stateController.friendsView));
             }
+            if (!autocompleteInitialised) setupAutocomplete(recommendToInput);
         })
         .catch(function (error) {
-            console.error('Error gettings swrlers');
+            console.error('Error getting friends');
             console.error(error);
             recommendFailAndAbort(stateController, firestore);
         })
@@ -109,7 +116,7 @@ function bindRecommendSendButton(stateController, swrl, firestore) {
             e.stopPropagation();
             e.preventDefault();
             if (selectedSwrlers.length === 0) {
-                window.alert('Please select at least one Swrler to send to');
+                window.alert('Choose at least one friend to swrl this to');
             } else {
                 let toSwrlers = selectedSwrlers.map(s => s.uid);
                 let fromSwrler = swrlUser.uid;
@@ -192,12 +199,13 @@ function setupAutocomplete(toInput) {
 
     /*execute a function when someone writes in the text field:*/
     // @ts-ignore
-    toInput.addEventListener("input", function (e) {
+    const offerFriends = function (e) {
         // @ts-ignore
         var autocompleteContainer, autocompleteItem, i, val = this.value;
         /*close any already open lists of autocompleted values*/
         closeAllLists();
-        if (!val) { return false; }
+        if (swrlers.length === 0) { return false; }
+        // With nothing typed every friend is offered: there are few of them.
         currentFocus = -1;
         /*create a DIV element that will contain the items (values):*/
         autocompleteContainer = document.createElement("DIV");
@@ -236,11 +244,13 @@ function setupAutocomplete(toInput) {
             });
         } else {
             autocompleteItem = document.createElement("DIV");
-            autocompleteItem.innerText = 'No more Swrlers left!';
+            autocompleteItem.innerText = 'That is all your friends';
             autocompleteItem.style.padding = '4px';
             autocompleteContainer.appendChild(autocompleteItem);
         }
-    });
+    };
+    toInput.addEventListener("input", offerFriends);
+    toInput.addEventListener("focus", offerFriends);
     /*execute a function presses a key on the keyboard:*/
     toInput.addEventListener("keydown", function (e) {
         var x = document.getElementById(this.id + "autocomplete-list");

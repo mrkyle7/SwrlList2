@@ -134,6 +134,10 @@ const app = {
                     case 'friends':
                         friendsRoute(startState);
                         break;
+                    case 'about':
+                        document.getElementById('loadingView').classList.add('hidden');
+                        stateController.changeState(new State(stateController.aboutView));
+                        break;
                     case 'settings':
                         settingsRoute(startState);
                         break;

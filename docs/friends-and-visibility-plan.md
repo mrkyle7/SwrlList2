@@ -315,7 +315,8 @@ Notes:
 
 ## Not in scope
 
-- Limiting recommendations to friends (recommend still lists all swrlers).
+- (Done later, v2.3.0: the recommend screen offers only friends. This is the app's
+  choice of who to offer; the rules still let a user recommend to any uid.)
 - Blocking users.
 
 ## Phase 1 decisions (recorded while building)
