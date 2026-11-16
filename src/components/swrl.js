@@ -152,6 +152,8 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
 function addDeleteButton(view, $swrl, swrlDiv, swrl, firestore, swrlsContainer) {
     if (swrlDiv && view === DISCOVER) {
         $swrl('.swrlDelete').classList.remove('hidden');
+        // five buttons, not four: the stats need more room beside them
+        swrlDiv.classList.add('swrlHasDismiss');
         $swrl('.swrlDelete').addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();

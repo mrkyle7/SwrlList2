@@ -18,6 +18,7 @@ import { getAllListEntries, getListEntry, whenListEntriesReady } from '../listen
 import { sortListEntries } from '../model/listEntry';
 import { getLabelsFor } from '../listeners/labels';
 import { matchesLabels } from '../model/labels';
+import { renderCategoryStrips } from '../components/categoryStrips';
 
 export class YourListView extends UIView {
     /**
@@ -113,7 +114,7 @@ export function showList(category, view, firestore, stateController) {
                         && matchesLabels(getLabelsFor(swrl.swrlID), labelFilters));
                     renderNextSwrls(swrls, stateController, view, firestore, true);
 
-                    if (swrlsContainer.querySelectorAll('div').length == 0) {
+                    if (swrlsContainer.querySelectorAll('.swrl').length == 0) {
                         console.log(view === DISCOVER ? 'No Swrls to discover' : 'No Swrls match the filters');
                         if (view === DISCOVER) {
                             showNoSwrlsDiscoverView(category);
@@ -124,6 +125,18 @@ export function showList(category, view, firestore, stateController) {
                 } else {
                     console.log("No Swrls found");
                     showNoSwrlsView(category);
+                }
+                // What friends are into, at the top of Discover, unless I am filtering it
+                const state = stateController.currentState;
+                if (view === DISCOVER && !state.typeFilter && state.filters.length === 0 && state.labelFilters.length === 0) {
+                    renderCategoryStrips(swrlsContainer, category, firestore, stateController, () => currentID === resultsID)
+                        .then(() => {
+                            // the strips say more than "nothing here" does
+                            if (currentID === resultsID && swrlsContainer.querySelector('.categoryStrips')
+                                && !swrlsContainer.querySelector('.swrl')) {
+                                document.getElementById('messageContainer').classList.add('hidden');
+                            }
+                        });
                 }
             } else {
                 console.log('View was changed');
