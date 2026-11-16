@@ -16,7 +16,7 @@ export class RecommendationsScreen extends Screen {
         const backButton = document.getElementById('backButtonDiv');
         backButton.classList.remove('hidden');
         const titleText = document.getElementById('titleText');
-        titleText.innerText = 'Recommendations';
+        titleText.innerText = 'Swrls';
         const header = document.getElementById('header');
         header.style.backgroundColor = '#4990E2';
         const recommendSendContainer = document.getElementById('recommendSendContainer');
@@ -30,7 +30,7 @@ export class RecommendationsScreen extends Screen {
      * @param {boolean} newScreen
      */
     updateLocationHistory(newScreen) {
-        const title = `Recommendations`;
+        const title = `Swrls`;
         const state = {
             pageTitle: title,
             stateId: this.stateController.currentState.id
@@ -48,9 +48,9 @@ export class RecommendationsScreen extends Screen {
          // @ts-ignore
          document.querySelector('meta[property="og:title"]').content = title;
          // @ts-ignore
-         document.querySelector('meta[name="description"]').content = `Your Recommendations`;
+         document.querySelector('meta[name="description"]').content = `Swrls from your friends, and the ones you sent`;
          // @ts-ignore
-         document.querySelector('meta[property="og:description"]').content = `Your Recommendations`;
+         document.querySelector('meta[property="og:description"]').content = `Swrls from your friends, and the ones you sent`;
          // @ts-ignore
          document.querySelector('meta[property="og:url"]').content = `https://swrl-list.com${window.location.pathname}`;
          // @ts-ignore

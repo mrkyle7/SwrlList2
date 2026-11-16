@@ -142,7 +142,7 @@ function bindRecommendSendButton(stateController, swrl, firestore) {
                             .catch(e => console.error(e));
                     })
                     .catch(e => console.error(e));
-                showToasterMessage('Recommendation sent!');
+                showToasterMessage('Swrled!');
                 stateController.showPreviousScreen();
             }
         });
@@ -184,7 +184,7 @@ function clearSelectedSwrlers() {
  * @param {import('firebase/firestore').Firestore} firestore 
  */
 function recommendFailAndAbort(stateController, firestore) {
-    window.alert("You need to be online to use recommendations, sorry!");
+    window.alert("You need to be online to swrl something to a friend, sorry!");
     stateController.showPreviousScreen();
 }
 

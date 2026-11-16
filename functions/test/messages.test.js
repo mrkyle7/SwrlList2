@@ -5,12 +5,12 @@ const { recommendationMessage, deadTokens, userActivityText } = require('../mess
 test('recommendation message names the recommender and the swrl', () => {
     const message = recommendationMessage(['t1', 't2'], { displayName: 'Ann' }, { details: { title: 'Alien' } });
     assert.deepEqual(message.tokens, ['t1', 't2']);
-    assert.equal(message.notification.body, 'Ann recommended Alien to you!');
+    assert.equal(message.notification.body, 'Ann swrled Alien to you');
     assert.equal(message.webpush.fcmOptions.link, 'https://swrl-list.com/recommendations');
 });
 
 test('recommendation message copes with missing names', () => {
-    assert.equal(recommendationMessage(['t'], {}, {}).notification.body, 'Someone recommended something to you!');
+    assert.equal(recommendationMessage(['t'], {}, {}).notification.body, 'Someone swrled something to you');
 });
 
 test('only permanently failed tokens are dead', () => {
