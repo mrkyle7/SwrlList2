@@ -23,7 +23,7 @@ let tearDown;
  * Shows the signed-in user's private labels on a Swrl as a row of lozenges
  * under the action buttons. The "+" lozenge opens an inline editor: a text
  * field with the user's other labels listed beneath it, narrowed as they
- * type. Nothing is shown to anonymous users.
+ * type; adding a label closes the editor. Nothing is shown to anonymous users.
  *
  * @param {Swrl} swrl
  * @param {import('firebase/firestore').Firestore} firestore
@@ -74,8 +74,10 @@ export function showLabels(swrl, firestore) {
         } else if (!hasLabel(current, label)) {
             showToasterMessage(`A swrl can have ${MAX_LABELS_PER_SWRL} labels at most`);
         }
-        renderOptions();
-        input.focus();
+        // One label at a time: put the editor away, leaving the "+" focused
+        // so another can be added straight away.
+        close();
+        addButton.focus();
     };
 
     const renderChips = () => {

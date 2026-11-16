@@ -80,6 +80,19 @@ counts are written by Cloud Functions. Details in the `swrl-firebase` skill.
 | Writing or running tests, or fixing type errors | `swrl-testing` |
 | Building a user-visible feature end-to-end | launch the `swrl-feature-builder` agent |
 
+## Versioning and shipping
+
+- **Semantic versioning, bumped in every PR.** `version` in `package.json`
+  (and `package-lock.json`; use `npm version --no-git-tag-version <x.y.z>`) is
+  shown in the app's menu, so the owner can confirm which build is live. Patch
+  for fixes and small tweaks, minor for new features, major for breaking
+  changes (data model or rules changes that need owner action). One bump per PR.
+- **By default, open a PR and auto-merge it** when the work is done: push the
+  branch, open the PR against `master`, enable auto-merge (or merge once CI is
+  green if auto-merge is unavailable). A merge deploys the live site, so never
+  merge with red or unfinished CI. Say in the PR and to the owner which version
+  it ships.
+
 ## Guardrails
 
 - **Never edit `dist/` or anything under `node_modules/`** — generated. Fix
