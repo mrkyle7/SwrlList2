@@ -141,7 +141,7 @@ const fillSenders = (recommendations, firestore) => {
     })).then(senders => {
         senders.sort((a, b) => a.name.localeCompare(b.name));
         while (senderSelect.options.length > 1) senderSelect.remove(1);
-        senders.forEach(sender => senderSelect.add(new Option(sender.name, sender.uid)));
+        senders.forEach(sender => senderSelect.add(new Option(`From ${sender.name}`, sender.uid)));
         // a sender who has since gone leaves "Everyone"
         senderSelect.value = senders.some(sender => sender.uid === chosen) ? chosen : '';
     });

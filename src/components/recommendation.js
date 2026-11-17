@@ -154,7 +154,7 @@ export const renderRecommendation = async (stateController, view, recommendation
             // @ts-ignore
             let recommendationMessageFragment = recommendationMessageTemplate.content.cloneNode(true);
             let $recommendationMessage = recommendationMessageFragment.querySelector.bind(recommendationMessageFragment);
-            $recommendationMessage('.recommenderMessage').innerText = toSwrlersText;
+            $recommendationMessage('.recommenderMessage').innerText = toSwrlersText ? `To ${toSwrlersText}` : '';
             recommendationDiv.appendChild(recommendationMessageFragment);
         }
 
