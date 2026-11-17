@@ -86,6 +86,7 @@ const showRecommendations = async (stateController, view, firestore) => {
     }
     // the filters are about my own list, so they belong to what I was sent
     filtersDiv.classList.toggle('hidden', view !== INBOX);
+    recommendationList.classList.toggle('withFilters', view === INBOX);
     if (view === INBOX) {
         inboxTab.classList.add('selected');
         sentTab.classList.remove('selected');
@@ -101,6 +102,7 @@ const destroyRecommendations = () => {
     cancelReplyListeners();
     recommendationTabs.classList.add('hidden');
     filtersDiv.classList.add('hidden');
+    recommendationList.classList.remove('withFilters');
     recommendationList.classList.add('hidden');
     loadingSpinner.classList.add('hidden');
 }
