@@ -2863,3 +2863,9 @@ button.pageActionPrimary:hover {
     text-align: center;
     pointer-events: none;
 }
+
+.replyError {
+    color: gray;
+    font-size: 13px;
+    margin: 4px 0;
+}
