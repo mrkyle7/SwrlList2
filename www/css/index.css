@@ -703,19 +703,13 @@ body {
     z-index: 6;
     display: flex;
     align-items: center;
-    gap: 24px;
+    gap: 8px;
     padding: 0 12px;
     background-color: white;
 }
 
 #recommendationFilters.hidden {
     display: none;
-}
-
-#recommendationFilters label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
 }
 
 #recommendationList.withFilters {
