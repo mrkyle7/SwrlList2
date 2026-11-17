@@ -2605,3 +2605,91 @@ button.pageActionPrimary:hover {
 .swrlHasDismiss .swrlStats {
     margin-right: 208px;
 }
+
+/* Friends screen: what a friend and I have in common. */
+.friendRowText {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin-left: 4px;
+}
+
+.friendRowText .friendRowName {
+    margin-left: 0;
+}
+
+.friendRowTaste {
+    color: #5f6368;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* "Can't decide?" above my list, and the picker sheet. */
+.pickBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 8px 4px 4px;
+    padding: 6px 6px 6px 16px;
+    border-radius: 12px;
+    background: #fff0f4;
+    color: #222222;
+    font-size: 16px;
+}
+
+.pickBarButton {
+    height: 44px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 22px;
+    background: #FF2E63;
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.pickBarButton:active {
+    transform: scale(0.97);
+}
+
+.pickSheetHint {
+    margin: 0 0 12px;
+    color: #5f6368;
+    font-size: 15px;
+}
+
+.pickResults {
+    display: flex;
+    gap: 12px;
+    margin: 12px 0 4px;
+    overflow-x: auto;
+}
+
+.pickResults .pickTile {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+}
+
+.pickResults .stripPoster {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2 / 3;
+    max-width: 100%;
+}
+
+.pickEmpty {
+    margin: 12px 0 0;
+    color: #5f6368;
+    font-size: 15px;
+}
+
+#pickSheet {
+    max-height: 90%;
+    overflow-y: auto;
+}

@@ -1,28 +1,26 @@
-import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
-import { Collection, listEntriesPath } from '../constants/Collection';
+import { doc, getDoc } from 'firebase/firestore';
+import { Collection } from '../constants/Collection';
 import { Category } from '../constants/Category';
 import { swrlUser } from '../firebase/login';
 import { getSwrlerCached } from '../firebase/swrler';
+import { friendEntries } from '../firebase/friendEntries';
+import { getAllListEntries } from '../listeners/listEntries';
+import { tasteOverlap, tastePicks } from '../model/taste';
 import { getFriends, whenFriendsReady } from '../listeners/friends';
 import { getListEntry, whenListEntriesReady } from '../listeners/listEntries';
 import { recommendationsInboxCache } from '../listeners/recommendations';
 import { activityCaption, friendsActivity, nameList, newForYou } from '../model/activity';
-import { ListEntry } from '../model/listEntry';
 import { State } from '../model/state';
 import { Swrl } from '../model/swrl';
 
 const STRIP_SIZE = 12;
-const CACHE_MILLIS = 5 * 60 * 1000;
-/** @type {Map<string, Promise<Swrl | undefined>>} */
-const swrlLookups = new Map();
-/** @type {Map<string, {at: number, entries: Promise<ListEntry[]>}>} */
-const friendLookups = new Map();
 
 /**
- * Two rows of posters at the top of a category's Discover tab, for a
- * signed-in user: "Swrled to you" (swrls friends sent me that I have not
- * opened yet) and "Your friends are into" (what friends recently added,
- * finished or loved, that I do not have). Each row only appears when it has
+ * Rows of posters at the top of a category's Discover tab, for a signed-in
+ * user: "Swrled to you" (swrls friends sent me that I have not opened yet),
+ * "Your friends are into" (what friends recently added, finished or loved,
+ * that I do not have) and "Loved by friends with your taste" (what friends
+ * whose loves overlap with mine loved). Each row only appears when it has
  * something in it.
  *
  * @param {HTMLElement} container the Discover list; the rows go in at its top
@@ -35,18 +33,25 @@ export async function renderCategoryStrips(container, category, firestore, state
     if (!swrlUser || swrlUser.isAnonymous) return;
     try {
         await Promise.all([whenFriendsReady(), whenListEntriesReady()]);
-        const [fresh, activity] = await Promise.all([
+        const [fresh, activity, taste] = await Promise.all([
             newForYouIn(category, firestore),
-            friendsInto(category, firestore)
+            friendsInto(category, firestore),
+            tasteIn(category, firestore)
         ]);
-        if (!isCurrent() || (fresh.length === 0 && activity.length === 0)) return;
+        // a swrl shows once: the taste row is the more telling, so it keeps its own
+        const inTaste = new Set(taste.map(item => item.swrl.swrlID));
+        const activityOnly = activity.filter(item => !inTaste.has(item.swrl.swrlID));
+        if (!isCurrent() || (fresh.length === 0 && activityOnly.length === 0 && taste.length === 0)) return;
         const strips = document.createElement('div');
         strips.className = 'categoryStrips';
         if (fresh.length > 0) {
             strips.appendChild(strip('Swrled to you', fresh, stateController, () => stateController.changeState(new State(stateController.inboxView))));
         }
-        if (activity.length > 0) {
-            strips.appendChild(strip('Your friends are into', activity, stateController));
+        if (taste.length > 0) {
+            strips.appendChild(strip('Loved by friends with your taste', taste, stateController));
+        }
+        if (activityOnly.length > 0) {
+            strips.appendChild(strip('Your friends are into', activityOnly, stateController));
         }
         // a heading for the list below the rows, so the two read as separate
         if (container.querySelector('.swrl')) {
@@ -96,7 +101,7 @@ async function newForYouIn(category, firestore) {
 async function friendsInto(category, firestore) {
     const friends = getFriends();
     const friendsEntries = await Promise.all(friends.map(async friend =>
-        ({ uid: friend.uid, entries: await friendEntries(friend.uid, category, firestore) })));
+        ({ uid: friend.uid, entries: await friendEntries(friend.uid, firestore, category.id) })));
     const activity = friendsActivity(friendsEntries, swrlID => getListEntry(swrlID), STRIP_SIZE);
     return Promise.all(activity.map(async item => {
         const people = await Promise.all(item.friends.map(async f => {
@@ -107,43 +112,12 @@ async function friendsInto(category, firestore) {
     }));
 }
 
-/**
- * A friend's entries in one category that I may see (the rules need the
- * visibility constraint in the query). Remembered for a few minutes.
- *
- * @param {string} uid
- * @param {Category} category
- * @param {import('firebase/firestore').Firestore} firestore
- * @return {Promise<ListEntry[]>}
- */
-function friendEntries(uid, category, firestore) {
-    const key = uid + '/' + category.id;
-    const cached = friendLookups.get(key);
-    if (cached && Date.now() - cached.at < CACHE_MILLIS) return cached.entries;
-    const entries = getDocs(query(collection(firestore, listEntriesPath(uid).join('/')),
-        where('category', '==', category.id), where('visibility', 'in', ['public', 'friends'])))
-        .then(snapshot => {
-            /** @type {ListEntry[]} */
-            const found = [];
-            snapshot.forEach(docSnapshot => {
-                try {
-                    found.push(ListEntry.fromFirestore(docSnapshot.data()));
-                } catch (error) {
-                    console.error(error);
-                }
-            });
-            return found;
-        })
-        .catch(error => {
-            friendLookups.delete(key);
-            console.error(error);
-            return [];
-        });
-    friendLookups.set(key, { at: Date.now(), entries });
-    return entries;
-}
+/** @type {Map<string, Promise<Swrl | undefined>>} */
+const swrlLookups = new Map();
 
 /**
+ * The shared swrl, remembered for the life of the page.
+ *
  * @param {string} swrlID
  * @param {import('firebase/firestore').Firestore} firestore
  * @return {Promise<Swrl | undefined>}
@@ -159,6 +133,33 @@ function sharedSwrl(swrlID, firestore) {
             }));
     }
     return swrlLookups.get(swrlID);
+}
+
+/**
+ * What friends whose loves overlap with mine loved, in this category, best
+ * match first. The overlap is worked out across every category.
+ *
+ * @param {Category} category
+ * @param {import('firebase/firestore').Firestore} firestore
+ * @return {Promise<{swrl: Swrl, caption: string}[]>}
+ */
+async function tasteIn(category, firestore) {
+    const mine = getAllListEntries();
+    const friends = await Promise.all(getFriends().map(async friend => {
+        const all = await friendEntries(friend.uid, firestore);
+        const overlap = tasteOverlap(mine, all);
+        return { uid: friend.uid, score: overlap.score, bothLoved: overlap.bothLoved, entries: all.filter(e => e.category.id === category.id) };
+    }));
+    const picks = tastePicks(friends, swrlID => getListEntry(swrlID), STRIP_SIZE);
+    const loves = new Map(friends.map(f => [f.uid, f.bothLoved]));
+    return Promise.all(picks.map(async pick => {
+        const best = pick.friends[0];
+        const swrler = await getSwrlerCached(best, firestore);
+        const both = loves.get(best) || 0;
+        const name = swrler ? swrler.displayName : 'A friend';
+        const caption = both > 0 ? `${name} loved it \u00b7 you agree on ${both}` : `${name} loved it`;
+        return { swrl: pick.entry.toSwrl(), caption };
+    }));
 }
 
 /**

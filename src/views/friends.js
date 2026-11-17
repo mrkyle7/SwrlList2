@@ -1,6 +1,9 @@
 import { collection, getDocs } from 'firebase/firestore';
 import { UIView } from './UIView';
 import { StateController } from './stateController';
+import { friendEntries } from '../firebase/friendEntries';
+import { getAllListEntries, whenListEntriesReady } from '../listeners/listEntries';
+import { tasteLine, tasteOverlap } from '../model/taste';
 import { Collection } from '../constants/Collection';
 import { swrlUser } from '../firebase/login';
 import { getSwrler } from '../firebase/swrler';
@@ -160,7 +163,30 @@ function renderFriends(firestore, stateController) {
         actions.appendChild(button('Remove', 'friendButton friendButtonQuiet', () => removeFriend(friend.uid, firestore),
             'Could not remove the friend', `Remove ${friend.name} from your friends?`));
         list.appendChild(row);
+        showTaste(row, friend.uid, firestore);
     });
+}
+
+/**
+ * Adds "You both loved 4 things" under a friend's name, once their entries
+ * have loaded. Nothing in common yet: nothing is added.
+ *
+ * @param {HTMLElement} row
+ * @param {string} uid
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+function showTaste(row, uid, firestore) {
+    whenListEntriesReady()
+        .then(() => friendEntries(uid, firestore))
+        .then(theirs => {
+            const line = tasteLine(tasteOverlap(getAllListEntries(), theirs));
+            if (!line || !row.isConnected) return;
+            const taste = document.createElement('span');
+            taste.className = 'friendRowTaste';
+            taste.textContent = line;
+            row.querySelector('.friendRowText').appendChild(taste);
+        })
+        .catch(error => console.error(error));
 }
 
 /**
