@@ -132,6 +132,21 @@ export class StateController {
 
     _updateTitleBar() {
         this.currentState.view.screen.updateTitleBar();
+        this._updateFilterIndicator();
+    }
+
+    /**
+     * A count on the filter icon while any filter is on (type, swrled to
+     * me, labels, genres), so a short list never looks like a short list.
+     */
+    _updateFilterIndicator() {
+        const state = this.currentState;
+        const count = (state.typeFilter ? 1 : 0) + state.filters.length + state.labelFilters.length + state.genreFilters.length;
+        const badge = document.getElementById('filterCount');
+        badge.textContent = String(count);
+        badge.classList.toggle('hidden', count === 0);
+        document.getElementById('filterButton').setAttribute('alt',
+            count === 0 ? 'Filter and sort' : `Filter and sort, ${count} ${count === 1 ? 'filter' : 'filters'} on`);
     }
 
     initialiseAllViews() {
@@ -198,6 +213,15 @@ export class StateController {
         filterApplyButton.addEventListener('click', this.applyFilters());
         const fade = document.getElementById('fade');
         fade.addEventListener('click', this.applyFilters());
+        // Clear all: every filter off (sort stays), and show the list at once
+        document.getElementById('clearFilters').addEventListener('click', (e) => {
+            document.querySelectorAll('#filters input[type="checkbox"]').forEach(input => {
+                /** @type {HTMLInputElement} */ (input).checked = false;
+            });
+            /** @type {HTMLInputElement} */ (document.getElementById('allTypes')).checked = true;
+            this._genreChoice = new Map();
+            this.applyFilters()(e);
+        });
 
         const inboxTab = document.getElementById('inboxTab');
         inboxTab.addEventListener('click', (e) => {

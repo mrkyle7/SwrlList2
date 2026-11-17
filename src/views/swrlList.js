@@ -132,7 +132,7 @@ export function showList(category, view, firestore, stateController) {
                         if (view === DISCOVER) {
                             showNoSwrlsDiscoverView(category);
                         } else {
-                            showNoSwrlsView(category);
+                            showNoSwrlsView(category, isFiltering(stateController));
                         }
                     }
                 } else {
@@ -309,10 +309,25 @@ export function destroyList() {
 /**
  * @param {Category} category
  */
-function showNoSwrlsView(category) {
+/**
+ * @param {Category} category
+ * @param {boolean} [filtered] whether filters are hiding what is on the list
+ */
+function showNoSwrlsView(category, filtered) {
     document.getElementById('messageContainer').classList.remove('hidden');
     document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
-    document.getElementById('message').innerText = category.noSwrlsMessage;
+    document.getElementById('message').innerText = filtered
+        ? 'Nothing on your list matches these filters. Tap the filter button to change or clear them.'
+        : category.noSwrlsMessage;
+}
+
+/**
+ * @param {StateController} stateController
+ * @return {boolean} whether any filter is on
+ */
+function isFiltering(stateController) {
+    const state = stateController.currentState;
+    return Boolean(state.typeFilter) || state.filters.length > 0 || state.labelFilters.length > 0 || state.genreFilters.length > 0;
 }
 
 /**
