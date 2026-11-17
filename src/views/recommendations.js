@@ -2,6 +2,7 @@ import { INBOX, SENT } from '../constants/View';
 import { recommendationsInboxCache, recommendationsSentCache, inboxReady } from '../listeners/recommendations';
 import { Collection } from '../constants/Collection';
 import { renderRecommendation } from '../components/recommendation';
+import { cancelReplyListeners } from '../components/recommendationReplies';
 import { swrlUser } from '../firebase/login';
 import { Constant } from '../constants/Constant';
 import { Recommendation } from '../model/recommendation';
@@ -82,12 +83,14 @@ const showRecommendations = async (stateController, view, firestore) => {
 }
 
 const destroyRecommendations = () => {
+    cancelReplyListeners();
     recommendationTabs.classList.add('hidden');
     recommendationList.classList.add('hidden');
     loadingSpinner.classList.add('hidden');
 }
 
 const clearList = () => {
+    cancelReplyListeners();
     while (recommendationList.firstChild) {
         recommendationList.removeChild(recommendationList.firstChild);
     }

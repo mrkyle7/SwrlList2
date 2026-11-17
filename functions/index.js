@@ -8,7 +8,7 @@ const { defineSecret } = require('firebase-functions/params');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
-const { recommendationMessage, friendRequestMessage, deadTokens, userActivityText } = require('./messages');
+const { recommendationMessage, replyMessage, replyRecipient, friendRequestMessage, deadTokens, userActivityText } = require('./messages');
 const { countDeltas, justAccepted, friendDocsFor } = require('./listEntries');
 const { deleteUserData } = require('./deleteUserData');
 
@@ -78,6 +78,36 @@ exports.recommendationNotification = functions.firestore
         }
 
         await sendAndCleanUp(recommendationMessage(tokens, recommenderDoc.data(), swrlDoc.data()));
+    });
+
+/**
+ * Tells the other person in a recommendation's conversation about a new reply:
+ * the thread's receiver when the sender wrote it, the sender otherwise.
+ */
+exports.recommendationReplyNotification = functions.firestore
+    .document('recommendations/{recommendationID}/replies/{replyID}')
+    .onCreate(async (snapshot, context) => {
+        const reply = snapshot.data();
+        const recommendationDoc = await db.collection('recommendations').doc(context.params.recommendationID).get();
+        if (!recommendationDoc.exists) {
+            return;
+        }
+        const recommendation = recommendationDoc.data();
+        const recipient = replyRecipient(recommendation, reply);
+        const tokens = recipient ? await tokensFor([recipient]) : [];
+        if (tokens.length === 0) {
+            console.log('no tokens to send to');
+            return;
+        }
+        const [swrlDoc, authorDoc] = await Promise.all([
+            db.collection('swrls').doc(recommendation.swrlID).get(),
+            db.collection('swrlers').doc(reply.from).get()
+        ]);
+        if (!swrlDoc.exists || !authorDoc.exists) {
+            console.log('no details for message');
+            return;
+        }
+        await sendAndCleanUp(replyMessage(tokens, authorDoc.data(), swrlDoc.data(), reply.text));
     });
 
 /**
