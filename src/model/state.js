@@ -25,6 +25,9 @@ export class State {
     /** My private labels to filter my list by; a swrl must have them all.
      * @type {string[]} */
     labelFilters = [];
+    /** Genres to filter my list by; a swrl needs at least one of them.
+     * @type {string[]} */
+    genreFilters = [];
     
     /** @type {import('firebase/auth').User} */
     swrler;

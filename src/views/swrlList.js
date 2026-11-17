@@ -19,6 +19,8 @@ import { sortListEntries } from '../model/listEntry';
 import { getLabelsFor } from '../listeners/labels';
 import { matchesLabels } from '../model/labels';
 import { renderCategoryStrips } from '../components/categoryStrips';
+import { ensureGenres, genresFor } from '../firebase/genres';
+import { matchesGenres } from '../model/genres';
 import { closeTonightPicker, showTonightPicker } from '../components/tonightPicker';
 
 export class YourListView extends UIView {
@@ -101,7 +103,13 @@ export function showList(category, view, firestore, stateController) {
     currentView = view;
     const filters = stateController.currentState.filters;
     const userId = swrlUser ? swrlUser.uid : undefined;
+    const genreFilters = view === YOUR_LIST ? stateController.currentState.genreFilters : [];
     loadSwrls(category, view, stateController.currentState.sort, stateController.currentState.typeFilter, firestore)
+        // filtering by genre needs every swrl's genres to hand first
+        .then(async result => {
+            if (genreFilters.length > 0) await ensureGenres(getAllListEntries(), firestore);
+            return result;
+        })
         .then(function ({ total, swrls: loaded }) {
             if (currentID === resultsID) {
                 document.getElementById('messageContainer').classList.add('hidden');
@@ -112,7 +120,8 @@ export function showList(category, view, firestore, stateController) {
                 if (total > 0) {
                     const labelFilters = stateController.currentState.labelFilters;
                     const swrls = loaded.filter(swrl => filters.every(f => f.match(swrl, userId))
-                        && matchesLabels(getLabelsFor(swrl.swrlID), labelFilters));
+                        && matchesLabels(getLabelsFor(swrl.swrlID), labelFilters)
+                        && matchesGenres(genresFor(swrl.swrlID), genreFilters));
                     renderNextSwrls(swrls, stateController, view, firestore, true);
                     if (view === YOUR_LIST && swrls.length > 1) {
                         addPickBar(category, stateController);
@@ -132,7 +141,7 @@ export function showList(category, view, firestore, stateController) {
                 }
                 // What friends are into, at the top of Discover, unless I am filtering it
                 const state = stateController.currentState;
-                if (view === DISCOVER && !state.typeFilter && state.filters.length === 0 && state.labelFilters.length === 0) {
+                if (view === DISCOVER && !state.typeFilter && state.filters.length === 0 && state.labelFilters.length === 0 && state.genreFilters.length === 0) {
                     renderCategoryStrips(swrlsContainer, category, firestore, stateController, () => currentID === resultsID)
                         .then(() => {
                             // the strips say more than "nothing here" does
