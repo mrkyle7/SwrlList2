@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDocs, limit, onSnapshot, query, where } from 'firebase/firestore';
 import { Collection, unreadRepliesPath } from '../constants/Collection';
 import { hasUnreadReply } from '../listeners/recommendations';
 import { swrlUser } from '../firebase/login';
@@ -48,20 +48,45 @@ export function addReplies(recommendationDiv, recommendation, firestore) {
 
     /** @type {(() => void) | undefined} */
     let cancel;
+    const open = () => {
+        body.classList.remove('hidden');
+        toggleText.textContent = iAmSender ? 'Message / replies' : 'Reply';
+        markRepliesRead(recommendation.id, firestore);
+        cancel = listen(body, recommendation, threads, iAmSender, firestore);
+    };
     toggleText.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
-        const opening = body.classList.contains('hidden');
-        body.classList.toggle('hidden', !opening);
-        if (opening) {
-            toggleText.textContent = iAmSender ? 'Message / replies' : 'Reply';
-            markRepliesRead(recommendation.id, firestore);
-            cancel = listen(body, recommendation, threads, iAmSender, firestore);
-        } else if (cancel) {
-            cancel();
-            cancel = undefined;
+        if (body.classList.contains('hidden')) {
+            open();
+        } else {
+            body.classList.add('hidden');
+            if (cancel) {
+                cancel();
+                cancel = undefined;
+            }
         }
     });
+
+    // when there is already a conversation, show it without a tap
+    getDocs(query(repliesSource(recommendation, iAmSender, firestore), limit(1)))
+        .then(found => {
+            if (!found.empty && body.classList.contains('hidden')) open();
+        })
+        .catch(error => console.error('Could not check for replies', error));
+}
+
+/**
+ * What I may read of a recommendation's replies: the sender reads them all; a
+ * receiver's query must carry the constraint the rules check.
+ *
+ * @param {import('../model/recommendation').Recommendation} recommendation
+ * @param {boolean} iAmSender
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+function repliesSource(recommendation, iAmSender, firestore) {
+    const repliesCollection = collection(firestore, Collection.RECOMMENDATIONS, recommendation.id, 'replies');
+    return iAmSender ? repliesCollection : query(repliesCollection, where('thread', '==', swrlUser.uid));
 }
 
 /**
@@ -73,9 +98,7 @@ export function addReplies(recommendationDiv, recommendation, firestore) {
  * @return {() => void} stops listening
  */
 function listen(body, recommendation, threads, iAmSender, firestore) {
-    const repliesCollection = collection(firestore, Collection.RECOMMENDATIONS, recommendation.id, 'replies');
-    // A receiver's query must carry the constraint the rules check; the sender reads them all.
-    const source = iAmSender ? repliesCollection : query(repliesCollection, where('thread', '==', swrlUser.uid));
+    const source = repliesSource(recommendation, iAmSender, firestore);
     const names = {};
     const typed = {};
     /** @type {Object<string, RecommendationReply[]>} */
