@@ -543,8 +543,8 @@
         <p class="privateCommentStatus hidden"></p>
         <div class="privateCommentList"></div>
         <form class="privateCommentForm" autocomplete="off">
-          <textarea class="privateCommentInput" rows="3" placeholder="Add a private comment" aria-label="Add a private comment"></textarea>
-          <input type="submit" class="privateCommentAdd" value="Add">
+          <textarea class="commentInput privateCommentInput" rows="3" placeholder="Add a private comment" aria-label="Add a private comment"></textarea>
+          <input type="submit" class="commentSend privateCommentAdd" value="Add comment">
         </form>
       </div>
     </div>
@@ -553,10 +553,10 @@
     <div class="privateComment">
       <p class="privateCommentText"></p>
       <form class="privateCommentEditForm hidden" autocomplete="off">
-        <textarea class="privateCommentInput privateCommentEditInput" rows="3" aria-label="Edit private comment"></textarea>
+        <textarea class="commentInput privateCommentInput privateCommentEditInput" rows="3" aria-label="Edit private comment"></textarea>
         <div class="privateCommentEditButtons">
           <span class="actionText privateCommentCancel" role="button" tabindex="0">Cancel</span>
-          <input type="submit" class="privateCommentSave" value="Save">
+          <input type="submit" class="commentSend privateCommentSave" value="Save">
         </div>
       </form>
       <div class="privateCommentMeta">

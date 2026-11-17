@@ -176,13 +176,15 @@ function renderThread(recommendation, thread, otherName, replies, draft, iAmSend
     const form = document.createElement('form');
     form.className = 'replyForm';
     const box = document.createElement('textarea');
+    box.className = 'commentInput';
     box.dataset.thread = thread;
-    box.rows = 1;
+    box.rows = 2;
     box.maxLength = MAX_REPLY_LENGTH;
     box.placeholder = iAmSender ? `Message ${otherName}` : `Reply to ${otherName}`;
     box.value = draft;
     const send = document.createElement('button');
     send.type = 'submit';
+    send.className = 'commentSend';
     send.textContent = 'Send';
     form.appendChild(box);
     form.appendChild(send);

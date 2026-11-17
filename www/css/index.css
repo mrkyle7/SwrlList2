@@ -750,18 +750,6 @@ body {
     color: black;
 }
 
-.replyForm {
-    display: flex;
-    gap: 8px;
-    margin: 8px 0;
-}
-
-.replyForm textarea {
-    flex: 1;
-    font: inherit;
-    resize: vertical;
-}
-
 .unread {
     box-shadow: 0 1px 3px rgba(255, 46, 98, 0.5), 0 1px 2px #FF2E63;
 }
@@ -1698,21 +1686,6 @@ body {
     margin: 4px;
 }
 
-.privateCommentInput {
-    box-sizing: border-box;
-    border: 2px solid #222222;
-    font: inherit;
-    font-size: 16px;
-    padding: 8px;
-    resize: vertical;
-}
-
-.privateCommentAdd {
-    align-self: flex-end;
-    margin-top: 8px;
-    font-size: 16px;
-}
-
 .privateCommentEditForm {
     display: flex;
     flex-direction: column;
@@ -1726,9 +1699,6 @@ body {
     margin-top: 8px;
 }
 
-.privateCommentSave {
-    font-size: 16px;
-}
 
 
 /* Private labels on the swrl page: a centred row of lozenges under the action
@@ -2885,4 +2855,69 @@ button.pageActionPrimary:hover {
     color: gray;
     font-size: 13px;
     margin: 4px 0;
+}
+
+
+/* Text boxes and send buttons for private comments and replies: one look. */
+.replyForm, .privateCommentForm, .privateCommentEditForm {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 8px 4px;
+}
+
+.commentInput {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1.5px solid #c9ced4;
+    border-radius: 12px;
+    background: #fff;
+    color: #222222;
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 1.4;
+    resize: vertical;
+}
+
+.commentInput::placeholder {
+    color: #6b7280;
+}
+
+.commentInput:focus {
+    outline: none;
+    border-color: #4A90E2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.25);
+}
+
+.commentSend {
+    align-self: flex-end;
+    min-width: 96px;
+    height: 44px;
+    padding: 0 24px;
+    border: 0;
+    border-radius: 22px;
+    background: #FF2E63;
+    color: #fff;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 120ms ease, opacity 120ms ease;
+}
+
+.commentSend:active {
+    transform: scale(0.97);
+}
+
+.commentSend:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .commentSend {
+        transition: none;
+    }
 }
