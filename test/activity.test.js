@@ -41,7 +41,7 @@ describe("what friends are into", function () {
             : id === 'dismissed' ? { later: false, done: false, deleted: true } : undefined;
         const result = friendsActivity(friends, mine, 10);
         expect(result.map(r => r.swrlID)).to.deep.equal(['a', 'b', 'c']);
-        expect(result[0].friends).to.deep.equal([{ uid: 'bob', loved: true }, { uid: 'cara', loved: false }]);
+        expect(result[0].friends).to.deep.equal([{ uid: 'bob', loved: true, done: false }, { uid: 'cara', loved: false, done: false }]);
         expect(friendsActivity(friends, mine, 2).map(r => r.swrlID)).to.deep.equal(['a', 'b']);
     });
     it('shows a swrl I only loved but did not keep', function () {
@@ -52,8 +52,11 @@ describe("what friends are into", function () {
 
 describe('captions', function () {
     it('lead with love', function () {
-        expect(activityCaption([{ name: 'Bob', loved: false }, { name: 'Cara', loved: true }])).to.equal('Cara loved it');
-        expect(activityCaption([{ name: 'Bob', loved: false }])).to.equal('Bob has it');
-        expect(activityCaption([{ name: 'Bob', loved: false }, { name: 'Cara', loved: false }])).to.equal('Bob and Cara have it');
+        expect(activityCaption([{ name: 'Bob', loved: false }, { name: 'Cara', loved: true }], 1)).to.equal('Cara loved it');
+        expect(activityCaption([{ name: 'Bob', loved: false, done: true }], 1)).to.equal('Bob watched it');
+        expect(activityCaption([{ name: 'Bob', loved: false, done: true }], 3)).to.equal('Bob listened to it');
+        expect(activityCaption([{ name: 'Bob', loved: false }], 1)).to.equal('Bob wants to watch it');
+        expect(activityCaption([{ name: 'Bob', loved: false }], 2)).to.equal('Bob wants to read it');
+        expect(activityCaption([{ name: 'Bob', loved: false }, { name: 'Cara', loved: false }], 4)).to.equal('Bob and Cara want to play it');
     });
 });

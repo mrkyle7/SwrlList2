@@ -1,6 +1,6 @@
 /**
  * Pure helpers for the rows at the top of a category's Discover tab
- * ("Swrled to you", "Your friends are into"). Tested in test/activity.test.js.
+ * ("Swrled to you", "Friends' recent activity"). Tested in test/activity.test.js.
  */
 
 /**
@@ -51,10 +51,10 @@ export function newForYou(recommendations, uid) {
  * @param {{uid: string, entries: E[]}[]} friendsEntries
  * @param {(swrlID: string) => ({later: boolean, done: boolean, deleted: boolean} | undefined)} mine my entry for a swrl
  * @param {number} limit
- * @return {{swrlID: string, entry: E, friends: {uid: string, loved: boolean}[], updated: number}[]}
+ * @return {{swrlID: string, entry: E, friends: {uid: string, loved: boolean, done: boolean}[], updated: number}[]}
  */
 export function friendsActivity(friendsEntries, mine, limit) {
-    /** @type {Map<string, {swrlID: string, entry: E, friends: {uid: string, loved: boolean}[], updated: number}>} */
+    /** @type {Map<string, {swrlID: string, entry: E, friends: {uid: string, loved: boolean, done: boolean}[], updated: number}>} */
     const bySwrl = new Map();
     friendsEntries.forEach(({ uid, entries }) => entries.forEach(entry => {
         if (entry.deleted || !(entry.later || entry.done || entry.loved)) return;
@@ -63,30 +63,37 @@ export function friendsActivity(friendsEntries, mine, limit) {
         const found = bySwrl.get(entry.swrlID);
         const updated = time(entry.updated);
         if (found) {
-            found.friends.push({ uid, loved: entry.loved });
+            found.friends.push({ uid, loved: entry.loved, done: entry.done });
             if (updated > found.updated) {
                 found.updated = updated;
                 found.entry = entry;
             }
         } else {
-            bySwrl.set(entry.swrlID, { swrlID: entry.swrlID, entry, friends: [{ uid, loved: entry.loved }], updated });
+            bySwrl.set(entry.swrlID, { swrlID: entry.swrlID, entry, friends: [{ uid, loved: entry.loved, done: entry.done }], updated });
         }
     }));
     return [...bySwrl.values()].sort((a, b) => b.updated - a.updated).slice(0, limit);
 }
 
+/** What people do with each category's things: [present, past]. */
+const VERBS = { 1: ['watch', 'watched'], 2: ['read', 'read'], 3: ['listen to', 'listened to'], 4: ['play', 'played'] };
+
 /**
- * The line under a tile in "Your friends are into": "Alice loved it",
- * "Alice and Bob have it".
+ * The line under a tile in "Friends' recent activity", leading with love:
+ * "Alice loved it", "Alice watched it", "Alice and Bob want to watch it".
  *
- * @param {{name: string, loved: boolean}[]} friends
+ * @param {{name: string, loved: boolean, done?: boolean}[]} friends
+ * @param {number} categoryID
  * @return {string}
  */
-export function activityCaption(friends) {
+export function activityCaption(friends, categoryID) {
+    const [verb, past] = VERBS[categoryID] || ['try', 'tried'];
     const loved = friends.filter(f => f.loved).map(f => f.name);
     if (loved.length > 0) return `${nameList(loved)} loved it`;
+    const done = friends.filter(f => f.done).map(f => f.name);
+    if (done.length > 0) return `${nameList(done)} ${past} it`;
     const names = friends.map(f => f.name);
-    return names.length === 1 ? `${names[0]} has it` : `${nameList(names)} have it`;
+    return `${nameList(names)} ${names.length === 1 ? 'wants' : 'want'} to ${verb} it`;
 }
 
 /** @param {Date | undefined} date */

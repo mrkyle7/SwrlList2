@@ -18,7 +18,7 @@ const STRIP_SIZE = 12;
 /**
  * Rows of posters at the top of a category's Discover tab, for a signed-in
  * user: "Swrled to you" (swrls friends sent me that I have not opened yet),
- * "Your friends are into" (what friends recently added, finished or loved,
+ * "Friends' recent activity" (what friends recently added, finished or loved,
  * that I do not have) and "Loved by friends with your taste" (what friends
  * whose loves overlap with mine loved). Each row only appears when it has
  * something in it.
@@ -51,7 +51,7 @@ export async function renderCategoryStrips(container, category, firestore, state
             strips.appendChild(strip('Loved by friends with your taste', taste, stateController));
         }
         if (activityOnly.length > 0) {
-            strips.appendChild(strip('Your friends are into', activityOnly, stateController));
+            strips.appendChild(strip("Friends' recent activity", activityOnly, stateController));
         }
         // a heading for the list below the rows, so the two read as separate
         if (container.querySelector('.swrl')) {
@@ -106,9 +106,9 @@ async function friendsInto(category, firestore) {
     return Promise.all(activity.map(async item => {
         const people = await Promise.all(item.friends.map(async f => {
             const swrler = await getSwrlerCached(f.uid, firestore);
-            return { name: swrler ? swrler.displayName : '', loved: f.loved };
+            return { name: swrler ? swrler.displayName : '', loved: f.loved, done: f.done };
         }));
-        return { swrl: item.entry.toSwrl(), caption: activityCaption(people.filter(p => p.name)) };
+        return { swrl: item.entry.toSwrl(), caption: activityCaption(people.filter(p => p.name), category.id) };
     }));
 }
 
@@ -148,17 +148,14 @@ async function tasteIn(category, firestore) {
     const friends = await Promise.all(getFriends().map(async friend => {
         const all = await friendEntries(friend.uid, firestore);
         const overlap = tasteOverlap(mine, all);
-        return { uid: friend.uid, score: overlap.score, bothLoved: overlap.bothLoved, entries: all.filter(e => e.category.id === category.id) };
+        return { uid: friend.uid, score: overlap.score, entries: all.filter(e => e.category.id === category.id) };
     }));
     const picks = tastePicks(friends, swrlID => getListEntry(swrlID), STRIP_SIZE);
-    const loves = new Map(friends.map(f => [f.uid, f.bothLoved]));
     return Promise.all(picks.map(async pick => {
         const best = pick.friends[0];
         const swrler = await getSwrlerCached(best, firestore);
-        const both = loves.get(best) || 0;
         const name = swrler ? swrler.displayName : 'A friend';
-        const caption = both > 0 ? `${name} loved it \u00b7 you agree on ${both}` : `${name} loved it`;
-        return { swrl: pick.entry.toSwrl(), caption };
+        return { swrl: pick.entry.toSwrl(), caption: `${name} loved it` };
     }));
 }
 
