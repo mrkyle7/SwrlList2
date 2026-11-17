@@ -94,6 +94,14 @@ exports.recommendationReplyNotification = functions.firestore
         }
         const recommendation = recommendationDoc.data();
         const recipient = replyRecipient(recommendation, reply);
+        if (recipient) {
+            // the in-app unread badge, whether or not they have a device to push to
+            await db.doc(`swrlers/${recipient}/unreadReplies/${context.params.recommendationID}`).set({
+                recommendationID: context.params.recommendationID,
+                from: reply.from,
+                at: FieldValue.serverTimestamp()
+            });
+        }
         const tokens = recipient ? await tokensFor([recipient]) : [];
         if (tokens.length === 0) {
             console.log('no tokens to send to');

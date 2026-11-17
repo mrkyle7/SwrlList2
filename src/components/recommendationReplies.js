@@ -1,5 +1,6 @@
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { Collection } from '../constants/Collection';
+import { collection, deleteDoc, doc, onSnapshot, query, where } from 'firebase/firestore';
+import { Collection, unreadRepliesPath } from '../constants/Collection';
+import { hasUnreadReply } from '../listeners/recommendations';
 import { swrlUser } from '../firebase/login';
 import { getSwrler } from '../firebase/swrler';
 import replyToRecommendation from '../actions/replyToRecommendation';
@@ -37,7 +38,7 @@ export function addReplies(recommendationDiv, recommendation, firestore) {
     toggle.className = 'recommendationRepliesToggle';
     const toggleText = document.createElement('span');
     toggleText.className = 'actionText';
-    toggleText.textContent = 'Replies';
+    toggleText.textContent = hasUnreadReply(recommendation.id) ? 'New replies' : (iAmSender ? 'Message / replies' : 'Reply');
     toggle.appendChild(toggleText);
 
     const body = document.createElement('div');
@@ -53,6 +54,8 @@ export function addReplies(recommendationDiv, recommendation, firestore) {
         const opening = body.classList.contains('hidden');
         body.classList.toggle('hidden', !opening);
         if (opening) {
+            toggleText.textContent = iAmSender ? 'Message / replies' : 'Reply';
+            markRepliesRead(recommendation.id, firestore);
             cancel = listen(body, recommendation, threads, iAmSender, firestore);
         } else if (cancel) {
             cancel();
@@ -75,24 +78,40 @@ function listen(body, recommendation, threads, iAmSender, firestore) {
     const source = iAmSender ? repliesCollection : query(repliesCollection, where('thread', '==', swrlUser.uid));
     const names = {};
     const typed = {};
+    /** @type {Object<string, RecommendationReply[]>} */
+    let byThread = {};
+    let failed = false;
 
-    const unsubscribe = onSnapshot(source, snapshot => {
-        const replies = snapshot.docs.map(docSnapshot => RecommendationReply.fromFirestore(docSnapshot));
-        const byThread = repliesByThread(replies);
-        Promise.all(threads.map(async uid => {
+    const draw = async () => {
+        await Promise.all(threads.map(async uid => {
             if (!(uid in names)) {
-                const swrler = iAmSender ? await getSwrler(uid, firestore) : await getSwrler(recommendation.from, firestore);
+                const swrler = await getSwrler(iAmSender ? uid : recommendation.from, firestore);
                 names[uid] = swrler ? swrler.displayName : 'Someone';
             }
-        })).then(() => {
-            // keep half-typed text across re-renders
-            body.querySelectorAll('textarea').forEach(box => typed[box.dataset.thread] = box.value);
-            while (body.firstChild) body.removeChild(body.firstChild);
-            threads.forEach(uid => body.appendChild(
-                renderThread(recommendation, uid, names[uid], byThread[uid] || [], typed[uid] || '', iAmSender, firestore)));
-        });
+        }));
+        // keep half-typed text across re-renders
+        body.querySelectorAll('textarea').forEach(box => typed[box.dataset.thread] = box.value);
+        while (body.firstChild) body.removeChild(body.firstChild);
+        if (failed) {
+            const note = document.createElement('div');
+            note.className = 'replyError';
+            note.textContent = 'Could not load earlier replies. Try again later.';
+            body.appendChild(note);
+        }
+        threads.forEach(uid => body.appendChild(
+            renderThread(recommendation, uid, names[uid], byThread[uid] || [], typed[uid] || '', iAmSender, firestore)));
+    };
+
+    // the box to type in shows at once, not only after the replies have loaded
+    draw();
+    const unsubscribe = onSnapshot(source, snapshot => {
+        failed = false;
+        byThread = repliesByThread(snapshot.docs.map(docSnapshot => RecommendationReply.fromFirestore(docSnapshot)));
+        draw();
     }, error => {
         console.error('Could not load replies', error);
+        failed = true;
+        draw();
     });
     openListeners.push(unsubscribe);
     return () => {
@@ -164,4 +183,16 @@ function renderThread(recommendation, thread, otherName, replies, draft, iAmSend
     });
     section.appendChild(form);
     return section;
+}
+
+/**
+ * Clears my "unread reply" marker for a recommendation (a no-op when there is none).
+ *
+ * @param {string} recommendationID
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+function markRepliesRead(recommendationID, firestore) {
+    if (!hasUnreadReply(recommendationID)) return;
+    deleteDoc(doc(firestore, unreadRepliesPath(swrlUser.uid).join('/'), recommendationID))
+        .catch(error => console.error('Could not mark replies as read', error));
 }

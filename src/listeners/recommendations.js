@@ -1,7 +1,7 @@
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { Collection } from '../constants/Collection';
+import { Collection, unreadRepliesPath } from '../constants/Collection';
 import { swrlUser, showLoginButtons } from '../firebase/login';
-import { Recommendation, inboxHasSwrl } from '../model/recommendation';
+import { Recommendation, inboxHasSwrl, badgeCount } from '../model/recommendation';
 
 export let recommendationsInboxCache = {};
 /** @type Object */
@@ -10,6 +10,9 @@ export default { setUpRecommendationsListener, cancelRecommendationsListener, re
 
 let currentInboxListener;
 let currentSentListener;
+let currentUnreadRepliesListener;
+/** ids of the recommendations with a reply I have not read (sent or received) */
+let unreadReplyIDs = new Set();
 const inboxCount = document.getElementById('inboxCount');
 let errorCountInbox = 0;
 let errorCountSent = 0;
@@ -69,6 +72,14 @@ export function setUpRecommendationsListener(firestore) {
                 inboxReady = true;
             }
         })
+    currentUnreadRepliesListener = onSnapshot(collection(firestore, unreadRepliesPath(swrlUser.uid).join('/')),
+        querySnapshot => {
+            unreadReplyIDs = new Set(querySnapshot.docs.map(docSnapshot => docSnapshot.id));
+            updateInboxCount();
+        }, error => {
+            // the badge just won't count replies; the rest of the app still works
+            console.error('Unread replies listener failed', error);
+        });
     currentSentListener = onSnapshot(query(collection(firestore, Collection.RECOMMENDATIONS),
         where("from", "==", swrlUser.uid)),
         async querySnapshot => {
@@ -96,6 +107,7 @@ export function setUpRecommendationsListener(firestore) {
                     return;
                 }
             });
+            updateInboxCount();
         }, error => {
             errorCountSent++;
             console.error('Snapshot listener failed, error count: ' + errorCountSent);
@@ -128,20 +140,27 @@ export function cancelRecommendationsListener() {
         currentSentListener(); // 'calling' the onSnaphshot unsubscribes from it. 
     }
     recommendationsSentCache = {};
+    if (currentUnreadRepliesListener) {
+        currentUnreadRepliesListener();
+    }
+    unreadReplyIDs = new Set();
     updateInboxCount();
 }
 
 const updateInboxCount = () => {
-    //Object.values wasn't supported in the old Cordova browser
-    let recommendations = [];
-    Object.keys(recommendationsInboxCache).forEach(i => recommendations.push(recommendationsInboxCache[i]));
+    inboxCount.innerText = swrlUser
+        ? badgeCount(recommendationsInboxCache, recommendationsSentCache, swrlUser.uid, unreadReplyIDs).toString()
+        : '0';
+}
 
-    let count =
-        recommendations
-            .filter(r => (!r.read || r.read.indexOf(swrlUser.uid) === -1)
-                && (!r.dismissed || r.dismissed.indexOf(swrlUser.uid) === -1))
-            .length;
-    inboxCount.innerText = count.toString();
+/**
+ * Whether a recommendation (sent or received) has a reply I haven't read.
+ *
+ * @param {string} recommendationID
+ * @return {boolean}
+ */
+export function hasUnreadReply(recommendationID) {
+    return unreadReplyIDs.has(recommendationID);
 }
 
 /**

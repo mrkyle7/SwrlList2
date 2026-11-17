@@ -278,3 +278,36 @@ describe('type labels', function () {
         expect(typeLabel(BOARDGAME)).to.equal('Board game');
     });
 });
+
+import { myStateOfSwrl, showInboxRecommendation, badgeCount } from '../src/model/recommendation';
+
+describe('recommendation filters and badge', () => {
+    const none = { showDone: false, showOnList: false };
+    const base = { unread: false, hasUnreadReply: false, done: false, onList: false };
+    it('works out done and on list from my entry', () => {
+        expect(myStateOfSwrl(undefined)).toEqual({ done: false, onList: false });
+        expect(myStateOfSwrl({ later: true, done: false, deleted: false })).toEqual({ done: false, onList: true });
+        expect(myStateOfSwrl({ later: true, done: true, deleted: false })).toEqual({ done: true, onList: false });
+        expect(myStateOfSwrl({ later: true, done: false, deleted: true })).toEqual({ done: false, onList: false });
+    });
+    it('by default hides done and on-list ones, unless unread or with an unread reply', () => {
+        expect(showInboxRecommendation(base, none)).toBe(true);
+        expect(showInboxRecommendation({ ...base, done: true }, none)).toBe(false);
+        expect(showInboxRecommendation({ ...base, onList: true }, none)).toBe(false);
+        expect(showInboxRecommendation({ ...base, done: true, unread: true }, none)).toBe(true);
+        expect(showInboxRecommendation({ ...base, onList: true, hasUnreadReply: true }, none)).toBe(true);
+    });
+    it('the filters bring the hidden ones back', () => {
+        expect(showInboxRecommendation({ ...base, done: true }, { showDone: true, showOnList: false })).toBe(true);
+        expect(showInboxRecommendation({ ...base, onList: true }, { showDone: true, showOnList: false })).toBe(false);
+        expect(showInboxRecommendation({ ...base, onList: true }, { showDone: false, showOnList: true })).toBe(true);
+    });
+    it('counts unread and unread-reply recommendations once each', () => {
+        const rec = (id, read, dismissed) => new Recommendation(id, 'a', ['me'], 'm', 's', undefined, read, dismissed);
+        const inbox = { r1: rec('r1', [], []), r2: rec('r2', ['me'], []), r3: rec('r3', [], ['me']), r4: rec('r4', ['me'], []) };
+        const sent = { r9: rec('r9', [], []) };
+        // r1 unread; r2 read; r3 dismissed; r4 read but has an unread reply; r9 sent with an unread reply; gone has no recommendation
+        expect(badgeCount(inbox, sent, 'me', ['r1', 'r4', 'r9', 'gone'])).toBe(3);
+        expect(badgeCount({}, {}, 'me', [])).toBe(0);
+    });
+});

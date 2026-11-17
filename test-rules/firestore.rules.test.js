@@ -550,3 +550,21 @@ describe('everything else', () => {
         await assertFails(getDoc(doc(as('bob'), 'somethingelse/x')));
     });
 });
+
+describe('unread reply markers', () => {
+    beforeEach(async () => {
+        await env.withSecurityRulesDisabled(async (context) => {
+            await setDoc(doc(context.firestore(), 'swrlers/bob/unreadReplies/r1'), { recommendationID: 'r1', from: 'owner', at: new Date() });
+        });
+    });
+    it('the owner reads and deletes their own', async () => {
+        await assertSucceeds(getDoc(doc(as('bob'), 'swrlers/bob/unreadReplies/r1')));
+        await assertSucceeds(getDocs(collection(as('bob'), 'swrlers/bob/unreadReplies')));
+        await assertSucceeds(deleteDoc(doc(as('bob'), 'swrlers/bob/unreadReplies/r1')));
+    });
+    it('nobody else reads them, and no client writes them', async () => {
+        await assertFails(getDoc(doc(as('carol'), 'swrlers/bob/unreadReplies/r1')));
+        await assertFails(setDoc(doc(as('bob'), 'swrlers/bob/unreadReplies/r2'), { recommendationID: 'r2' }));
+        await assertFails(setDoc(doc(as('owner'), 'swrlers/bob/unreadReplies/r2'), { recommendationID: 'r2' }));
+    });
+});
