@@ -1,5 +1,6 @@
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { Collection } from '../constants/Collection';
+import { collection, deleteDoc, doc, onSnapshot, query, where } from 'firebase/firestore';
+import { Collection, unreadRepliesPath } from '../constants/Collection';
+import { hasUnreadReply } from '../listeners/recommendations';
 import { swrlUser } from '../firebase/login';
 import { getSwrler } from '../firebase/swrler';
 import replyToRecommendation from '../actions/replyToRecommendation';
@@ -37,7 +38,7 @@ export function addReplies(recommendationDiv, recommendation, firestore) {
     toggle.className = 'recommendationRepliesToggle';
     const toggleText = document.createElement('span');
     toggleText.className = 'actionText';
-    toggleText.textContent = 'Replies';
+    toggleText.textContent = hasUnreadReply(recommendation.id) ? 'New replies' : 'Replies';
     toggle.appendChild(toggleText);
 
     const body = document.createElement('div');
@@ -53,6 +54,8 @@ export function addReplies(recommendationDiv, recommendation, firestore) {
         const opening = body.classList.contains('hidden');
         body.classList.toggle('hidden', !opening);
         if (opening) {
+            toggleText.textContent = 'Replies';
+            markRepliesRead(recommendation.id, firestore);
             cancel = listen(body, recommendation, threads, iAmSender, firestore);
         } else if (cancel) {
             cancel();
@@ -164,4 +167,16 @@ function renderThread(recommendation, thread, otherName, replies, draft, iAmSend
     });
     section.appendChild(form);
     return section;
+}
+
+/**
+ * Clears my "unread reply" marker for a recommendation (a no-op when there is none).
+ *
+ * @param {string} recommendationID
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+function markRepliesRead(recommendationID, firestore) {
+    if (!hasUnreadReply(recommendationID)) return;
+    deleteDoc(doc(firestore, unreadRepliesPath(swrlUser.uid).join('/'), recommendationID))
+        .catch(error => console.error('Could not mark replies as read', error));
 }
