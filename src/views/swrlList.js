@@ -19,6 +19,7 @@ import { sortListEntries } from '../model/listEntry';
 import { getLabelsFor } from '../listeners/labels';
 import { matchesLabels } from '../model/labels';
 import { renderCategoryStrips } from '../components/categoryStrips';
+import { closeTonightPicker, showTonightPicker } from '../components/tonightPicker';
 
 export class YourListView extends UIView {
     /**
@@ -113,6 +114,9 @@ export function showList(category, view, firestore, stateController) {
                     const swrls = loaded.filter(swrl => filters.every(f => f.match(swrl, userId))
                         && matchesLabels(getLabelsFor(swrl.swrlID), labelFilters));
                     renderNextSwrls(swrls, stateController, view, firestore, true);
+                    if (view === YOUR_LIST && swrls.length > 1) {
+                        addPickBar(category, stateController);
+                    }
 
                     if (swrlsContainer.querySelectorAll('.swrl').length == 0) {
                         console.log(view === DISCOVER ? 'No Swrls to discover' : 'No Swrls match the filters');
@@ -254,6 +258,26 @@ function renderNextSwrls(swrls, stateController, view, firestore, firstLoad) {
     }
 }
 
+/**
+ * "Can't decide?" above my list: opens the tonight picker.
+ *
+ * @param {Category} category
+ * @param {StateController} stateController
+ */
+function addPickBar(category, stateController) {
+    const bar = document.createElement('div');
+    bar.className = 'pickBar';
+    const text = document.createElement('span');
+    text.textContent = "Can't decide?";
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.className = 'pickBarButton';
+    open.textContent = 'Pick for me';
+    open.addEventListener('click', () => showTonightPicker(category, stateController));
+    bar.append(text, open);
+    swrlsContainer.prepend(bar);
+}
+
 function clearList() {
     while (swrlsContainer.firstChild) {
         swrlsContainer.removeChild(swrlsContainer.firstChild);
@@ -261,6 +285,7 @@ function clearList() {
 }
 
 export function destroyList() {
+    closeTonightPicker();
     const tabs = document.getElementById('tabs');
     tabs.classList.add('hidden');
     document.getElementById('swrlList').classList.add('hidden');

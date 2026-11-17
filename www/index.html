@@ -412,6 +412,21 @@
       <button type="button" id="loginSheetGo" class="sheetApply">Log in with Google</button>
       <button type="button" id="loginSheetCancel" class="sheetCancel">Not now</button>
     </div>
+    <div id="pickSheetBackdrop" class="sheetBackdrop hidden"></div>
+    <div id="pickSheet" class="bottomSheet hidden" role="dialog" aria-modal="true" aria-labelledby="pickSheetTitle">
+      <h3 id="pickSheetTitle">What should you watch?</h3>
+      <p class="pickSheetHint">We'll pick three from your list. Swrls from friends come up more often.</p>
+      <div id="pickTypes" class="chips"></div>
+      <div id="pickLabels" class="chips"></div>
+      <div class="chips">
+        <input type="checkbox" id="pickSwrledOnly">
+        <label for="pickSwrledOnly">Only swrled to me</label>
+      </div>
+      <div id="pickResults" class="pickResults hidden"></div>
+      <p id="pickEmpty" class="pickEmpty hidden"></p>
+      <button type="button" id="pickGo" class="sheetApply">Pick three for me</button>
+      <button type="button" id="pickClose" class="sheetCancel">Close</button>
+    </div>
     <div id="toasterMessage">
       <span id="toasterMessageText"></span>
     </div>
@@ -452,7 +467,7 @@
     <div class="friendRow">
       <div class="friendRowMain">
         <img class="swrlerSmallImage friendRowImage" src="img/emoji_people-24px.svg" />
-        <span class="friendRowName"></span>
+        <span class="friendRowText"><span class="friendRowName"></span></span>
       </div>
       <div class="friendRowActions"></div>
     </div>
