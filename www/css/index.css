@@ -2751,3 +2751,63 @@ button.pageActionPrimary:hover {
     max-height: 240px;
     overflow-y: auto;
 }
+
+/* The filter sheet's buttons stay at its bottom however long it gets. */
+#filters {
+    padding-bottom: 0;
+}
+
+.sheetFooter {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    display: flex;
+    gap: 12px;
+    margin: 16px -16px 0;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid #e3e6ea;
+    background: #fff;
+}
+
+.sheetFooter .sheetApply {
+    flex: 1;
+    margin-top: 0;
+}
+
+.sheetClear {
+    flex: none;
+    height: 48px;
+    padding: 0 20px;
+    border: 1.5px solid #222222;
+    border-radius: 24px;
+    background: #fff;
+    color: #222222;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.sheetClear:active {
+    transform: scale(0.98);
+}
+
+/* How many filters are on, on the filter icon. */
+.filterBadge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    min-width: 20px;
+    height: 20px;
+    box-sizing: border-box;
+    padding: 0 5px;
+    border: 2px solid #fff;
+    border-radius: 10px;
+    background: #222222;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 16px;
+    text-align: center;
+    pointer-events: none;
+}
