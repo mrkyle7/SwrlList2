@@ -708,6 +708,19 @@ body {
     background-color: white;
 }
 
+#recommendationFilters .senderSelect {
+    flex: 1;
+    min-width: 0;
+    height: 40px;
+    padding: 0 10px;
+    border: 1.5px solid #c9ced4;
+    border-radius: 20px;
+    background: #fff;
+    color: #222222;
+    font-family: inherit;
+    font-size: 15px;
+}
+
 #recommendationFilters.hidden {
     display: none;
 }

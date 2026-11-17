@@ -311,3 +311,20 @@ describe('recommendation filters and badge', () => {
         expect(badgeCount({}, {}, 'me', [])).toBe(0);
     });
 });
+
+import { sendersOf, fromSender } from '../src/model/recommendation';
+
+describe('filtering by sender', () => {
+    const rec = (id, from) => new Recommendation(id, from, ['me'], 'm', 's', undefined, [], []);
+    const all = [rec('1', 'ann'), rec('2', 'bob'), rec('3', 'ann')];
+    it('lists each sender once', () => {
+        expect(sendersOf(all)).toEqual(['ann', 'bob']);
+        expect(sendersOf([])).toEqual([]);
+    });
+    it('narrows to one sender, or keeps everyone', () => {
+        expect(fromSender(all, 'ann').map(r => r.id)).toEqual(['1', '3']);
+        expect(fromSender(all, '')).toHaveLength(3);
+        expect(fromSender(all, undefined)).toHaveLength(3);
+        expect(fromSender(all, 'cy')).toEqual([]);
+    });
+});
