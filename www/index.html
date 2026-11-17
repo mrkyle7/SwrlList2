@@ -120,6 +120,14 @@
           <h3>Your labels</h3>
           <div id="labelFilterList" class="chips"></div>
         </div>
+        <div id="genreFilters" class="hidden">
+          <h3>Genres</h3>
+          <p class="sheetHint">Shows anything with at least one of the genres you pick.</p>
+          <input id="genreSearch" class="genreSearch hidden" type="search" placeholder="Find a genre" aria-label="Find a genre" autocomplete="off">
+          <div id="genreFilterList" class="chips"></div>
+          <p id="genreNone" class="sheetHint hidden">No genre matches that.</p>
+          <button type="button" id="genreMore" class="chipsMore hidden"></button>
+        </div>
         <h3>Sort by</h3>
         <div class="chips">
           <input type="radio" id="recentlyupdated" name="sort" value="3" checked>

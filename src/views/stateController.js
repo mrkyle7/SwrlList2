@@ -23,6 +23,13 @@ import { About } from "./about";
 import { sortFromId } from "../constants/Sort";
 import { getAllMyLabels } from "../listeners/labels";
 import { hasLabel } from "../model/labels";
+import { genreCounts, genresToShow, searchGenres } from "../model/genres";
+import { ensureGenres, genresFor } from "../firebase/genres";
+import { getAllListEntries } from "../listeners/listEntries";
+
+/** How many genres show before "Show all", and from how many the search box appears. */
+const FEW_GENRES = 8;
+const SEARCHABLE_GENRES = 12;
 import { filterFromId } from "../constants/Filter";
 import { whereFilterFromId } from "../constants/WhereFilter";
 import { SwrlerListScreen } from "../screens/swrlerListScreen";
@@ -66,6 +73,9 @@ export class StateController {
         /** @type {State[]} */
         this.previousStates = [];
         this.currentState = new State(undefined);
+        /** Genres ticked in the filter sheet while it is open, lower case -> as written. @type {Map<string, string>} */
+        this._genreChoice = new Map();
+        this._genreVisit = 0;
     }
 
     /**
@@ -178,6 +188,7 @@ export class StateController {
                 .forEach(input => input.checked = this.currentState.filters.some(f => f.id === parseInt(input.value)))
 
             this._showLabelFilters();
+            this._showGenreFilters();
 
             const filters = document.getElementById('filters')
             filters.classList.remove('hidden');
@@ -275,6 +286,7 @@ export class StateController {
                     this.currentState.filters.push(filter);
                 }
             })
+            this.currentState.genreFilters = [...this._genreChoice.values()];
             this.currentState.labelFilters = [];
             document.querySelectorAll('input[name="labelFilter"]:checked')
                 //@ts-ignore
@@ -296,6 +308,7 @@ export class StateController {
                 refreshState.sort = this.currentState.sort;
                 refreshState.filters = this.currentState.filters;
                 refreshState.labelFilters = this.currentState.labelFilters;
+                refreshState.genreFilters = this.currentState.genreFilters;
                 refreshState.typeFilter = this.currentState.typeFilter;
                 refreshState.swrler = this.currentState.swrler;
                 this.changeState(refreshState);
@@ -326,6 +339,74 @@ export class StateController {
             // input then label, side by side: the label is styled as a chip
             list.appendChild(input);
             list.appendChild(text);
+        });
+    }
+
+    /**
+     * The genres on my list in this category, as chips with how many swrls
+     * have each. Lists can have dozens, so it starts with the most common few
+     * (and any already chosen); "Show all" opens the rest with a search box.
+     * Only on my own list: the genres come from my swrls.
+     */
+    _showGenreFilters() {
+        const section = document.getElementById('genreFilters');
+        const list = document.getElementById('genreFilterList');
+        /** @type {HTMLInputElement} */
+        // @ts-ignore
+        const search = document.getElementById('genreSearch');
+        /** @type {HTMLButtonElement} */
+        // @ts-ignore
+        const more = document.getElementById('genreMore');
+        const none = document.getElementById('genreNone');
+        /** lower case -> genre as written */
+        this._genreChoice = new Map(this.currentState.genreFilters.map(g => [g.toLocaleLowerCase(), g]));
+        section.classList.add('hidden');
+        if (this.currentState.view !== this.yourListView) return;
+        const category = this.currentState.selectedCategory;
+        const entries = getAllListEntries().filter(e => e.later && !e.deleted && e.category.id === category.id);
+        const visit = this._genreVisit = (this._genreVisit || 0) + 1;
+        ensureGenres(entries, this.firestore).then(() => {
+            if (visit !== this._genreVisit) return;
+            const counts = genreCounts(entries.map(e => genresFor(e.swrlID)));
+            if (counts.length === 0) return;
+            section.classList.remove('hidden');
+            let expanded = false;
+            search.value = '';
+            const render = () => {
+                const shown = expanded ? searchGenres(counts, search.value) : genresToShow(counts, [...this._genreChoice.values()], FEW_GENRES);
+                while (list.firstChild) list.removeChild(list.firstChild);
+                shown.forEach(({ genre, count }, i) => {
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.id = 'genreFilter' + i;
+                    input.checked = this._genreChoice.has(genre.toLocaleLowerCase());
+                    input.addEventListener('change', () => {
+                        if (input.checked) this._genreChoice.set(genre.toLocaleLowerCase(), genre);
+                        else this._genreChoice.delete(genre.toLocaleLowerCase());
+                    });
+                    const text = document.createElement('label');
+                    text.htmlFor = input.id;
+                    text.textContent = genre;
+                    const number = document.createElement('span');
+                    number.className = 'chipCount';
+                    number.textContent = String(count);
+                    text.appendChild(number);
+                    list.append(input, text);
+                });
+                none.classList.toggle('hidden', shown.length > 0);
+                search.classList.toggle('hidden', !expanded || counts.length <= SEARCHABLE_GENRES);
+                more.classList.toggle('hidden', counts.length <= FEW_GENRES);
+                more.textContent = expanded ? 'Show fewer' : `Show all ${counts.length} genres`;
+                more.setAttribute('aria-expanded', String(expanded));
+            };
+            more.onclick = () => {
+                expanded = !expanded;
+                search.value = '';
+                render();
+                if (expanded && !search.classList.contains('hidden')) search.focus();
+            };
+            search.oninput = render;
+            render();
         });
     }
 
@@ -419,6 +500,7 @@ export class StateController {
             yourListState.typeFilter = this.currentState.typeFilter;
             yourListState.filters = this.currentState.filters
             yourListState.labelFilters = this.currentState.labelFilters;
+            yourListState.genreFilters = this.currentState.genreFilters;
             this.changeState(yourListState);
         });
     }
@@ -436,6 +518,7 @@ export class StateController {
             discoverState.typeFilter = this.currentState.typeFilter;
             discoverState.filters = this.currentState.filters
             discoverState.labelFilters = this.currentState.labelFilters;
+            discoverState.genreFilters = this.currentState.genreFilters;
             this.changeState(discoverState);
         });
     }
@@ -453,6 +536,7 @@ export class StateController {
             searchState.typeFilter = this.currentState.typeFilter;
             searchState.filters = this.currentState.filters
             searchState.labelFilters = this.currentState.labelFilters;
+            searchState.genreFilters = this.currentState.genreFilters;
             this.changeState(searchState);
         });
     }
@@ -471,6 +555,7 @@ export class StateController {
             state.typeFilter = this.currentState.typeFilter;
             state.filters = this.currentState.filters
             state.labelFilters = this.currentState.labelFilters;
+            state.genreFilters = this.currentState.genreFilters;
             this.changeState(state);
         });
     }
