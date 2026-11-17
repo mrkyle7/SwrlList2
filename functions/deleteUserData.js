@@ -32,8 +32,8 @@ async function commitInBatches(db, ops) {
  * - their friends' mirror docs (explicitly, as well as through `friendRemoved`)
  * - friend requests sent or received
  * - messaging tokens and saved searches
- * - recommendations they sent (and the id on the shared swrl) and their
- *   place among the receivers of others
+ * - recommendations they sent (and the id on the shared swrl), with their
+ *   replies, and their place (and conversation) among the receivers of others
  * - their uid in the legacy arrays on `swrls`
  * - last, `swrlers/{uid}` and everything under it (list entries, friends,
  *   private comments). Deleting the entries fires `listEntryCounts`, which
@@ -82,17 +82,22 @@ async function deleteUserData(db, FieldValue, uid) {
     const idsToRemoveFromSwrls = new Map();
     let deletedRecommendations = 0;
     let updatedRecommendations = 0;
+    /** @type {import('firebase-admin/firestore').DocumentReference[]} recommendations whose replies go with them */
+    const refsToDelete = [];
+    /** @type {import('firebase-admin/firestore').DocumentReference[]} recommendations the user leaves */
+    const refsLeft = [];
     for (const [id, item] of recommendations) {
         const data = item.data();
         const plan = planRecommendation(data, uid);
         if (plan.action === 'delete') {
-            recommendationOps.push(batch => batch.delete(item.ref));
+            refsToDelete.push(item.ref);
             deletedRecommendations++;
             if (data.swrlID && plan.removeFromSwrl) {
                 idsToRemoveFromSwrls.set(data.swrlID, [...(idsToRemoveFromSwrls.get(data.swrlID) || []), id]);
             }
         } else if (plan.action === 'update') {
             recommendationOps.push(batch => batch.update(item.ref, plan.fields));
+            refsLeft.push(item.ref);
             updatedRecommendations++;
         }
     }
@@ -104,6 +109,15 @@ async function deleteUserData(db, FieldValue, uid) {
             { recommendations: FieldValue.arrayRemove(...idsToRemoveFromSwrls.get(swrl.id)) }));
     });
     await commitInBatches(db, recommendationOps);
+    // replies live in a subcollection, which a plain delete would leave behind
+    for (const ref of refsToDelete) {
+        await db.recursiveDelete(ref);
+    }
+    // a receiver who leaves takes their conversation with the sender along
+    for (const ref of refsLeft) {
+        const thread = await ref.collection('replies').where('thread', '==', uid).get();
+        await commitInBatches(db, thread.docs.map(reply => batch => batch.delete(reply.ref)));
+    }
     counts['recommendations deleted'] = deletedRecommendations;
     counts['recommendations left'] = updatedRecommendations;
 

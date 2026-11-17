@@ -14,6 +14,7 @@ import { State } from '../model/state';
 import { Swrl } from '../model/swrl';
 import { typeLabel } from '../constants/Type';
 import { whenListEntriesReady } from '../listeners/listEntries';
+import { addReplies } from './recommendationReplies';
 
 /**
  * 
@@ -223,6 +224,7 @@ export const renderRecommendation = async (stateController, view, recommendation
             recommendationDiv.appendChild(recommendationActionsFragment);
 
         }
+        addReplies(recommendationDiv, recommendation, firestore);
         showRead(view, recommendation, recommendationDiv);
         return recommendationFragment;
     }

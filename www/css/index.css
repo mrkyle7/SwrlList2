@@ -693,6 +693,52 @@ body {
     margin: 0 8px;
 }
 
+.recommendationRepliesToggle {
+    display: flex;
+    padding: 4px;
+}
+
+.recommendationReplies {
+    margin: 4px;
+}
+
+.replyThreadName {
+    font-weight: bold;
+    margin: 8px 0 4px 0;
+}
+
+.reply {
+    margin: 4px 0;
+    padding: 6px 10px;
+    border-radius: 12px;
+    max-width: 85%;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.reply.mine {
+    margin-left: auto;
+    background: #FF2E63;
+    color: white;
+}
+
+.reply.theirs {
+    background: #eee;
+    color: black;
+}
+
+.replyForm {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.replyForm textarea {
+    flex: 1;
+    font: inherit;
+    resize: vertical;
+}
+
 .unread {
     box-shadow: 0 1px 3px rgba(255, 46, 98, 0.5), 0 1px 2px #FF2E63;
 }

@@ -29,6 +29,46 @@ function recommendationMessage(tokens, recommender, swrl) {
 }
 
 /**
+ * The push notification for a reply to a recommendation, sent to the other
+ * person in the conversation.
+ *
+ * @param {string[]} tokens device tokens of whoever should be told
+ * @param {{displayName?: string}} author who wrote the reply
+ * @param {{details?: {title?: string}}} swrl what the recommendation was about
+ * @param {string} text the reply
+ * @returns {import('firebase-admin/messaging').MulticastMessage}
+ */
+function replyMessage(tokens, author, swrl, text) {
+    const who = author.displayName || 'Someone';
+    const what = (swrl.details && swrl.details.title) || 'a swrl';
+    const words = (text || '').length > 100 ? `${text.slice(0, 97)}...` : (text || '');
+    return {
+        tokens: tokens,
+        notification: {
+            title: `${who} replied about ${what}`,
+            body: words
+        },
+        webpush: {
+            headers: { TTL: String(60 * 60 * 24), Urgency: 'high' },
+            notification: { icon: `${SITE_URL}/img/logo.png` },
+            fcmOptions: { link: `${SITE_URL}/recommendations` }
+        }
+    };
+}
+
+/**
+ * Who a reply should be pushed to: the receiver of the thread when the sender
+ * wrote it, otherwise the sender.
+ *
+ * @param {{from: string, to?: string[]}} recommendation
+ * @param {{from: string, thread: string}} reply
+ * @returns {string | undefined}
+ */
+function replyRecipient(recommendation, reply) {
+    return reply.from === recommendation.from ? reply.thread : recommendation.from;
+}
+
+/**
  * The push notification sent to the receiver of a friend request.
  *
  * @param {string[]} tokens device tokens of the receiver
@@ -126,4 +166,4 @@ function userActivityText(before, after, ownerUid) {
     return `User ${name} has just logged in.`;
 }
 
-module.exports = { recommendationMessage, friendRequestMessage, deadTokens, userActivityText, SITE_URL };
+module.exports = { recommendationMessage, replyMessage, replyRecipient, friendRequestMessage, deadTokens, userActivityText, SITE_URL };

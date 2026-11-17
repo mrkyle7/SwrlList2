@@ -173,6 +173,30 @@ service cloud.firestore {
           resource.data.get('read', []).concat([request.auth.uid]))
         && request.resource.data.get('dismissed', []).hasOnly(
           resource.data.get('dismissed', []).concat([request.auth.uid]));
+
+      // Replies: one private conversation per receiver. `thread` is the
+      // receiver's uid. The sender reads every thread and may write to any
+      // receiver's (so they can message one receiver before it has replied);
+      // a receiver reads and writes only the thread that carries their own uid
+      // (their queries must say `where('thread', '==', myUid)`), so receivers
+      // never see each other's replies. Replies are never edited or deleted by
+      // a client.
+      match /replies/{replyID} {
+        function parent() {
+          return get(/databases/$(database)/documents/recommendations/$(recommendationID)).data;
+        }
+        allow read: if isSignedIn()
+          && (request.auth.uid == parent().from
+            || (request.auth.uid in parent().to && resource.data.thread == request.auth.uid));
+        allow create: if isOwner(request.resource.data.from)
+          && request.resource.data.keys().hasOnly(['from', 'thread', 'text', 'created'])
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 1000
+          && request.resource.data.created == request.time
+          && request.resource.data.thread in parent().to
+          && (request.auth.uid == parent().from || request.resource.data.thread == request.auth.uid);
+      }
     }
 
     // ---------------------------------------------------------------------
