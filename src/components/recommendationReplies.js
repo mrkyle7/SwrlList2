@@ -34,38 +34,62 @@ export function addReplies(recommendationDiv, recommendation, firestore) {
     if (threads.length === 0) return;
     const iAmSender = recommendation.from === me;
 
-    const toggle = document.createElement('div');
-    toggle.className = 'recommendationRepliesToggle';
     const toggleText = document.createElement('span');
-    toggleText.className = 'actionText';
-    toggleText.textContent = hasUnreadReply(recommendation.id) ? 'New replies' : (iAmSender ? 'Message / replies' : 'Reply');
-    toggle.appendChild(toggleText);
+    toggleText.className = 'actionText repliesToggle';
+    toggleText.setAttribute('role', 'button');
+    toggleText.tabIndex = 0;
+    const closedLabel = iAmSender ? 'Message' : 'Reply';
+    if (hasUnreadReply(recommendation.id)) {
+        toggleText.textContent = 'New reply';
+        toggleText.classList.add('hasNew');
+    } else {
+        toggleText.textContent = closedLabel;
+    }
+
+    // In the inbox the card already has a row of actions (Dismiss, Mark as
+    // read): Reply joins it. Sent cards have none, so it gets its own row.
+    const actions = recommendationDiv.querySelector('.recommendationActions');
+    if (actions) {
+        actions.appendChild(toggleText);
+    } else {
+        const row = document.createElement('div');
+        row.className = 'recommendationActions';
+        row.appendChild(toggleText);
+        recommendationDiv.appendChild(row);
+    }
 
     const body = document.createElement('div');
     body.className = 'recommendationReplies hidden';
-    recommendationDiv.appendChild(toggle);
     recommendationDiv.appendChild(body);
 
     /** @type {(() => void) | undefined} */
     let cancel;
     const open = () => {
         body.classList.remove('hidden');
-        toggleText.textContent = iAmSender ? 'Message / replies' : 'Reply';
+        toggleText.textContent = 'Hide replies';
+        toggleText.classList.remove('hasNew');
         markRepliesRead(recommendation.id, firestore);
         cancel = listen(body, recommendation, threads, iAmSender, firestore);
     };
-    toggleText.addEventListener('click', (e) => {
+    const toggle = (/** @type {Event} */ e) => {
         e.stopPropagation();
         e.preventDefault();
         if (body.classList.contains('hidden')) {
+            // put the cursor in the first box once it has been drawn
+            body.dataset.focusThread = threads[0];
             open();
         } else {
             body.classList.add('hidden');
+            toggleText.textContent = closedLabel;
             if (cancel) {
                 cancel();
                 cancel = undefined;
             }
         }
+    };
+    toggleText.addEventListener('click', toggle);
+    toggleText.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') toggle(e);
     });
 
     // when there is already a conversation, show it without a tap
@@ -112,8 +136,14 @@ function listen(body, recommendation, threads, iAmSender, firestore) {
                 names[uid] = swrler ? swrler.displayName : 'Someone';
             }
         }));
-        // keep half-typed text across re-renders
+        // keep half-typed text, and the cursor, across re-renders
         body.querySelectorAll('textarea').forEach(box => typed[box.dataset.thread] = box.value);
+        /** @type {HTMLElement} */
+        // @ts-ignore
+        const active = document.activeElement;
+        const focusThread = active && body.contains(active) && active.dataset.thread
+            ? active.dataset.thread : body.dataset.focusThread;
+        delete body.dataset.focusThread;
         while (body.firstChild) body.removeChild(body.firstChild);
         if (failed) {
             const note = document.createElement('div');
@@ -123,6 +153,14 @@ function listen(body, recommendation, threads, iAmSender, firestore) {
         }
         threads.forEach(uid => body.appendChild(
             renderThread(recommendation, uid, names[uid], byThread[uid] || [], typed[uid] || '', iAmSender, firestore)));
+        if (focusThread) {
+            /** @type {HTMLTextAreaElement} */
+            const box = body.querySelector(`textarea[data-thread="${focusThread}"]`);
+            if (box) {
+                box.focus({ preventScroll: true });
+                box.setSelectionRange(box.value.length, box.value.length);
+            }
+        }
     };
 
     // the box to type in shows at once, not only after the replies have loaded
@@ -161,7 +199,7 @@ function renderThread(recommendation, thread, otherName, replies, draft, iAmSend
     if (iAmSender) {
         const heading = document.createElement('div');
         heading.className = 'replyThreadName';
-        heading.textContent = `To ${otherName}`;
+        heading.textContent = `With ${otherName}`;
         section.appendChild(heading);
     }
 
@@ -178,7 +216,8 @@ function renderThread(recommendation, thread, otherName, replies, draft, iAmSend
     const box = document.createElement('textarea');
     box.className = 'commentInput';
     box.dataset.thread = thread;
-    box.rows = 2;
+    box.rows = 1;
+    box.setAttribute('aria-label', iAmSender ? `Message ${otherName}` : `Reply to ${otherName}`);
     box.maxLength = MAX_REPLY_LENGTH;
     box.placeholder = iAmSender ? `Message ${otherName}` : `Reply to ${otherName}`;
     box.value = draft;
@@ -188,6 +227,15 @@ function renderThread(recommendation, thread, otherName, replies, draft, iAmSend
     send.textContent = 'Send';
     form.appendChild(box);
     form.appendChild(send);
+    // one line to start, growing with what is typed (up to the CSS max-height)
+    const fit = () => {
+        box.style.height = 'auto';
+        box.style.height = `${box.scrollHeight + 3}px`;
+    };
+    box.addEventListener('input', fit);
+    // typing in the box must not open the swrl page behind the card
+    box.addEventListener('click', e => e.stopPropagation());
+    if (draft) requestAnimationFrame(fit);
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -196,6 +244,7 @@ function renderThread(recommendation, thread, otherName, replies, draft, iAmSend
         send.disabled = true;
         // cleared first: the local snapshot re-renders before the write is acknowledged
         box.value = '';
+        box.style.height = '';
         try {
             await replyToRecommendation(recommendation.id, thread, text, firestore);
         } catch (error) {

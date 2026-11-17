@@ -126,3 +126,24 @@ export function badgeCount(inbox, sent, uid, unreadReplyIDs) {
     }
     return ids.size;
 }
+
+/**
+ * The distinct people who sent the given recommendations, in order of first appearance.
+ *
+ * @param {Recommendation[]} recommendations
+ * @return {string[]} sender uids
+ */
+export function sendersOf(recommendations) {
+    return [...new Set(recommendations.map(recommendation => recommendation.from))];
+}
+
+/**
+ * Narrows recommendations to those from one sender.
+ *
+ * @param {Recommendation[]} recommendations
+ * @param {string} [senderUid] empty or undefined means everyone
+ * @return {Recommendation[]}
+ */
+export function fromSender(recommendations, senderUid) {
+    return senderUid ? recommendations.filter(recommendation => recommendation.from === senderUid) : recommendations;
+}

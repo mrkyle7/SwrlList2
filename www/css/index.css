@@ -708,6 +708,23 @@ body {
     background-color: white;
 }
 
+#recommendationFilters .senderSelect {
+    flex: 1;
+    min-width: 0;
+    height: 40px;
+    padding: 0 36px 0 16px;
+    border: 1.5px solid #c9ced4;
+    border-radius: 20px;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23222' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center;
+    color: #222222;
+    font-family: inherit;
+    font-size: 15px;
+    text-overflow: ellipsis;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
 #recommendationFilters.hidden {
     display: none;
 }
@@ -716,38 +733,72 @@ body {
     top: 144px;
 }
 
-.recommendationRepliesToggle {
-    display: flex;
-    padding: 4px;
+.recommendationActions {
+    align-items: center;
+    min-height: 44px;
+}
+
+/* Reply sits at the left of the card's action row (the row runs right to left) */
+.repliesToggle {
+    direction: ltr;
+    margin-right: auto;
+    padding: 10px 4px;
+}
+
+.repliesToggle.hasNew {
+    font-weight: 700;
+}
+
+.repliesToggle.hasNew::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: #FF2E63;
+    vertical-align: middle;
 }
 
 .recommendationReplies {
-    margin: 4px;
+    margin: 0 8px 8px 8px;
+    border-top: 1px solid #eceef1;
+}
+
+.replyThread + .replyThread {
+    border-top: 1px solid #eceef1;
 }
 
 .replyThreadName {
-    font-weight: bold;
-    margin: 8px 0 4px 0;
+    margin: 10px 0 2px 0;
+    color: #555b63;
+    font-size: 13px;
+    font-weight: 600;
 }
 
 .reply {
-    margin: 4px 0;
-    padding: 6px 10px;
-    border-radius: 12px;
+    width: fit-content;
     max-width: 85%;
+    margin: 6px 0;
+    padding: 8px 12px;
+    border-radius: 16px;
+    font-size: 16px;
+    line-height: 1.4;
     overflow-wrap: anywhere;
     white-space: pre-wrap;
 }
 
 .reply.mine {
     margin-left: auto;
-    background: #FF2E63;
-    color: white;
+    border-bottom-right-radius: 4px;
+    background: #ffe1e9;
+    color: #222222;
 }
 
 .reply.theirs {
-    background: #eee;
-    color: black;
+    border-bottom-left-radius: 4px;
+    background: #f1f3f5;
+    color: #222222;
 }
 
 .unread {
@@ -2852,9 +2903,9 @@ button.pageActionPrimary:hover {
 }
 
 .replyError {
-    color: gray;
+    margin: 8px 0 0 0;
+    color: #555b63;
     font-size: 13px;
-    margin: 4px 0;
 }
 
 
@@ -2864,6 +2915,28 @@ button.pageActionPrimary:hover {
     flex-direction: column;
     gap: 8px;
     margin: 8px 4px;
+}
+
+/* a reply is a chat line: a one-line box that grows, with Send beside it */
+.replyForm {
+    flex-direction: row;
+    align-items: flex-end;
+    margin: 8px 0 4px 0;
+}
+
+.replyForm .commentInput {
+    flex: 1;
+    min-width: 0;
+    max-height: 160px;
+    border-radius: 22px;
+    padding: 10px 16px;
+    resize: none;
+}
+
+.replyForm .commentSend {
+    flex: none;
+    min-width: 0;
+    padding: 0 20px;
 }
 
 .commentInput {
