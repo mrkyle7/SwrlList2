@@ -318,3 +318,16 @@ export function splitGenres(genres, showAll) {
     return { shown: genres.slice(0, GENRES_SHOWN), hidden: genres.length - GENRES_SHOWN };
 }
 
+/**
+ * Whether cover art is square-ish (albums and podcasts from iTunes, many game
+ * boxes) or tall like a film poster or a book cover, so the header can size
+ * and line it up to suit.
+ *
+ * @param {number} width the image's natural width
+ * @param {number} height the image's natural height
+ * @return {'square' | 'tall'}
+ */
+export function artShape(width, height) {
+    return width > 0 && height > 0 && width / height > 0.85 ? 'square' : 'tall';
+}
+
