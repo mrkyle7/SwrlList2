@@ -5,7 +5,7 @@ import { TmdbPerson } from '../src/model/tmdbPerson';
 import {
     TABS, POSTER, DEFAULT_PAGE_LAYOUT, pageLayoutFromId, pageLayouts,
     castAndCrew, peopleToShow, PEOPLE_SHOWN, initials, hueFor, detailFacts, metaLine,
-    groupLinks, linkDisplay, tabsToShow, activeTab, capitalise, splitGenres, GENRES_SHOWN
+    groupLinks, linkDisplay, tabsToShow, activeTab, capitalise, splitGenres, GENRES_SHOWN, artShape
 } from '../src/model/swrlPage';
 
 /**
@@ -215,6 +215,21 @@ describe('splitGenres', () => {
     it('needs no "more" for a short list, even with exactly the limit', () => {
         expect(splitGenres(['Drama'], false)).toEqual({ shown: ['Drama'], hidden: 0 });
         expect(splitGenres(many.slice(0, GENRES_SHOWN), false).hidden).toBe(0);
+    });
+});
+
+describe('artShape', () => {
+    it('calls iTunes art and other near-squares square', () => {
+        expect(artShape(600, 600)).toBe('square');
+        expect(artShape(500, 560)).toBe('square');
+        expect(artShape(800, 600)).toBe('square');
+    });
+    it('calls posters and book covers tall', () => {
+        expect(artShape(500, 750)).toBe('tall');
+        expect(artShape(400, 600)).toBe('tall');
+    });
+    it('treats an image with no size (not loaded) as tall', () => {
+        expect(artShape(0, 0)).toBe('tall');
     });
 });
 

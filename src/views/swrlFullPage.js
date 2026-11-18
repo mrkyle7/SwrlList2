@@ -15,7 +15,7 @@ import { getPageLayout, whenListEntriesReady } from '../listeners/listEntries';
 import { getEntriesForSwrl } from '../firebase/swrlEntries';
 import { Recommendation } from '../model/recommendation';
 import { Swrl } from '../model/swrl';
-import { TABS, activeTab, capitalise, metaLine, splitGenres, tabsToShow } from '../model/swrlPage';
+import { TABS, activeTab, artShape, capitalise, metaLine, splitGenres, tabsToShow } from '../model/swrlPage';
 import { addAddButton, addLoveButton, addRecommendButton, addDoneButton } from '../components/buttons';
 import { drawTabs, markActiveTab } from '../components/pageTabs';
 import {
@@ -78,6 +78,10 @@ export class SwrlFullPage extends UIView {
 /** @type {HTMLImageElement} */
 // @ts-ignore
 const swrlImageLarge = document.getElementById('swrlImageLarge');
+// square art (albums, podcasts) is sized and lined up differently from tall posters
+swrlImageLarge.addEventListener('load', () => {
+    hero.dataset.shape = artShape(swrlImageLarge.naturalWidth, swrlImageLarge.naturalHeight);
+});
 swrlImageLarge.addEventListener('error', () => {
     console.error('could not load image');
     if (!swrlImageLarge.src.endsWith('img/NoPoster.jpg')) {

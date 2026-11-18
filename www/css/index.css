@@ -2978,6 +2978,25 @@ button.pageActionPrimary:hover {
     align-items: center;
 }
 
+/* Square art (albums, podcasts): a little bigger, and centred on the text
+   beside it rather than sitting on its baseline like a tall poster. */
+.pageHero[data-shape="square"] .pageHeroRow {
+    align-items: center;
+}
+
+.pageHero[data-shape="square"] .pageHeroPoster {
+    width: 128px;
+    height: 128px;
+    max-height: none;
+}
+
+@media (max-width: 420px) {
+    .pageHero[data-shape="square"] .pageHeroPoster {
+        width: 116px;
+        height: 116px;
+    }
+}
+
 .pageHeroMore {
     min-height: 36px;
     border: 1.5px solid rgba(255, 255, 255, 0.6);
