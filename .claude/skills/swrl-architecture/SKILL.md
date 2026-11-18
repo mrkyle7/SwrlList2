@@ -61,7 +61,11 @@ containers that views attach into.
   search by display name) and `settingsScreen` + `views/settings.js`
   (`/settings`: default visibility, swrl page layout, delete my account). Components shared by
   views: `components/friendControl.js` (Add friend / Cancel / Accept / Remove),
-  `components/swrlVisibility.js` (per-swrl "Visible to").
+  `components/swrlVisibility.js` (per-swrl "Visible to"), `components/listToolbar.js`
+  (the Filter button and Compact / Detailed switch under the tabs of every list: one
+  element each list view mounts at its top; the choice is `.main[data-list-view]`,
+  which the stylesheet follows, so cards are built with their detailed parts and
+  never redrawn on a switch).
 - `src/index.js` — on DOM ready → init Firebase → create the
   singleton `StateController` → set up login → show initial screen.
 

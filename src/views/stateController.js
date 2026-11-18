@@ -25,7 +25,11 @@ import { getAllMyLabels } from "../listeners/labels";
 import { hasLabel } from "../model/labels";
 import { genreCounts, genresToShow, searchGenres } from "../model/genres";
 import { ensureGenres, genresFor } from "../firebase/genres";
-import { getAllListEntries } from "../listeners/listEntries";
+import { getAllListEntries, getListView } from "../listeners/listEntries";
+import { activeFilterCount, listViewFromId } from "../model/listView";
+import setListView from "../actions/setListView";
+import { applyListView, bindListToolbar, setFilterCount } from "../components/listToolbar";
+import { showToasterMessage } from "../components/toaster";
 
 /** How many genres show before "Show all", and from how many the search box appears. */
 const FEW_GENRES = 8;
@@ -141,7 +145,9 @@ export class StateController {
      */
     _updateFilterIndicator() {
         const state = this.currentState;
-        const count = (state.typeFilter ? 1 : 0) + state.filters.length + state.labelFilters.length + state.genreFilters.length;
+        const count = activeFilterCount(state);
+        setFilterCount(count);
+        applyListView();
         const badge = document.getElementById('filterCount');
         badge.textContent = String(count);
         badge.classList.toggle('hidden', count === 0);
@@ -172,42 +178,72 @@ export class StateController {
         filterButton.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
-            const fade = document.getElementById('fade')
-            fade.classList.remove('hidden');
-            const typeFilters = document.querySelectorAll('input[name="whereFilter"]');
-            typeFilters.forEach(filter => {
+            this.openFilters();
+        });
+        bindListToolbar(() => this.openFilters(), id => this.changeListView(id));
+        this._bindSheetAndTabs();
+    }
+
+    /**
+     * Compact or detailed, from the switch under the tabs. The lists change at
+     * once; the choice is saved on the profile behind the scenes.
+     *
+     * @param {string} id
+     */
+    changeListView(id) {
+        const view = listViewFromId(id);
+        if (view === getListView()) return;
+        const saving = setListView(view, this.firestore);
+        applyListView();
+        saving.catch(error => {
+            console.error('Could not save the list view');
+            console.error(error);
+            applyListView();
+            showToasterMessage("Couldn't save how your lists look");
+        });
+    }
+
+    /** Opens the filter and sort sheet for the list showing. */
+    openFilters() {
+        const fade = document.getElementById('fade')
+        fade.classList.remove('hidden');
+        const typeFilters = document.querySelectorAll('input[name="whereFilter"]');
+        typeFilters.forEach(filter => {
+            //@ts-ignore
+            if (filter.value === "-1") {
                 //@ts-ignore
-                if (filter.value === "-1") {
+                filter.checked = this.currentState.typeFilter === undefined;
+            } else {
+                filter.classList.add('hidden');
+                const label = document.querySelector(`label[for="${filter.id}"]`)
+                if (label) label.classList.add('hidden')
+                if ((this.currentState.selectedCategory &&
                     //@ts-ignore
-                    filter.checked = this.currentState.typeFilter === undefined;
-                } else {
-                    filter.classList.add('hidden');
-                    const label = document.querySelector(`label[for="${filter.id}"]`)
-                    if (label) label.classList.add('hidden')
-                    if ((this.currentState.selectedCategory &&
-                        //@ts-ignore
-                        this.currentState.selectedCategory.typeFilters.some(tf => tf.id === parseInt(filter.value)))
-                        || this.currentState.view.screen === this.swrlerListScreen) {
-                        filter.classList.remove('hidden')
-                        if (label) label.classList.remove('hidden')
-                    }
-                    //@ts-ignore
-                    filter.checked = this.currentState.typeFilter && this.currentState.typeFilter.id === parseInt(filter.value);
+                    this.currentState.selectedCategory.typeFilters.some(tf => tf.id === parseInt(filter.value)))
+                    || this.currentState.view.screen === this.swrlerListScreen) {
+                    filter.classList.remove('hidden')
+                    if (label) label.classList.remove('hidden')
                 }
-            })
-            document.querySelectorAll('input[name="sort"]')
                 //@ts-ignore
-                .forEach(s => s.checked = this.currentState.sort.id === parseInt(s.value))
-            document.querySelectorAll('input[name="filter"]')
-                //@ts-ignore
-                .forEach(input => input.checked = this.currentState.filters.some(f => f.id === parseInt(input.value)))
-
-            this._showLabelFilters();
-            this._showGenreFilters();
-
-            const filters = document.getElementById('filters')
-            filters.classList.remove('hidden');
+                filter.checked = this.currentState.typeFilter && this.currentState.typeFilter.id === parseInt(filter.value);
+            }
         })
+        document.querySelectorAll('input[name="sort"]')
+            //@ts-ignore
+            .forEach(s => s.checked = this.currentState.sort.id === parseInt(s.value))
+        document.querySelectorAll('input[name="filter"]')
+            //@ts-ignore
+            .forEach(input => input.checked = this.currentState.filters.some(f => f.id === parseInt(input.value)))
+
+        this._showLabelFilters();
+        this._showGenreFilters();
+
+        const filters = document.getElementById('filters')
+        filters.classList.remove('hidden');
+    }
+
+    /** The filter sheet's buttons, the tabs and the home screen's sections. */
+    _bindSheetAndTabs() {
 
         const filterApplyButton = document.getElementById('submitFilters');
         filterApplyButton.addEventListener('click', this.applyFilters());

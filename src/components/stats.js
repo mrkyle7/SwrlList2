@@ -6,6 +6,7 @@ import { SEARCH } from '../constants/View';
 import { Collection } from '../constants/Collection';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
+import { statsSentence } from '../model/listView';
 
 /**
  * The numbers shown on a swrl. The counts come from the shared doc (kept by a
@@ -35,6 +36,12 @@ export function addStats(div, swrl) {
     if (div) {
         const stats = swrlStats(swrl);
         updateStats(stats.listCount, stats.recommendedCount, stats.lovedCount);
+        // the counts in words, for the detailed card
+        const words = div.querySelector('.swrlStatsText');
+        if (words) {
+            words.textContent = statsSentence(stats);
+            words.classList.toggle('hidden', !words.textContent);
+        }
     }
 
 

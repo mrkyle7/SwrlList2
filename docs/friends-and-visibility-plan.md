@@ -71,7 +71,8 @@ no composite indexes. Lists are already fetched whole and paged on the client.
 ```
 { uid, displayName, photoURL, lastLoginTime,
   defaultVisibility?: 'private' | 'friends' | 'public',  // absent means 'friends'
-  swrlPageLayout?: 'tabs' | 'poster' }  // absent means 'tabs'; set on Settings
+  swrlPageLayout?: 'tabs' | 'poster',  // absent means 'tabs'; set on Settings
+  listView?: 'compact' | 'detailed' }  // absent means 'compact'; the switch on every list
 ```
 
 Readable by any signed-in user (name and photo are needed everywhere). Never

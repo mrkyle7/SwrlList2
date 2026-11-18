@@ -18,6 +18,8 @@ import { recommendationReason } from '../model/recommendation';
 import { StateController } from '../views/stateController';
 import { Collection } from '../constants/Collection';
 import { State } from '../model/state';
+import { getLabelsFor } from '../listeners/labels';
+import { cardMeta } from '../model/listView';
 
 /**
  * 
@@ -49,11 +51,11 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
                 image.src = 'img/NoPoster.jpg'
             }
         });
-    var creator = swrl.details.author ? swrl.details.author
-        : swrl.details.artist ? swrl.details.artist : undefined;
-    var title = creator ? swrl.details.getFullTitle() + ' by ' + creator : swrl.details.getFullTitle();
-    $swrl('.swrlTitle').innerText = title;
-    $swrl('.swrlType').innerText = typeLabel(swrl.type);
+    // textContent, never innerHTML: the details come from third parties
+    $swrl('.swrlTitle').textContent = swrl.details.title;
+    $swrl('.swrlMeta').textContent = cardMeta(typeLabel(swrl.type), swrl.details);
+    $swrl('.swrlType').textContent = typeLabel(swrl.type);
+    addDetailedParts(swrlDiv, swrl);
     showReason(swrlDiv, swrl, firestore);
 
     $swrl('.swrlListCount').classList.add('hidden');
@@ -201,4 +203,36 @@ function showReason(swrlDiv, swrl, firestore) {
             reason.classList.remove('hidden');
         })
         .catch(error => console.error(error));
+}
+
+/** How many genres a detailed card shows. */
+const GENRES_ON_CARD = 3;
+
+/**
+ * The parts only a detailed card shows: a few genres, my private labels and
+ * the start of the story. They are always built and the stylesheet hides them
+ * in the compact view, so the switch needs no redraw.
+ *
+ * @param {HTMLElement} swrlDiv
+ * @param {Swrl} swrl
+ */
+function addDetailedParts(swrlDiv, swrl) {
+    const chips = swrlDiv.querySelector('.swrlChips');
+    swrl.details.genres.slice(0, GENRES_ON_CARD).forEach(genre => {
+        const chip = document.createElement('span');
+        chip.className = 'swrlChip';
+        chip.textContent = genre;
+        chips.appendChild(chip);
+    });
+    getLabelsFor(swrl.swrlID).forEach(label => {
+        const chip = document.createElement('span');
+        chip.className = 'swrlChip swrlChipLabel';
+        chip.textContent = label;
+        chips.appendChild(chip);
+    });
+    chips.classList.toggle('hidden', chips.childElementCount === 0);
+    const overview = swrlDiv.querySelector('.swrlOverview');
+    const story = swrl.details.overview ? swrl.details.overview.trim() : '';
+    overview.textContent = story;
+    overview.classList.toggle('hidden', !story);
 }

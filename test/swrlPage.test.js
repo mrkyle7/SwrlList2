@@ -5,7 +5,7 @@ import { TmdbPerson } from '../src/model/tmdbPerson';
 import {
     TABS, POSTER, DEFAULT_PAGE_LAYOUT, pageLayoutFromId, pageLayouts,
     castAndCrew, peopleToShow, PEOPLE_SHOWN, initials, hueFor, detailFacts, metaLine,
-    groupLinks, tabsToShow, activeTab, capitalise
+    groupLinks, linkDisplay, tabsToShow, activeTab, capitalise
 } from '../src/model/swrlPage';
 
 /**
@@ -138,18 +138,43 @@ describe('groupLinks', () => {
     const tmdb = new Link('https://www.themoviedb.org/movie/1', 'The Movie Database', 'img/tmdb_logo.png');
     const imdb = new Link('https://www.imdb.com/title/tt1/', 'IMDb', 'img/imdb-logo.png');
     const home = new Link('https://film.example/', 'Film Home Page', undefined);
-    const album = new Link('https://music.apple.com/gb/album/1', 'Apple Music', undefined);
+    const album = new Link('https://music.apple.com/gb/album/1', 'iTunes', 'img/itunes.svg');
+    const game = new Link('https://boardgamegeek.com/boardgame/13', 'Geek URL', 'img/bgg.svg');
     it('groups by what the link is for and keeps the order inside a group', () => {
-        const groups = groupLinks([tmdb, home, imdb, album]);
-        expect(groups.map(g => g.title)).toEqual(['Listen', 'Official site', 'Find out more']);
-        expect(groups[2].links).toEqual([tmdb, imdb]);
+        const groups = groupLinks([tmdb, home, imdb, album, game]);
+        expect(groups.map(g => g.title)).toEqual(['Listen', 'Play', 'Official site', 'Find out more']);
+        expect(groups[3].links.map(l => l.name)).toEqual(['The Movie Database', 'IMDb']);
     });
     it('drops links with no address', () => {
-        expect(groupLinks([new Link(undefined, 'Film Home Page', undefined), imdb])).toEqual(
-            [{ title: 'Find out more', links: [imdb] }]);
+        expect(groupLinks([new Link(undefined, 'Film Home Page', undefined), imdb]).map(g => g.title)).toEqual(['Find out more']);
     });
     it('is empty with no links', () => {
         expect(groupLinks([])).toEqual([]);
+    });
+});
+
+describe('linkDisplay', () => {
+    it('gives known sites their proper names, whatever name was saved', () => {
+        expect(linkDisplay(new Link('https://music.apple.com/gb/album/1', 'iTunes', 'img/itunes.svg')))
+            .toEqual({ url: 'https://music.apple.com/gb/album/1', name: 'Apple Music', icon: 'music', group: 'listen' });
+        expect(linkDisplay(new Link('https://podcasts.apple.com/gb/podcast/2', 'iTunes', undefined)).name).toBe('Apple Podcasts');
+        expect(linkDisplay(new Link('https://boardgamegeek.com/boardgame/13', 'Geek URL', undefined)).name).toBe('BoardGameGeek');
+        expect(linkDisplay(new Link('https://videogamegeek.com/videogame/9', 'Geek URL', undefined)))
+            .toMatchObject({ name: 'VideoGameGeek', icon: 'videogame', group: 'play' });
+        expect(linkDisplay(new Link('https://www.imdb.com/title/tt1/', 'imdb', undefined)).name).toBe('IMDb');
+        expect(linkDisplay(new Link('https://openlibrary.org/books/OL1M', 'Open Library', undefined)).icon).toBe('book');
+    });
+    it('calls a home page the official site', () => {
+        expect(linkDisplay(new Link('https://film.example/', 'TV Home Page', undefined))).toMatchObject({ name: 'Official site', icon: 'site', group: 'official' });
+    });
+    it('keeps the name of anything else, with a plain link icon', () => {
+        expect(linkDisplay(new Link('https://en.wikipedia.org/wiki/X', 'Wikipedia', undefined))).toMatchObject({ name: 'Wikipedia', icon: 'link', group: 'more' });
+    });
+    it('does not mistake a look-alike host for a known site', () => {
+        expect(linkDisplay(new Link('https://notimdb.com/x', 'Somewhere', undefined)).name).toBe('Somewhere');
+    });
+    it('copes with an address that is not a URL', () => {
+        expect(linkDisplay(new Link('not a url', 'Odd', undefined)).name).toBe('Odd');
     });
 });
 
