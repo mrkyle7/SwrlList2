@@ -10,6 +10,7 @@ import { StateController } from './stateController';
 import { Collection } from '../constants/Collection';
 import { swrlUser } from '../firebase/login';
 import { showToasterMessage } from '../components/toaster';
+import { searchFailureText } from '../model/searchFailure';
 import { SavedSearch } from '../model/savedSearch';
 import { State } from '../model/state';
 
@@ -284,16 +285,15 @@ function runSearch(stateController, firestore) {
                     .then((result) => {
                         if (result.id === currentSearchID) {
                             clearResults();
-                            processResults(result.results, firestore, searchText, stateController);
+                            processResults(result.results, firestore, searchText, stateController, result.failed || []);
                         }
                         else {
                             console.log('Not the current search, so ignoring the results');
                         }
                     })
                     .catch((err) => {
-                        //TODO: add better view for errors?
                         console.error(err);
-                        showMessage('Error - No results found for ' + searchText)
+                        showMessage("Couldn't search right now. Try again in a moment.");
                     });
             }
         }, 500);
@@ -330,15 +330,18 @@ function clearResults() {
  * @param {import('firebase/firestore').Firestore} firestore
  * @param {string} searchText
  * @param {StateController} stateController
+ * @param {string[]} [failed] sources that could not be reached, named for people
  */
-function processResults(results, firestore, searchText, stateController) {
+function processResults(results, firestore, searchText, stateController, failed = []) {
     results = results.filter(result => {
         return !stateController.currentState.typeFilter
             || result.type.id === stateController.currentState.typeFilter.value
     })
     if (results.length == 0) {
-        showMessage('No results found for ' + searchText);
+        showMessage(failed.length > 0 ? "Couldn't search right now. Try again in a moment." : 'No results found for ' + searchText);
     } else {
+        // some sources answered: show what they found, and say what is missing
+        if (failed.length > 0) showToasterMessage(searchFailureText(failed), { kind: 'warning' });
         resultsShowing = true;
         hideAllMessages();
         // over the results only: with none, the saved searches card sits there

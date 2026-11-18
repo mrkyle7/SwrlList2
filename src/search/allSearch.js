@@ -20,16 +20,15 @@ export class AllSearch extends Search {
      * @param {string} query
      * @param {AbortSignal} signal
      * @param {number} id
-     * @return {Promise<{id: number, results: import('../model/swrl').Swrl[]}>}
+     * @return {Promise<{id: number, results: import('../model/swrl').Swrl[], failed: string[]}>}
      */
     async run(query, signal, id) {
         const all = await Promise.all(this.searches.map(search =>
             search.run(query, signal, id)
-                .then(found => found.results)
                 .catch(error => {
                     console.error(error);
-                    return [];
+                    return { id: id, results: [], failed: [] };
                 })));
-        return { id: id, results: zip(...all) };
+        return { id: id, results: zip(...all.map(found => found.results)), failed: all.flatMap(found => found.failed || []) };
     }
 }

@@ -18,7 +18,7 @@ export class ItunesPodcastGetter extends DetailGetter {
         // to be overidden
         return new Promise(async (resolve, reject) => {
             try {
-                const url = `https://itunes.apple.com/lookup?id=${id}&entity=podcast`;
+                const url = `/api/v1/itunes/lookup?id=${id}&entity=podcast`;
                 const response = await fetch(url, { signal });
                 const results = await response.json();
                 const result = results.results[0];

@@ -1,4 +1,5 @@
 import { zip } from '../utils/zip';
+import { getJson, settle } from './settle';
 import { FILM, TV } from '../constants/Type';
 import { WATCH } from '../constants/Category';
 import { Search } from './search';
@@ -17,7 +18,7 @@ export class WatchSearch extends Search {
     * @param {string} query
     * @param {AbortSignal} signal
     * @param {number} id
-    * @return {Promise<{id: number, results: Swrl[]}>}
+    * @return {Promise<{id: number, results: Swrl[], failed?: string[]}>}
     */
     run(query, signal, id) {
         return new Promise(async (resolve, reject) => {
@@ -29,16 +30,11 @@ export class WatchSearch extends Search {
                 });
             } else {
                 const encodedQuery = encodeURIComponent(query);
-                const searches = [this._filmSearch(encodedQuery, signal), this._TVSearch(encodedQuery, signal)];
-                Promise.all(searches)
-                    .then(function ([filmResults, TVResults]) {
-                        resolve({ id: id, results: zip(filmResults, TVResults) });
-                    })
-                    .catch(function (error) {
-                        console.error('Error getting watch results: ' + JSON.stringify(error))
-                        console.error(error);
-                        resolve({ id: id, results: [] })
-                    })
+                const { results, failed } = await settle([
+                    { name: 'films', run: () => this._filmSearch(encodedQuery, signal) },
+                    { name: 'TV shows', run: () => this._TVSearch(encodedQuery, signal) }
+                ], signal);
+                resolve({ id: id, results: zip(...results), failed });
             }
         })
     }
@@ -49,18 +45,8 @@ export class WatchSearch extends Search {
      * @return {Promise<Swrl[]>}
      */
     _filmSearch(query, signal) {
-        return new Promise(async (resolve, reject) => {
-            const url = `/api/v1/tmdb/search/movie?query=${query}`;
-            try {
-                const response = await fetch(url, { signal });
-                const data = await response.json();
-                resolve(data.results.map(tmdbFilmToSwrl));
-            } catch (error) {
-                console.log('Fetch failed for film search: ' + JSON.stringify(error));
-                console.error(error);
-                resolve([]);
-            }
-        })
+        return getJson(`/api/v1/tmdb/search/movie?query=${query}`, signal)
+            .then(data => (data.results || []).map(tmdbFilmToSwrl));
     }
 
     /**
@@ -68,18 +54,8 @@ export class WatchSearch extends Search {
      * @param {any} signal
      */
     _TVSearch(query, signal) {
-        return new Promise(async (resolve, reject) => {
-            const url = `/api/v1/tmdb/search/tv?query=${query}`;
-            try {
-                const response = await fetch(url, { signal });
-                const data = await response.json();
-                resolve(data.results.map(tmdbTVToSwrl));
-            } catch (error) {
-                console.log('Fetch failed for TV search: ' + JSON.stringify(error));
-                console.error(error);
-                resolve([]);
-            }
-        })
+        return getJson(`/api/v1/tmdb/search/tv?query=${query}`, signal)
+            .then(data => (data.results || []).map(tmdbTVToSwrl));
     }
 }
 
