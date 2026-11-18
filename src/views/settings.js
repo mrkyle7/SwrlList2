@@ -2,9 +2,11 @@ import { UIView } from './UIView';
 import { StateController } from './stateController';
 import { State } from '../model/state';
 import { swrlUser } from '../firebase/login';
-import { getDefaultVisibility, whenListEntriesReady } from '../listeners/listEntries';
+import { getDefaultVisibility, getPageLayout, whenListEntriesReady } from '../listeners/listEntries';
 import { Visibility, visibilityFromId } from '../constants/Visibility';
 import setDefaultVisibility from '../actions/setDefaultVisibility';
+import setSwrlPageLayout from '../actions/setSwrlPageLayout';
+import { PageLayout, pageLayoutFromId } from '../model/swrlPage';
 import deleteAccount from '../actions/deleteAccount';
 import { showToasterMessage } from '../components/toaster';
 
@@ -28,6 +30,8 @@ export class Settings extends UIView {
 const settingsView = document.getElementById('settingsView');
 /** @type {NodeListOf<HTMLInputElement>} */
 const radios = document.querySelectorAll('input[name="defaultVisibility"]');
+/** @type {NodeListOf<HTMLInputElement>} */
+const layoutRadios = document.querySelectorAll('input[name="swrlPageLayout"]');
 /** @type {HTMLButtonElement} */
 // @ts-ignore
 const deleteStart = document.getElementById('deleteAccountStart');
@@ -62,11 +66,15 @@ function showSettings(firestore, stateController) {
     hideConfirmation();
     // the default is read with my entries; wait so the radio is not shown wrongly
     setRadios(undefined);
+    setLayoutRadios(undefined);
     radios.forEach(radio => radio.disabled = true);
+    layoutRadios.forEach(radio => radio.disabled = true);
     whenListEntriesReady().then(() => {
         if (visit !== thisVisit) return;
         radios.forEach(radio => radio.disabled = false);
+        layoutRadios.forEach(radio => radio.disabled = false);
         setRadios(getDefaultVisibility());
+        setLayoutRadios(getPageLayout());
     });
 }
 
@@ -84,6 +92,10 @@ function bind(firestore, stateController) {
     radios.forEach(radio => radio.addEventListener('change', () => {
         if (!radio.checked) return;
         saveDefault(visibilityFromId(radio.value), firestore);
+    }));
+    layoutRadios.forEach(radio => radio.addEventListener('change', () => {
+        if (!radio.checked) return;
+        saveLayout(pageLayoutFromId(radio.value), firestore);
     }));
     deleteStart.addEventListener('click', () => {
         deleteConfirm.classList.remove('hidden');
@@ -116,6 +128,37 @@ function saveDefault(visibility, firestore) {
             // the in-memory default only changes when everything was written
             setRadios(getDefaultVisibility());
         });
+}
+
+/**
+ * Saves the swrl page layout at once. On failure the radio goes back to what
+ * is stored and the user is told.
+ *
+ * @param {PageLayout} layout
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+function saveLayout(layout, firestore) {
+    const thisVisit = visit;
+    layoutRadios.forEach(radio => radio.disabled = true);
+    setSwrlPageLayout(layout, firestore)
+        .then(() => showToasterMessage(`Swrl pages now use the ${layout.label.toLowerCase()} layout`))
+        .catch(error => {
+            console.error('Could not change the swrl page layout');
+            console.error(error);
+            showToasterMessage("Couldn't change how swrl pages look");
+        })
+        .finally(() => {
+            if (visit !== thisVisit) return;
+            layoutRadios.forEach(radio => radio.disabled = false);
+            setLayoutRadios(getPageLayout());
+        });
+}
+
+/**
+ * @param {PageLayout | undefined} layout the one to tick; undefined clears them all
+ */
+function setLayoutRadios(layout) {
+    layoutRadios.forEach(radio => radio.checked = layout !== undefined && radio.value === layout.id);
 }
 
 /**

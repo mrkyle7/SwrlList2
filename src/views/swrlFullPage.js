@@ -10,12 +10,17 @@ import { State } from '../model/state';
 import { getSwrler } from '../firebase/swrler';
 import { swrlUser } from '../firebase/login';
 import { Collection } from '../constants/Collection';
-import { recommendationsInboxCache, recommendationsSentCache, isRecommendedToMe } from '../listeners/recommendations';
-import { whenListEntriesReady } from '../listeners/listEntries';
+import { recommendationsSentCache, inboxRecommendationsFor } from '../listeners/recommendations';
+import { getPageLayout, whenListEntriesReady } from '../listeners/listEntries';
 import { getEntriesForSwrl } from '../firebase/swrlEntries';
 import { Recommendation } from '../model/recommendation';
 import { Swrl } from '../model/swrl';
+import { TABS, activeTab, capitalise, metaLine, tabsToShow } from '../model/swrlPage';
 import { addAddButton, addLoveButton, addRecommendButton, addDoneButton } from '../components/buttons';
+import { drawTabs, markActiveTab } from '../components/pageTabs';
+import {
+    avatar, buildCast, buildLinks, buildRatings, buildStory, element, pageBlock
+} from '../components/swrlPageSections';
 import { FULL_PAGE } from '../constants/View';
 import { WATCH } from '../constants/Category';
 
@@ -25,20 +30,31 @@ const pageButtons = swrlFullPageView.querySelector('.pageButtons');
 /** @type {HTMLTemplateElement} */
 // @ts-ignore
 const swrlButtonsTemplate = document.getElementById('swrlPageButtons');
-const swrlFullPageCards = document.getElementById('swrlFullPageCards');
-const swrlFullPageSocialCards = document.getElementById('swrlFullPageSocialCards');
-const swrlFullPageRecommendations = document.getElementById('swrlFullPageRecommendations');
-const loadingbar = document.querySelector('#swrlImageContainer .loadingbar')
-/** @type {HTMLTemplateElement} */
-// @ts-ignore
-const swrlPageCardTemplate = document.getElementById('swrlPageCard');
-/** @type {HTMLTemplateElement} */
-// @ts-ignore
-const swrlPageSubCardTemplate = document.getElementById('swrlPageSubCard');
+const hero = document.getElementById('swrlImageContainer');
+const heroType = document.getElementById('swrlHeroType');
+const heroTitle = document.getElementById('swrlHeroTitle');
+const heroMeta = document.getElementById('swrlHeroMeta');
+const heroGenres = document.getElementById('swrlHeroGenres');
+const heroTagline = document.getElementById('swrlHeroTagline');
+const loadingbar = document.querySelector('#swrlImageContainer .loadingbar');
+const tabBar = document.getElementById('swrlFullPageTabs');
+const detailsContainer = document.getElementById('swrlFullPageCards');
+const castContainer = document.getElementById('pageSection-cast');
+const linksContainer = document.getElementById('pageSection-links');
+const friendsContainer = document.getElementById('pageSection-friends');
+
+/** The page's sections, by the id of the tab that shows each. */
+const sectionIds = ['friends', 'overview', 'cast', 'links'];
 
 /** @type {AbortController} */
 let detailController = undefined;
 let searchId = undefined;
+/** Changes whenever the page is shown or closed, so a late result is not added to the wrong page. */
+let socialCardsToken = undefined;
+/** The tab open in the tab layout. */
+let openTab = 'overview';
+/** People who have swrled this to me, shown on the Friends tab. */
+let friendsBadge = 0;
 
 export class SwrlFullPage extends UIView {
     /**
@@ -60,12 +76,21 @@ export class SwrlFullPage extends UIView {
 /** @type {HTMLImageElement} */
 // @ts-ignore
 const swrlImageLarge = document.getElementById('swrlImageLarge');
+swrlImageLarge.addEventListener('error', () => {
+    console.error('could not load image');
+    if (!swrlImageLarge.src.endsWith('img/NoPoster.jpg')) {
+        swrlImageLarge.src = 'img/NoPoster.jpg';
+    }
+});
+
 /**
  * @param {StateController} stateController
  */
 async function showSwrlFullPage(stateController) {
     swrlFullPageView.classList.remove('hidden');
     socialCardsToken = Math.random();
+    openTab = 'overview';
+    friendsBadge = 0;
     const swrl = stateController.currentState.swrl;
     const firestore = stateController.firestore;
     showAttribution('swrlAttribution', swrl.type.attribution);
@@ -74,20 +99,7 @@ async function showSwrlFullPage(stateController) {
     showSwrlVisibility(swrl, firestore);
     showShareBanner(stateController);
 
-    swrlImageLarge.src = swrl.details.imageUrl;
-    swrlImageLarge.addEventListener('error',
-        /**
-         * @param {Event} e
-         */
-        (e) => {
-            console.error('could not load image');
-            /** @type {HTMLImageElement} */
-            // @ts-ignore
-            const image = e.target;
-            if (image) {
-                image.src = 'img/NoPoster.jpg';
-            }
-        });
+    renderHero(swrl);
 
     const buttons = swrlButtonsTemplate.content.cloneNode(true);
 
@@ -121,7 +133,6 @@ async function showSwrlFullPage(stateController) {
                 }
             }
 
-
             pageButtons.querySelector('.swrlButtonSpinner').classList.add('hidden');
 
             addAddButton(FULL_PAGE, swrlFullPageView, currentSwrl, firestore, null, null);
@@ -129,7 +140,9 @@ async function showSwrlFullPage(stateController) {
             addRecommendButton(swrlFullPageView, currentSwrl, stateController);
             addDoneButton(swrlFullPageView, currentSwrl, firestore, null, FULL_PAGE);
 
-            renderSocialCards(currentSwrl, swrlPageCardTemplate, swrlPageSubCardTemplate, firestore, stateController);
+            // my layout is read with my entries, so it may only be known now
+            applyLayout();
+            renderFriends(currentSwrl, firestore, stateController);
             updateDetails(swrl, swrlExists, firestore, stateController);
 
         })
@@ -144,215 +157,274 @@ async function showSwrlFullPage(stateController) {
             addLoveButton(FULL_PAGE, swrl, swrlFullPageView, firestore, null);
             addRecommendButton(swrlFullPageView, swrl, stateController);
             addDoneButton(swrlFullPageView, swrl, firestore, null, FULL_PAGE);
-            renderSocialCards(swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, firestore, stateController);
+            renderFriends(swrl, firestore, stateController);
             updateDetails(swrl, swrlExists, firestore, stateController);
         })
 
-
-    renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl, stateController);
+    renderDetailSections(swrl, stateController);
 }
 
 /**
- * 
- * @param {Swrl} swrl 
- * @param {HTMLTemplateElement} swrlPageCardTemplate 
- * @param {HTMLTemplateElement} swrlPageSubCardTemplate 
- * @param {import('firebase/firestore').Firestore} firestore 
- * @param {StateController} stateController
+ * The header: poster, kind, title, who and when, genres and tagline, on a
+ * band in the colour of the swrl's category.
+ *
+ * @param {Swrl} swrl
  */
-const renderSocialCards = (swrl, swrlPageCardTemplate, swrlPageSubCardTemplate, firestore, stateController) => {
-    try {
-        if (isRecommendedToMe(swrl.swrlID)
-            || swrl.recommendations.some(id => recommendationsSentCache.hasOwnProperty(id))) {
-            /** @type {HTMLElement} */
-            // @ts-ignore
-            const recommendationsCard = swrlPageCardTemplate.content.cloneNode(true);
-            const $recommendationsCard = recommendationsCard.querySelector.bind(recommendationsCard);
-            $recommendationsCard('.cardTitle').innerText = 'Swrls';
-            $recommendationsCard('.cardContent').querySelector('.loadingSpinnerSmall').classList.add('hidden');
-            if (isRecommendedToMe(swrl.swrlID)) {
-                /** @type {HTMLElement} */
-                // @ts-ignore
-                const subSection = swrlPageSubCardTemplate.content.cloneNode(true);
-                const $subSection = subSection.querySelector.bind(subSection);
-                const subSectionDiv = $subSection('div');
-                $subSection('.cardSubTitle').innerText = 'To you';
-                const spinner = $subSection('.cardContent').querySelector('.loadingSpinnerSmall');
-                $recommendationsCard('.cardContent').appendChild(subSection);
-                const subContent = $subSection('.cardContent');
-                /** @type Recommendation[] */
-                const recommendations = [];
-                Object.keys(recommendationsInboxCache).forEach(i => {
-                    /** @type Recommendation */
-                    const recommendation = recommendationsInboxCache[i];
-                    if (recommendation.swrlID === swrl.swrlID) {
-                        recommendations.push(recommendation);
-                    }
-                });
-                recommendations.forEach(async (recommendation, idx, arr) => {
-                    try {
-                        const fromSwrler = await getSwrler(recommendation.from, firestore);
-                        if (fromSwrler) {
-                            const recommender = getSwrlerSmall(fromSwrler, stateController);
-                            if (subSectionDiv) {
-                                subSectionDiv.querySelector('.cardContent').appendChild(recommender);
-                                const recommendationMessageTemplate = document.getElementById('recommendationMessage');
-                                /** @type {HTMLElement} */
-                                // @ts-ignore
-                                const recommendationMessageFragment = recommendationMessageTemplate.content.cloneNode(true);
-                                const $recommendationMessage = recommendationMessageFragment.querySelector.bind(recommendationMessageFragment);
-                                $recommendationMessage('.recommenderMessage').innerText = recommendation.message;
-                                subSectionDiv.querySelector('.cardContent').appendChild(recommendationMessageFragment);
-                            }
-                        }
-                    }
-                    catch (err) {
-                        console.error(err);
-                    }
-                    if (idx === arr.length - 1) {
-                        if (spinner) {
-                            spinner.classList.add('hidden');
-                        }
-                    }
-                });
-            }
-            if (swrl.recommendations.some(id => recommendationsSentCache.hasOwnProperty(id))) {
-                /** @type {HTMLElement} */
-                // @ts-ignore
-                const subSection = swrlPageSubCardTemplate.content.cloneNode(true);
-                const $subSection = subSection.querySelector.bind(subSection);
-                const subSectionDiv = $subSection('div');
-                $subSection('.cardSubTitle').innerText = 'From you';
-                const spinner = $subSection('.cardContent').querySelector('.loadingSpinnerSmall');
-                $recommendationsCard('.cardContent').appendChild(subSection);
-                /** @type Recommendation[] */
-                const recommendations = [];
-                Object.keys(recommendationsSentCache).forEach(i => {
-                    /** @type Recommendation */
-                    const recommendation = recommendationsSentCache[i];
-                    if (recommendation.swrlID === swrl.swrlID) {
-                        recommendations.push(recommendation);
-                    }
-                });
-                recommendations.forEach(async (recommendation, idx, arr) => {
-                    try {
-                        const toSwrlers = await Promise.all(recommendation.to
-                            .map(
-                                /**
-                                  * @param {string} uid
-                                 */
-                                async (uid) => {
-                                    const swrler = await getSwrler(uid, firestore);
-                                    if (swrler) {
-                                        return swrler.displayName;
-                                    }
-                                    else {
-                                        return undefined;
-                                    }
-                                }));
-                        const toSwrlersText = 'To: ' + toSwrlers
-                            .filter(displayName => displayName !== undefined)
-                            .join(', ');
-                        if (subSectionDiv) {
-                            const recommendationMessageTemplate = document.getElementById('recommendationMessage');
-                            /** @type {HTMLElement} */
-                            // @ts-ignore
-                            const recommendationToFragment = recommendationMessageTemplate.content.cloneNode(true);
-                            const $recommendationTo = recommendationToFragment.querySelector.bind(recommendationToFragment);
-                            $recommendationTo('.recommenderMessage').innerText = toSwrlersText;
-                            subSectionDiv.querySelector('.cardContent').appendChild(recommendationToFragment);
-                            /** @type {HTMLElement} */
-                            // @ts-ignore
-                            const recommendationMessageFragment = recommendationMessageTemplate.content.cloneNode(true);
-                            const $recommendationMessage = recommendationMessageFragment.querySelector.bind(recommendationMessageFragment);
-                            $recommendationMessage('.recommenderMessage').innerText = recommendation.message;
-                            subSectionDiv.querySelector('.cardContent').appendChild(recommendationMessageFragment);
-                        }
-                    }
-                    catch (err) {
-                        console.error(err);
-                    }
-                    if (idx === arr.length - 1) {
-                        if (spinner) {
-                            spinner.classList.add('hidden');
-                        }
-                    }
-                });
-            }
-            swrlFullPageRecommendations.appendChild(recommendationsCard);
-        }
-    }
-    catch (err) {
-        console.error('could not render recommendations');
-        console.error(err);
-    }
-    renderSwrlersCard(swrl, firestore, stateController);
+function renderHero(swrl) {
+    const details = swrl.details;
+    hero.dataset.category = swrl.category ? swrl.category.name : '';
+    swrlImageLarge.src = details.imageUrl;
+    swrlImageLarge.alt = `Cover of ${details.title}`;
+    heroType.textContent = capitalise(swrl.type.displayName);
+    heroTitle.textContent = details.title;
+    heroMeta.textContent = metaLine(details);
+    heroMeta.classList.toggle('hidden', !heroMeta.textContent);
+    heroGenres.replaceChildren(...details.genres.map(genre => element('span', 'pageHeroChip', genre)));
+    heroTagline.textContent = details.tagline ? `“${details.tagline.replace(/^["“]|["”]$/g, '')}”` : '';
+    heroTagline.classList.toggle('hidden', !details.tagline);
 }
 
-/** Changes whenever the page is shown or closed, so a late result is not added to the wrong page. */
-let socialCardsToken = undefined;
+/**
+ * Lays the page out the way the user likes it: one scrolling page, or tabs
+ * with one section at a time. Safe to call again whenever something that
+ * affects the tabs changes (details arriving, the badge).
+ */
+function applyLayout() {
+    const layout = getPageLayout();
+    const tabsLayout = layout === TABS;
+    swrlFullPageView.dataset.layout = layout.id;
+    tabBar.classList.toggle('hidden', !tabsLayout);
+    if (!tabsLayout) {
+        sectionIds.forEach(id => document.getElementById(`pageSection-${id}`).classList.remove('hidden'));
+        return;
+    }
+    const tabs = tabsToShow({
+        overview: true,
+        cast: castContainer.childElementCount > 0,
+        links: linksContainer.childElementCount > 0
+    });
+    openTab = activeTab(tabs, openTab);
+    drawTabs(tabBar, tabs, openTab, { friends: friendsBadge }, id => {
+        openTab = id;
+        showOpenSection();
+        markActiveTab(tabBar, openTab);
+    });
+    showOpenSection();
+}
 
-/** The Swrlers card's sections: title and the entry flag that puts someone in it. */
+/** In the tab layout, shows only the open tab's section. */
+function showOpenSection() {
+    sectionIds.forEach(id => document.getElementById(`pageSection-${id}`).classList.toggle('hidden', id !== openTab));
+}
+
+/**
+ * Opens a search for the films and shows a person has worked on.
+ *
+ * @param {import('../model/swrlPage').Person} person
+ * @param {StateController} stateController
+ */
+function searchForPerson(person, stateController) {
+    const searchView = new State(stateController.searchView);
+    searchView.selectedCategory = WATCH;
+    searchView.searchTerms = `personID:${person.id}`;
+    stateController.changeState(searchView);
+}
+
+/**
+ * Opens a swrler's list.
+ *
+ * @param {import('firebase/auth').User} swrler
+ * @param {StateController} stateController
+ */
+function openSwrler(swrler, stateController) {
+    const swrlerList = new State(stateController.swrlerLaterView);
+    swrlerList.swrler = swrler;
+    stateController.changeState(swrlerList);
+}
+
+/**
+ * A row of someone's face and a sentence, which opens their list.
+ *
+ * @param {import('firebase/auth').User} swrler
+ * @param {string} text
+ * @param {StateController} stateController
+ * @return {HTMLElement}
+ */
+function swrlerRow(swrler, text, stateController) {
+    const row = /** @type {HTMLButtonElement} */ (element('button', 'who whoLink'));
+    row.type = 'button';
+    row.appendChild(avatar(swrler.displayName, swrler.photoURL, 'avatarSmall'));
+    row.appendChild(element('span', 'whoText', text));
+    row.addEventListener('click', () => openSwrler(swrler, stateController));
+    return row;
+}
+
+/**
+ * @param {string} message
+ * @return {HTMLElement}
+ */
+function quote(message) {
+    return element('p', 'quote', message);
+}
+
+/**
+ * Who sent me this swrl and what they said.
+ *
+ * @param {Swrl} swrl
+ * @param {import('firebase/firestore').Firestore} firestore
+ * @param {StateController} stateController
+ * @return {Promise<HTMLElement[]>}
+ */
+async function recommendationsToMe(swrl, firestore, stateController) {
+    const cards = await Promise.all(inboxRecommendationsFor(swrl.swrlID).map(
+        /** @param {Recommendation} recommendation */
+        async recommendation => {
+            try {
+                const from = await getSwrler(recommendation.from, firestore);
+                if (!from) return undefined;
+                const card = element('div', 'socialCard');
+                card.appendChild(swrlerRow(from, `${from.displayName} swrled you this`, stateController));
+                if (recommendation.message) card.appendChild(quote(recommendation.message));
+                return card;
+            } catch (err) {
+                console.error(err);
+                return undefined;
+            }
+        }));
+    return cards.filter(card => card !== undefined);
+}
+
+/**
+ * Who I have swrled this to and what I said.
+ *
+ * @param {Swrl} swrl
+ * @param {import('firebase/firestore').Firestore} firestore
+ * @return {Promise<HTMLElement[]>}
+ */
+async function recommendationsFromMe(swrl, firestore) {
+    /** @type {Recommendation[]} */
+    const sent = swrl.recommendations
+        .filter(id => recommendationsSentCache.hasOwnProperty(id))
+        .map(id => recommendationsSentCache[id])
+        .filter(recommendation => recommendation.swrlID === swrl.swrlID);
+    const cards = await Promise.all(sent.map(async recommendation => {
+        try {
+            const swrlers = await Promise.all(recommendation.to.map(uid => getSwrler(uid, firestore)));
+            const names = swrlers.filter(swrler => swrler).map(swrler => swrler.displayName);
+            if (names.length === 0) return undefined;
+            const card = element('div', 'socialCard');
+            const who = element('div', 'who');
+            who.appendChild(element('span', 'whoText', `You swrled this to ${names.join(', ')}`));
+            card.appendChild(who);
+            if (recommendation.message) card.appendChild(quote(recommendation.message));
+            return card;
+        } catch (err) {
+            console.error(err);
+            return undefined;
+        }
+    }));
+    return cards.filter(card => card !== undefined);
+}
+
+/** The groups of people on the card of who has a swrl: title and the entry flag that puts someone in it. */
 const swrlersCardSections = [['Later', 'later'], ['Done', 'done'], ['Loved', 'loved']];
 
 /**
- * The "Swrlers" card: who has the swrl on later, done or loved, as far as I
- * may know. That is me (own entries), my friends' entries I may read and
- * everyone with a public entry (see swrlersCardSources). The card only
- * appears when someone qualifies. The counts on the swrl stay anonymous and
- * include private entries, so they can be higher than the names shown.
+ * The card of who has the swrl on later, done or loved, as far as I may
+ * know. That is me (own entries), my friends' entries I may read and
+ * everyone with a public entry (see swrlersCardSources). The counts on the
+ * swrl stay anonymous and include private entries, so they can be higher than
+ * the names shown.
+ *
+ * @param {Swrl} swrl
+ * @param {import('firebase/firestore').Firestore} firestore
+ * @param {StateController} stateController
+ * @return {Promise<HTMLElement[]>} one card, or none when nobody qualifies
+ */
+async function swrlersCard(swrl, firestore, stateController) {
+    try {
+        const entries = (await getEntriesForSwrl(swrl.swrlID, firestore))
+            .filter(entry => entry.later || entry.done || entry.loved);
+        if (entries.length === 0) return [];
+        const uids = [...new Set(entries.map(entry => entry.uid))];
+        const swrlers = new Map();
+        await Promise.all(uids.map(async uid => {
+            try {
+                const swrler = await getSwrler(uid, firestore);
+                if (swrler) swrlers.set(uid, swrler);
+            } catch (err) {
+                console.error('could not add swrler');
+                console.error(err);
+            }
+        }));
+        if (swrlers.size === 0) return [];
+        const card = element('div', 'socialCard');
+        const heading = element('div', 'who');
+        const faces = element('span', 'faceStack');
+        [...swrlers.values()].slice(0, 5).forEach(swrler =>
+            faces.appendChild(avatar(swrler.displayName, swrler.photoURL, 'avatarSmall')));
+        heading.appendChild(faces);
+        heading.appendChild(element('span', 'whoText',
+            swrlers.size === 1 ? '1 person has this on a list' : `${swrlers.size} people have this on a list`));
+        card.appendChild(heading);
+        swrlersCardSections.forEach(([title, flag]) => {
+            const people = entries.filter(entry => entry[flag]).map(entry => swrlers.get(entry.uid)).filter(s => s);
+            if (people.length === 0) return;
+            const group = element('div', 'swrlerGroup');
+            group.appendChild(element('span', 'swrlerGroupTitle', title));
+            const chips = element('div', 'swrlerChips');
+            people.forEach(swrler => {
+                const chip = /** @type {HTMLButtonElement} */ (element('button', 'swrlerChip'));
+                chip.type = 'button';
+                chip.appendChild(avatar(swrler.displayName, swrler.photoURL, 'avatarTiny'));
+                chip.appendChild(element('span', undefined, swrler.displayName));
+                chip.addEventListener('click', () => openSwrler(swrler, stateController));
+                chips.appendChild(chip);
+            });
+            group.appendChild(chips);
+            card.appendChild(group);
+        });
+        return [card];
+    } catch (err) {
+        console.error('could not render swrlers');
+        console.error(err);
+        return [];
+    }
+}
+
+/**
+ * The Friends section: who swrled this to me, who I swrled it to, and who has
+ * it on a list. It always shows something, so its tab is never blank.
  *
  * @param {Swrl} swrl
  * @param {import('firebase/firestore').Firestore} firestore
  * @param {StateController} stateController
  */
-async function renderSwrlersCard(swrl, firestore, stateController) {
+async function renderFriends(swrl, firestore, stateController) {
     const token = socialCardsToken;
-    try {
-        const entries = await getEntriesForSwrl(swrl.swrlID, firestore);
-        if (token !== socialCardsToken) return;
-        if (!entries.some(entry => entry.later || entry.done || entry.loved)) return;
-        console.log('Show Swrlers');
-        /** @type {HTMLElement} */
-        // @ts-ignore
-        const swrlersCard = swrlPageCardTemplate.content.cloneNode(true);
-        const $swrlersCard = swrlersCard.querySelector.bind(swrlersCard);
-        $swrlersCard('.cardTitle').innerText = 'Swrlers';
-        $swrlersCard('.cardContent').querySelector('.loadingSpinnerSmall').classList.add('hidden');
-        swrlersCardSections.forEach(([title, flag]) => {
-            const uids = entries.filter(entry => entry[flag]).map(entry => entry.uid);
-            if (uids.length === 0) return;
-            /** @type {HTMLElement} */
-            // @ts-ignore
-            const subSection = swrlPageSubCardTemplate.content.cloneNode(true);
-            const $subSection = subSection.querySelector.bind(subSection);
-            const subSectionDiv = $subSection('div');
-            $subSection('.cardSubTitle').innerText = title;
-            const spinner = $subSection('.cardContent').querySelector('.loadingSpinnerSmall');
-            $swrlersCard('.cardContent').appendChild(subSection);
-            uids.forEach(async (uid, idx, arr) => {
-                try {
-                    const swrler = await getSwrler(uid, firestore);
-                    if (swrler && subSectionDiv) {
-                        subSectionDiv.querySelector('.cardContent').appendChild(getSwrlerSmall(swrler, stateController));
-                    }
-                }
-                catch (err) {
-                    console.error('could not add swrler');
-                    console.error(err);
-                }
-                if (idx === arr.length - 1) {
-                    if (spinner) {
-                        spinner.classList.add('hidden');
-                    }
-                }
-            });
-        });
-        swrlFullPageSocialCards.appendChild(swrlersCard);
-    }
-    catch (err) {
-        console.error('could not render swrlers');
-        console.error(err);
+    friendsContainer.replaceChildren();
+    const { block, body } = pageBlock('Friends', { tabTitle: true });
+    const social = element('div', 'social');
+    const loading = document.createElement('img');
+    loading.className = 'loadingSpinnerSmall';
+    loading.src = 'img/spinner.gif';
+    loading.alt = 'Loading';
+    social.appendChild(loading);
+    body.appendChild(social);
+    friendsContainer.appendChild(block);
+
+    const [toMe, fromMe, onLists] = await Promise.all([
+        recommendationsToMe(swrl, firestore, stateController),
+        recommendationsFromMe(swrl, firestore),
+        swrlersCard(swrl, firestore, stateController)
+    ]);
+    if (token !== socialCardsToken) return;
+    const cards = [...toMe, ...fromMe, ...onLists];
+    social.replaceChildren(...(cards.length > 0 ? cards :
+        [element('p', 'pageEmpty', 'None of your friends have this on a list yet. Swrl it to a friend and see what they think.')]));
+    if (toMe.length !== friendsBadge) {
+        friendsBadge = toMe.length;
+        applyLayout();
     }
 }
 
@@ -367,14 +439,13 @@ function updateDetails(swrl, swrlExists, firestore, stateController) {
                 if (result && result.details && result.id === searchId) {
                     const updatedSwrl = swrl;
                     updatedSwrl.details = result.details;
-                    swrlImageLarge.src = updatedSwrl.details.imageUrl;
                     if (swrlExists) {
                         const firestoreData = updatedSwrl.toPartialFireStoreData();
                         setDoc(doc(firestore, Collection.SWRLS, updatedSwrl.swrlID), firestoreData,
                             { merge: true });
                     }
-                    destroyDetailCards();
-                    renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, updatedSwrl, stateController);
+                    renderHero(updatedSwrl);
+                    renderDetailSections(updatedSwrl, stateController);
                     console.log('got new details');
                     loadingbar.classList.add('hidden');
                 }
@@ -393,227 +464,23 @@ function updateDetails(swrl, swrlExists, firestore, stateController) {
 }
 
 /**
- * @param {HTMLTemplateElement} swrlPageCardTemplate
- * @param {HTMLTemplateElement} swrlPageSubCardTemplate
+ * Fills the overview (ratings and the story), cast and links sections from a
+ * swrl's details, replacing what was there, then lays the page out again.
+ *
  * @param {Swrl} swrl
  * @param {StateController} stateController
  */
-function renderDetailCards(swrlPageCardTemplate, swrlPageSubCardTemplate, swrl, stateController) {
-    /** @type {HTMLElement} */
-    // @ts-ignore
-    const detailsCard = swrlPageCardTemplate.content.cloneNode(true);
-    let $detailsCard = detailsCard.querySelector.bind(detailsCard);
-    $detailsCard('.cardContent').querySelector('.loadingSpinnerSmall').classList.add('hidden');
-
-    $detailsCard('.cardTitle').innerText = 'Details';
-
-    addTextDetails('Title', swrl.details.getFullTitle());
-    addTextDetails('Artist', swrl.details.artist);
-    addTextDetails('Author', swrl.details.author);
-    addTextDetails('Designers', swrl.details.designers.length > 0 ?
-        swrl.details.designers.join(', ') : undefined);
-    addTextDetails('Platforms', swrl.details.platforms.length > 0 ?
-        swrl.details.platforms.join(', ') : undefined);
-    addTextDetails('Publishers', swrl.details.publishers.length > 0 ?
-        swrl.details.publishers.join(', ') : undefined);
-    addTextDetails('Genres', swrl.details.genres.length > 0 ?
-        swrl.details.genres.join(', ') : undefined);
-    addTextDetails('Tagline', swrl.details.tagline);
-    addTextDetails('Overview', swrl.details.overview);
-    if (swrl.details.tMDBActors.length === 0) {
-        addTextDetails('Actors', swrl.details.actors.length > 0 ?
-            swrl.details.actors.join(', ') : undefined);
-    }
-    if (swrl.details.tMDBDirectors.length === 0) {
-        addTextDetails('Director', swrl.details.director);
-    }
-    addTextDetails('Runtime', swrl.details.runtime);
-    addTextDetails('Average Episode Length', swrl.details.averageEpisodeLength);
-    addTextDetails('Player Count', swrl.details.playerCount);
-    addTextDetails('2 Player Recommendation', swrl.details.twoPlayerRecommendation);
-    addTextDetails('Playing Time', swrl.details.playingTime);
-    addTextDetails('Number of Seasons', swrl.details.numberOfSeasons !== undefined ?
-        swrl.details.numberOfSeasons.toString() : undefined);
-    addTextDetails('Last Air Date', swrl.details.lastAirDate);
-
-
-    swrlFullPageCards.appendChild(detailsCard);
-
-    if (swrl.details.tMDBDirectors.length > 0) {
-        /** @type {HTMLElement} */
-        // @ts-ignore
-        const directorsCard = swrlPageCardTemplate.content.cloneNode(true);
-        const $directorsCard = directorsCard.querySelector.bind(directorsCard);
-        $directorsCard('.cardContent').querySelector('.loadingSpinnerSmall').classList.add('hidden');
-
-        $directorsCard('.cardTitle').innerText = 'Directors';
-
-        swrl.details.tMDBDirectors.forEach(person => {
-
-            // @ts-ignore
-            const linkElementFragment = document.getElementById('personLink').content.cloneNode(true);
-            const linkElementDiv = linkElementFragment.querySelector('div');
-
-            linkElementFragment.querySelector('.personLinkImage').src = person.imageUrl;
-            linkElementFragment.querySelector('.personLinkImage').title = person.name;
-            linkElementFragment.querySelector('.personLinkText').innerText = person.name;
-
-            linkElementDiv.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const searchView = new State(stateController.searchView);
-                searchView.selectedCategory = WATCH;
-                searchView.searchTerms = `personID:${person.id}`;
-                stateController.changeState(searchView);
-            })
-            $directorsCard('.cardContent').appendChild(linkElementFragment);
-        })
-
-        swrlFullPageCards.appendChild(directorsCard);
-    }
-
-
-    if (swrl.details.tMDBActors.length > 0) {
-        /** @type {HTMLElement} */
-        // @ts-ignore
-        const actorsCard = swrlPageCardTemplate.content.cloneNode(true);
-        const $actorsCard = actorsCard.querySelector.bind(actorsCard);
-        $actorsCard('.cardContent').querySelector('.loadingSpinnerSmall').classList.add('hidden');
-
-        $actorsCard('.cardTitle').innerText = 'Actors';
-
-        swrl.details.tMDBActors.forEach(person => {
-
-            // @ts-ignore
-            const linkElementFragment = document.getElementById('personLink').content.cloneNode(true);
-            const linkElementDiv = linkElementFragment.querySelector('div');
-
-            linkElementFragment.querySelector('.personLinkImage').src = person.imageUrl;
-            linkElementFragment.querySelector('.personLinkImage').title = person.name;
-            linkElementFragment.querySelector('.personLinkText').innerText = person.name;
-
-            linkElementDiv.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const searchView = new State(stateController.searchView);
-                searchView.selectedCategory = WATCH;
-                searchView.searchTerms = `personID:${person.id}`;
-                stateController.changeState(searchView);
-            })
-            $actorsCard('.cardContent').appendChild(linkElementFragment);
-        })
-
-        swrlFullPageCards.appendChild(actorsCard);
-    }
-
-    if (swrl.details.links.length > 0) {
-        /** @type {HTMLElement} */
-        // @ts-ignore
-        const linksCard = swrlPageCardTemplate.content.cloneNode(true);
-        const $linksCard = linksCard.querySelector.bind(linksCard);
-        $linksCard('.cardContent').querySelector('.loadingSpinnerSmall').classList.add('hidden');
-
-        $linksCard('.cardTitle').innerText = 'Links';
-
-        swrl.details.links.forEach(link => {
-            const linkElement = document.createElement('a');
-            linkElement.href = link.url;
-            linkElement.target = '_blank';
-            if (link.logo !== undefined && link.logo !== null) {
-                const image = document.createElement('img');
-                image.classList.add('smallLink');
-                image.src = link.logo;
-                image.alt = link.name;
-                image.title = link.name;
-                linkElement.appendChild(image);
-            } else {
-                linkElement.innerText = link.name;
-                linkElement.classList.add('smallLink');
-            }
-            $linksCard('.cardContent').appendChild(linkElement);
-        })
-
-        swrlFullPageCards.appendChild(linksCard);
-    }
-
-    if (swrl.details.networks.length > 0) {
-        /** @type {HTMLElement} */
-        // @ts-ignore
-        const networksCard = swrlPageCardTemplate.content.cloneNode(true);
-        const $networksCard = networksCard.querySelector.bind(networksCard);
-        $networksCard('.cardContent').querySelector('.loadingSpinnerSmall').classList.add('hidden');
-
-        $networksCard('.cardTitle').innerText = 'Networks';
-
-        swrl.details.networks.forEach(network => {
-            const span = document.createElement('span');
-            if (network.logo !== undefined) {
-                const image = document.createElement('img');
-                image.classList.add('smallLink');
-                image.src = network.logo;
-                image.alt = network.name;
-                image.title = network.name;
-                span.appendChild(image);
-            } else {
-                span.innerText = network.name;
-            }
-            $networksCard('.cardContent').appendChild(span);
-        })
-
-        swrlFullPageCards.appendChild(networksCard);
-    }
-
-    if (swrl.details.ratings.length > 0) {
-        /** @type {HTMLElement} */
-        // @ts-ignore
-        const ratingsCard = swrlPageCardTemplate.content.cloneNode(true);
-        const $ratingsCard = ratingsCard.querySelector.bind(ratingsCard);
-        $ratingsCard('.cardContent').querySelector('.loadingSpinnerSmall').classList.add('hidden');
-
-        $ratingsCard('.cardTitle').innerText = 'Ratings';
-
-        /** @type {HTMLTemplateElement} */
-        // @ts-ignore
-        const ratingTemplate = document.getElementById('rating');
-        swrl.details.ratings.forEach(rating => {
-
-            /** @type {HTMLElement} */
-            // @ts-ignore
-            const ratingElement = ratingTemplate.content.cloneNode(true);
-
-            if (rating.logo) {
-                ratingElement.querySelector('img').src = rating.logo;
-                ratingElement.querySelector('img').alt = rating.source;
-                ratingElement.querySelector('img').title = rating.source;
-                ratingElement.querySelector('span').innerText = rating.rating;
-            } else {
-                ratingElement.querySelector('img').classList.add('hidden');
-                ratingElement.querySelector('span').innerText = `${rating.source}: ${rating.rating}`;
-            }
-
-            $ratingsCard('.cardContent').appendChild(ratingElement);
-        })
-
-        swrlFullPageCards.appendChild(ratingsCard);
-    }
-
-
-    /**
-     * @param {string} title
-     * @param {string} content
-     */
-    function addTextDetails(title, content) {
-        if (content !== undefined && content !== null) {
-            /** @type {HTMLElement} */
-            // @ts-ignore
-            const subSection = swrlPageSubCardTemplate.content.cloneNode(true);
-            const $subSection = subSection.querySelector.bind(subSection);
-            $subSection('.cardSubTitle').innerText = title;
-            const subContent = $subSection('.cardContent');
-            subContent.innerText = content;
-            $detailsCard('.cardContent').appendChild(subSection);
-        }
-    }
+function renderDetailSections(swrl, stateController) {
+    const details = swrl.details;
+    destroyDetailSections();
+    [buildRatings(details), buildStory(details)]
+        .filter(block => block !== undefined)
+        .forEach(block => detailsContainer.appendChild(block));
+    const cast = buildCast(details, person => searchForPerson(person, stateController));
+    if (cast) castContainer.appendChild(cast);
+    const links = buildLinks(details);
+    if (links) linksContainer.appendChild(links);
+    applyLayout();
 }
 
 function destroySwrlFullPage() {
@@ -633,60 +500,15 @@ function destroySwrlFullPage() {
         pageButtons.removeChild(pageButtons.firstChild);
     }
 
-    destroyDetailCards();
-    while (swrlFullPageSocialCards.firstChild) {
-        swrlFullPageSocialCards.removeChild(swrlFullPageSocialCards.firstChild);
-    }
-    while (swrlFullPageRecommendations.firstChild) {
-        swrlFullPageRecommendations.removeChild(swrlFullPageRecommendations.firstChild);
-    }
+    destroyDetailSections();
+    friendsContainer.replaceChildren();
+    tabBar.replaceChildren();
 }
 
-function destroyDetailCards() {
-    while (swrlFullPageCards.firstChild) {
-        swrlFullPageCards.removeChild(swrlFullPageCards.firstChild);
-    }
-}
-
-/**
- * @param {import('firebase/auth').User} swrler
- * @param {StateController} stateController
- */
-function getSwrlerSmall(swrler, stateController) {
-    var swrlerSmallTemplate = document.getElementById('swrlerSmall');
-    // @ts-ignore
-    var swrlerSmall = swrlerSmallTemplate.content.cloneNode(true);
-    var $swrlerSmall = swrlerSmall.querySelector.bind(swrlerSmall);
-    $swrlerSmall('.swrlerSmallImage').src = swrler.photoURL;
-    $swrlerSmall('.swrlerSmallImage').addEventListener('error',
-        /**
-         * @param {Event} e
-         */
-        (e) => {
-            /** @type {HTMLImageElement} */
-            // @ts-ignore
-            const image = e.target;
-            if (image) {
-                image.src = 'img/emoji_people-24px.svg'
-            }
-        });
-    $swrlerSmall('.swrlerSmallText').innerText = swrler.displayName;
-    const div = $swrlerSmall('div');
-
-
-    div.addEventListener('click',
-        /**
-         * @param {Event} e
-         */
-        (e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            const swrlerList = new State(stateController.swrlerLaterView);
-            swrlerList.swrler = swrler;
-            stateController.changeState(swrlerList);
-        })
-
-    return swrlerSmall;
+function destroyDetailSections() {
+    detailsContainer.replaceChildren();
+    castContainer.replaceChildren();
+    linksContainer.replaceChildren();
 }
 
 const shareBanner = document.getElementById('swrlFullPageShare');
@@ -704,7 +526,7 @@ function showShareBanner(stateController) {
     // textContent, never innerHTML: both are whatever a person typed
     shareBanner.querySelector('.sharedBannerWho').textContent = `${share.fromName} swrled you this`;
     const message = shareBanner.querySelector('.sharedBannerMessage');
-    message.textContent = share.message ? `\u201c${share.message}\u201d` : '';
+    message.textContent = share.message ? `“${share.message}”` : '';
     message.classList.toggle('hidden', !share.message);
     shareBanner.querySelector('.sharedBannerNew').classList.toggle('hidden', Boolean(swrlUser && !swrlUser.isAnonymous));
     /** @type {HTMLAnchorElement} */
