@@ -333,6 +333,19 @@
             </div>
             <p class="settingsNote">You can set a different choice for an individual swrl from that swrl's page. The number of lists a swrl is on is always shown anonymously, whatever you choose.</p>
           </div>
+          <div class="friendsSection">
+            <h2 class="friendsHeading">How a swrl page looks</h2>
+            <div class="settingsOptions" role="radiogroup" aria-label="How a swrl page looks">
+              <label class="settingsOption">
+                <input type="radio" name="swrlPageLayout" value="tabs">
+                <span class="settingsOptionText"><span class="settingsOptionTitle">Tabs</span><span class="settingsOptionHint">Overview, cast, links and friends each get a tab</span></span>
+              </label>
+              <label class="settingsOption">
+                <input type="radio" name="swrlPageLayout" value="poster">
+                <span class="settingsOptionText"><span class="settingsOptionTitle">Poster</span><span class="settingsOptionHint">Everything on one page you scroll</span></span>
+              </label>
+            </div>
+          </div>
           <div id="deleteAccountSection" class="friendsSection settingsDanger">
             <h2 class="friendsHeading">Delete my account</h2>
             <p class="settingsNote">This permanently deletes your account and everything in it: your lists, your private notes and labels, your friends and friend requests, your saved searches and the recommendations you sent. It can't be undone.</p>
@@ -392,15 +405,26 @@
         <p class="sharedBannerMessage hidden"></p>
         <p class="sharedBannerNew hidden">New here? <a href="/about" class="sharedBannerAbout">What's a swrl?</a></p>
       </div>
-      <div id="swrlImageContainer">
-        <img class="loadingbar hidden" src="img/loadingbar.svg" />
-        <img id="swrlImageLarge" src="" />
-        <div id="swrlFullPageVisibility" class="swrlVisibility hidden">
-          <button id="swrlVisibilityButton" type="button" class="visibilityButton" aria-haspopup="menu" aria-expanded="false" aria-controls="swrlVisibilityMenu">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path id="swrlVisibilityIcon" d=""/></svg>
-          </button>
-          <div id="swrlVisibilityMenu" class="visibilityMenu hidden" role="menu" aria-label="Who can see this swrl on your lists"></div>
+      <div id="swrlImageContainer" class="pageHero">
+        <div class="pageHeroInner">
+          <div class="pageHeroRow">
+            <img id="swrlImageLarge" class="pageHeroPoster" src="" alt="" />
+            <div class="pageHeroText">
+              <span class="pageHeroType"><span class="pageHeroDot"></span><span id="swrlHeroType"></span></span>
+              <h2 id="swrlHeroTitle" class="pageHeroTitle"></h2>
+              <p id="swrlHeroMeta" class="pageHeroMeta"></p>
+            </div>
+          </div>
+          <div id="swrlHeroGenres" class="pageHeroChips"></div>
+          <p id="swrlHeroTagline" class="pageHeroTagline hidden"></p>
+          <div id="swrlFullPageVisibility" class="swrlVisibility hidden">
+            <button id="swrlVisibilityButton" type="button" class="visibilityButton" aria-haspopup="menu" aria-expanded="false" aria-controls="swrlVisibilityMenu">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path id="swrlVisibilityIcon" d=""/></svg>
+            </button>
+            <div id="swrlVisibilityMenu" class="visibilityMenu hidden" role="menu" aria-label="Who can see this swrl on your lists"></div>
+          </div>
         </div>
+        <img class="loadingbar hidden" src="img/loadingbar.svg" alt="" />
       </div>
 
       <div class="pageButtonsContainer">
@@ -410,10 +434,16 @@
       </div>
 
       <div id="swrlFullPageLabels"></div>
-      <div id="swrlFullPageRecommendations" class="cardsContainer"></div>
-      <div id="swrlFullPagePrivateComments" class="cardsContainer"></div>
-      <div id="swrlFullPageCards" class="cardsContainer"></div>
-      <div id="swrlFullPageSocialCards" class="cardsContainer"></div>
+      <div id="swrlFullPageTabs" class="pageTabs hidden" role="tablist" aria-label="About this swrl"></div>
+      <div id="swrlFullPageSections" class="pageSections">
+        <div id="pageSection-friends" class="pageSection" role="tabpanel" aria-labelledby="pageTab-friends"></div>
+        <div id="pageSection-overview" class="pageSection" role="tabpanel" aria-labelledby="pageTab-overview">
+          <div id="swrlFullPageCards"></div>
+          <div id="swrlFullPagePrivateComments"></div>
+        </div>
+        <div id="pageSection-cast" class="pageSection" role="tabpanel" aria-labelledby="pageTab-cast"></div>
+        <div id="pageSection-links" class="pageSection" role="tabpanel" aria-labelledby="pageTab-links"></div>
+      </div>
       <div id="swrlAttribution" class="hidden"></div>
     </div>
 
@@ -496,22 +526,6 @@
   <template id="swrlerFriendBar">
     <div class="swrlerFriendBar hidden"></div>
   </template>
-  <template id="swrlPageCard">
-    <div class="card">
-      <p class="cardTitle"></p>
-      <div class="cardContent">
-        <img class="loadingSpinnerSmall" src="img/spinner.gif" />
-      </div>
-    </div>
-  </template>
-  <template id="swrlPageSubCard">
-    <div>
-      <p class="cardSubTitle"></p>
-      <div class="cardContent">
-        <img class="loadingSpinnerSmall" src="img/spinner.gif" />
-      </div>
-    </div>
-  </template>
   <template id="labelsRow">
     <div class="labels">
       <div class="labelChips"></div>
@@ -570,9 +584,6 @@
         </span>
       </div>
     </div>
-  </template>
-  <template id="rating">
-    <div class="rating"><img class="smallLink" /> <span class="ratingText"></span></div>
   </template>
   <template id="recommendation">
     <div class="recommendation unread">
@@ -639,14 +650,6 @@
         <span class="actionText markUnRead hidden">Mark as unread</span>
         <span class="actionText dismiss">Dismiss</span>
       </div>
-    </div>
-  </template>
-  <template id="personLink">
-    <div class="personLink">
-      <div class="imageCropper">
-        <img class="personLinkImage" src="" />
-      </div>
-      <span class="personLinkText"></span>
     </div>
   </template>
   <template id="swrlerSmall">

@@ -1,0 +1,257 @@
+import { Details } from './details';
+import { Link } from './link';
+
+/**
+ * Pure logic behind the swrl page: which layout the user picked, and the
+ * people, facts, links and header line built from a swrl's details. The DOM
+ * lives in components/swrlPageSections.js and views/swrlFullPage.js.
+ */
+
+/** How the swrl page is arranged. The stored string goes on the user's profile (`swrlPageLayout`). */
+export class PageLayout {
+    /**
+     * @param {'tabs' | 'poster'} id the stored value
+     * @param {string} label name shown on the Settings screen
+     * @param {string} hint one line under the label
+     */
+    constructor(id, label, hint) {
+        this.id = id;
+        this.label = label;
+        this.hint = hint;
+    }
+}
+
+export const TABS = new PageLayout('tabs', 'Tabs', 'Overview, cast, links and friends each get a tab');
+export const POSTER = new PageLayout('poster', 'Poster', 'Everything on one page you scroll');
+
+export const pageLayouts = Object.freeze([TABS, POSTER]);
+
+/** What everyone gets until they choose otherwise. */
+export const DEFAULT_PAGE_LAYOUT = TABS;
+
+/**
+ * Looks up a layout from its stored value. Unknown or missing values give the
+ * default, so a hand-edited profile never breaks the page.
+ *
+ * @param {string} [id]
+ * @return {PageLayout}
+ */
+export function pageLayoutFromId(id) {
+    return pageLayouts.find(layout => layout.id === id) || DEFAULT_PAGE_LAYOUT;
+}
+
+/** How many people show before "Show all". */
+export const PEOPLE_SHOWN = 6;
+
+/**
+ * @typedef {Object} Person
+ * @property {string} name
+ * @property {string} role
+ * @property {string | number} [id] TMDB id; when present the person can be searched for
+ * @property {string} [imageUrl]
+ */
+
+/**
+ * The cast and crew: directors first, then the actors. Uses the TMDB people
+ * (with photos) when there are any and falls back to the plain names older
+ * swrls saved.
+ *
+ * @param {Details} details
+ * @return {Person[]}
+ */
+export function castAndCrew(details) {
+    /** @type {Person[]} */
+    const people = [];
+    if (details.tMDBDirectors.length > 0) {
+        details.tMDBDirectors.forEach(person => people.push(
+            { name: person.name, role: 'Director', id: person.id, imageUrl: person.imageUrl }));
+    } else if (details.director) {
+        people.push({ name: details.director, role: 'Director' });
+    }
+    if (details.tMDBActors.length > 0) {
+        details.tMDBActors.forEach(person => people.push(
+            { name: person.name, role: 'Actor', id: person.id, imageUrl: person.imageUrl }));
+    } else {
+        details.actors.forEach(name => people.push({ name, role: 'Actor' }));
+    }
+    return people;
+}
+
+/**
+ * The people to show now.
+ *
+ * @param {Person[]} people
+ * @param {boolean} showAll
+ * @return {Person[]}
+ */
+export function peopleToShow(people, showAll) {
+    return showAll ? people : people.slice(0, PEOPLE_SHOWN);
+}
+
+/**
+ * Up to two letters for a round badge standing in for a missing photo.
+ *
+ * @param {string} name
+ * @return {string}
+ */
+export function initials(name) {
+    return (name || '')
+        .split(/\s+/)
+        .filter(word => word.length > 0)
+        .map(word => Array.from(word)[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase();
+}
+
+/**
+ * A hue (0 to 359) for a name, so the same person always gets the same colour.
+ *
+ * @param {string} name
+ * @return {number}
+ */
+export function hueFor(name) {
+    let hue = 0;
+    for (let i = 0; i < name.length; i++) {
+        hue = (hue * 31 + name.charCodeAt(i)) % 360;
+    }
+    return hue;
+}
+
+/**
+ * @typedef {Object} Fact
+ * @property {string} label
+ * @property {string} value
+ */
+
+/**
+ * The plain facts about a swrl, as label and value pairs, in a fixed order.
+ * Anything missing or empty is left out.
+ *
+ * @param {Details} details
+ * @return {Fact[]}
+ */
+export function detailFacts(details) {
+    /** @type {Fact[]} */
+    const facts = [];
+    /**
+     * @param {string} label
+     * @param {string | string[] | number | undefined | null} value
+     */
+    const add = (label, value) => {
+        const text = Array.isArray(value) ? value.join(', ') : value;
+        if (text !== undefined && text !== null && String(text).trim() !== '') {
+            facts.push({ label, value: String(text) });
+        }
+    };
+    add('Artist', details.artist);
+    add('Author', details.author);
+    add('Designers', details.designers);
+    add('Platforms', details.platforms);
+    add('Publishers', details.publishers);
+    add('Runtime', details.runtime);
+    add('Average episode length', details.averageEpisodeLength);
+    add('Number of seasons', details.numberOfSeasons);
+    add('Last air date', details.lastAirDate);
+    add('Player count', details.playerCount);
+    add('2 player recommendation', details.twoPlayerRecommendation);
+    add('Playing time', details.playingTime);
+    return facts;
+}
+
+/**
+ * The line under the title: who made it, when, and how long.
+ *
+ * @param {Details} details
+ * @return {string}
+ */
+export function metaLine(details) {
+    const parts = [
+        details.artist || details.author,
+        details.releaseYear,
+        details.runtime
+    ];
+    if (typeof details.numberOfSeasons === 'number') {
+        parts.push(details.numberOfSeasons === 1 ? '1 season' : `${details.numberOfSeasons} seasons`);
+    }
+    return parts
+        .filter(part => part !== undefined && part !== null && String(part).trim() !== '')
+        .join(' · ');
+}
+
+/**
+ * @typedef {Object} LinkGroup
+ * @property {string} title
+ * @property {Link[]} links
+ */
+
+/**
+ * @param {Link} link
+ * @return {'listen' | 'official' | 'more'}
+ */
+function linkKind(link) {
+    const url = (link.url || '').toLowerCase();
+    const name = (link.name || '').toLowerCase();
+    if (url.includes('music.apple.com') || url.includes('podcasts.apple.com')) {
+        return 'listen';
+    }
+    if (name.includes('home page') || name.includes('homepage') || name.includes('official') || name.includes('website')) {
+        return 'official';
+    }
+    return 'more';
+}
+
+/**
+ * Sorts the links into labelled groups, keeping their order inside a group,
+ * and drops links with no address (the film's home page can be blank).
+ *
+ * @param {Link[]} links
+ * @return {LinkGroup[]}
+ */
+export function groupLinks(links) {
+    const titles = { listen: 'Listen', official: 'Official site', more: 'Find out more' };
+    /** @type {LinkGroup[]} */
+    const groups = [];
+    ['listen', 'official', 'more'].forEach(kind => {
+        const inGroup = links.filter(link => link.url && linkKind(link) === kind);
+        if (inGroup.length > 0) {
+            groups.push({ title: titles[kind], links: inGroup });
+        }
+    });
+    return groups;
+}
+
+/**
+ * The tabs of the tab layout, in order. A tab with nothing to show is left out.
+ *
+ * @param {{overview: boolean, cast: boolean, links: boolean}} has what the swrl has to show; Friends always shows
+ * @return {{id: string, label: string}[]}
+ */
+export function tabsToShow(has) {
+    const tabs = [{ id: 'overview', label: 'Overview' }];
+    if (has.cast) tabs.push({ id: 'cast', label: 'Cast' });
+    if (has.links) tabs.push({ id: 'links', label: 'Links' });
+    tabs.push({ id: 'friends', label: 'Friends' });
+    return tabs;
+}
+
+/**
+ * Which tab is open: the one asked for if it exists, else the first.
+ *
+ * @param {{id: string}[]} tabs
+ * @param {string} wanted
+ * @return {string}
+ */
+export function activeTab(tabs, wanted) {
+    return tabs.some(tab => tab.id === wanted) ? wanted : tabs[0].id;
+}
+
+/**
+ * The first letter in capitals, for a type's name ("TV show", "film") at the start of a chip.
+ *
+ * @param {string} text
+ * @return {string}
+ */
+export function capitalise(text) {
+    return text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
+}

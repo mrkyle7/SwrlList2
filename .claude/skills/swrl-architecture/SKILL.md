@@ -59,7 +59,7 @@ containers that views attach into.
 - `src/screens/` + `src/views/` — besides the list/swrl/swrler/recommendation
   screens: `friendsScreen` + `views/friends.js` (`/friends`: requests, friends,
   search by display name) and `settingsScreen` + `views/settings.js`
-  (`/settings`: default visibility, delete my account). Components shared by
+  (`/settings`: default visibility, swrl page layout, delete my account). Components shared by
   views: `components/friendControl.js` (Add friend / Cancel / Accept / Remove),
   `components/swrlVisibility.js` (per-swrl "Visible to").
 - `src/index.js` — on DOM ready → init Firebase → create the

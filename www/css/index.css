@@ -535,11 +535,7 @@ body {
     height: 32px;
 }
 
-.personLink {
-    height: 64px;
-}
-
-.swrlerSmall, .personLink {
+.swrlerSmall {
     cursor: pointer;
     display: flex;
     margin: 4px;
@@ -552,12 +548,7 @@ body {
     font-size: 13px;
 }
 
-.personLinkText {
-    line-height: 64px;
-    font-size: 16px;
-}
-
-.swrlerSmallText, .personLinkText {
+.swrlerSmallText {
     top: 0;
     margin-left: 4px;
 }
@@ -567,21 +558,6 @@ body {
     width: 24px;
     height: 24px;
     margin: 4px;
-}
-
-.imageCropper {
-    width: 56px;
-    height: 56px;
-    overflow: hidden;
-    border-radius: 50%;
-    margin-top: 4px;
-    margin-right: 4px;
-}
-
-.personLinkImage {
-    margin: 0 auto;
-    height: auto;
-    width: 100%;
 }
 
 .swrlerSmallDelete {
@@ -855,12 +831,6 @@ body {
     margin: 0;
 }
 
-.cardSubTitle {
-    font-size: 16px;
-    margin: 4px;
-    color: grey;
-}
-
 .swrlStats {
     font-size: 13px;
     padding-left: 4px;
@@ -1106,41 +1076,10 @@ body {
     margin: auto;
 }
 
-#swrlImageContainer {
-    width: 100%
-}
-
-#swrlImageLarge {
-    display: block;
-    max-width: 40%;
-    max-height: 200px;
-    margin: 8px auto 8px auto;
-}
-
 .cardContent {
     display: flex;
     flex-direction: column;
     padding: 4px;
-}
-
-.smallLink {
-    max-height: 32px;
-    margin-right: 4px;
-    margin-bottom: 4px;
-    margin-left: 4px;
-}
-
-.rating {
-    display: inline-block;
-    position: relative;
-    min-height: 32px;
-}
-
-.ratingText {
-    position: absolute;
-    top: 0;
-    line-height: 32px;
-    margin-left: 4px;
 }
 
 #addToSavedSearch, .showMoreSwrls {
@@ -2901,6 +2840,742 @@ button.pageActionPrimary:hover {
     text-align: center;
     pointer-events: none;
 }
+
+/* ==========================================================================
+   The swrl page: a header band, the actions, then either tabs or one long
+   page (the user chooses in Settings; #swrlFullPage[data-layout]).
+   ========================================================================== */
+
+#swrlFullPage .pageIcon {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Header band, tinted by the category */
+.pageHero {
+    --hero-a: #0e3b47;
+    --hero-b: #1b5563;
+    --hero-glow: rgba(232, 163, 61, 0.28);
+    --chip-ink: #0f5d44;
+    position: relative;
+    color: #fff;
+    background:
+        radial-gradient(120% 80% at 100% 0%, var(--hero-glow), transparent 60%),
+        linear-gradient(160deg, var(--hero-a), var(--hero-b));
+}
+
+.pageHero[data-category="read"] {
+    --hero-a: #4d3607;
+    --hero-b: #85600a;
+    --hero-glow: rgba(246, 169, 0, 0.3);
+    --chip-ink: #7a5200;
+}
+
+.pageHero[data-category="listen"] {
+    --hero-a: #3b1458;
+    --hero-b: #6a2a96;
+    --hero-glow: rgba(255, 150, 190, 0.25);
+    --chip-ink: #6a1fa3;
+}
+
+.pageHero[data-category="play"] {
+    --hero-a: #12354f;
+    --hero-b: #235a82;
+    --hero-glow: rgba(255, 210, 120, 0.25);
+    --chip-ink: #1d5a86;
+}
+
+.pageHeroInner {
+    position: relative;
+    padding: 56px 20px 24px;
+}
+
+.pageHeroRow {
+    display: flex;
+    align-items: flex-end;
+    gap: 18px;
+}
+
+.pageHeroPoster {
+    display: block;
+    flex: none;
+    width: 112px;
+    height: auto;
+    max-height: 180px;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.pageHeroText {
+    min-width: 0;
+}
+
+.pageHeroType {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    padding: 2px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--chip-ink);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.pageHeroDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+#swrlFullPage .pageHeroTitle {
+    margin: 10px 0 0;
+    transition: none;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+}
+
+.pageHeroMeta {
+    margin: 6px 0 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.pageHeroChips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.pageHeroChip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 2px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.16);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.pageHeroTagline {
+    margin: 18px 0 0;
+    font-size: 17px;
+    font-weight: 500;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.pageHero .loadingbar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 6px;
+}
+
+/* Actions: one filled, one outlined, then a row of three quiet ones */
+.pageButtons {
+    max-width: none;
+    margin: 0;
+    padding: 20px 16px 0;
+}
+
+.pageActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.pageAction {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 160px;
+    gap: 6px;
+    height: auto;
+    min-height: 48px;
+    padding: 8px 10px;
+    border-radius: 24px;
+    font-size: 15px;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+}
+
+.pageActionPrimary, button.pageActionPrimary:hover {
+    border-color: #d81b4f;
+    background: #d81b4f;
+    color: #fff;
+}
+
+.pageActionOn, button.pageActionOn:hover {
+    border-color: #d81b4f;
+    background: #fff0f4;
+    color: #b3123f;
+}
+
+.pageToggles {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 1px;
+    margin-top: 10px;
+    border: 1.5px solid #dfe2e7;
+    border-radius: 16px;
+    background: #dfe2e7;
+    overflow: hidden;
+}
+
+.pageToggles .swrlButtonSpinner {
+    box-sizing: border-box;
+    width: 48px;
+    height: 48px;
+    margin: 0;
+    padding: 12px;
+    background: #fff;
+}
+
+.pageToggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: auto;
+    min-height: 48px;
+    padding: 6px 8px;
+    border: 0;
+    border-radius: 0;
+    background: #fff;
+    color: #222222;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.15;
+    white-space: normal;
+}
+
+.pageToggle img {
+    width: 22px;
+    height: 22px;
+    margin: 0;
+}
+
+.pageToggleOn {
+    background: #fff0f4;
+    color: #b3123f;
+    font-weight: 700;
+}
+
+/* Tabs */
+.pageTabs {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    display: flex;
+    gap: 4px;
+    margin-top: 16px;
+    padding: 0 12px;
+    border-bottom: 1px solid #dfe2e7;
+    background: #fff;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.pageTabs::-webkit-scrollbar {
+    display: none;
+}
+
+.pageTab {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    min-height: 48px;
+    padding: 0 12px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: none;
+    color: #5a5f66;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.pageTab[aria-selected="true"] {
+    border-bottom-color: #d81b4f;
+    color: #222222;
+}
+
+.pageTabBadge {
+    display: inline-grid;
+    place-items: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 11px;
+    background: #d81b4f;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* Sections and their headings */
+.pageSections {
+    padding: 0 20px 32px;
+}
+
+.pageBlock {
+    padding-top: 24px;
+}
+
+.blockTitle {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 12px;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+.blockCount {
+    color: #5a5f66;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#swrlFullPage[data-layout="tabs"] .blockTitleTab {
+    display: none;
+}
+
+#swrlFullPage .card {
+    margin: 24px 0 0;
+    padding: 14px;
+    border-radius: 16px;
+    background: #f4f5f7;
+    box-shadow: none;
+}
+
+#swrlFullPage .cardTitle {
+    padding: 0 0 8px;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+#swrlFullPage .cardContent {
+    padding: 0;
+}
+
+/* Ratings */
+.ratingTiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+    gap: 10px;
+}
+
+.ratingTile {
+    padding: 14px 8px;
+    border-radius: 16px;
+    background: #f4f5f7;
+    text-align: center;
+}
+
+.ratingValue {
+    display: block;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.ratingSource {
+    display: block;
+    margin-top: 2px;
+    color: #5a5f66;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+/* The story and its facts */
+.story {
+    max-width: 62ch;
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.65;
+}
+
+.facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
+    margin: 18px 0 0;
+}
+
+.blockBody > .facts:first-child {
+    margin-top: 0;
+}
+
+.fact dt {
+    color: #5a5f66;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.fact dd {
+    margin: 2px 0 0;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.factWide {
+    grid-column: 1 / -1;
+}
+
+.networkList {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+}
+
+.networkLogo {
+    max-width: 96px;
+    max-height: 28px;
+    object-fit: contain;
+}
+
+/* Round faces and initials */
+.avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.avatarTiny {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+}
+
+.avatarLarge {
+    width: 76px;
+    height: 76px;
+    font-size: 24px;
+}
+
+.avatarPhoto {
+    background: #e8eaee;
+}
+
+.avatarPhoto img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Cast and crew */
+.people {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px 8px;
+}
+
+.person {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    border: 0;
+    border-radius: 14px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: center;
+}
+
+.personLinked {
+    cursor: pointer;
+    transition: transform 0.15s;
+}
+
+.personLinked:hover {
+    transform: translateY(-2px);
+}
+
+.personText {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.personName {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.personRole {
+    color: #5a5f66;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.pageMoreButton {
+    width: 100%;
+    min-height: 48px;
+    margin-top: 16px;
+    border: 1.5px solid #222222;
+    border-radius: 24px;
+    background: #fff;
+    color: #222222;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.pageMoreButton:hover {
+    background: #f3f5f7;
+}
+
+/* Links: full-width rows */
+.linkGroup + .linkGroup {
+    margin-top: 16px;
+}
+
+.linkGroupTitle {
+    margin: 0 0 8px;
+    color: #5a5f66;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.linkRows {
+    display: grid;
+    border-radius: 16px;
+    background: #f4f5f7;
+    overflow: hidden;
+}
+
+.linkRow {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 60px;
+    padding: 8px 14px;
+    border-top: 1px solid #dfe2e7;
+    color: #222222;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+.linkRow:first-child {
+    border-top: 0;
+}
+
+.linkRow:hover {
+    background: #e9ebef;
+}
+
+.linkRowIcon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #fff;
+    color: #d81b4f;
+    overflow: hidden;
+}
+
+.linkRowIcon img {
+    max-width: 28px;
+    max-height: 28px;
+    object-fit: contain;
+}
+
+.linkRowName {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.linkRowExternal {
+    display: flex;
+    margin-left: auto;
+    color: #5a5f66;
+}
+
+/* Friends */
+.social {
+    display: grid;
+    gap: 12px;
+}
+
+.socialCard {
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 16px;
+    background: #f4f5f7;
+}
+
+.who {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.whoLink {
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+}
+
+.whoText {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.quote {
+    margin: 0;
+    padding: 10px 14px;
+    border: 1px solid #dfe2e7;
+    border-radius: 4px 14px 14px 14px;
+    background: #fff;
+    font-size: 16px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.faceStack {
+    display: flex;
+}
+
+.faceStack .avatar {
+    box-sizing: content-box;
+    margin-left: -8px;
+    border: 2px solid #f4f5f7;
+}
+
+.faceStack .avatar:first-child {
+    margin-left: 0;
+}
+
+.swrlerGroup {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+}
+
+.swrlerGroupTitle {
+    min-width: 48px;
+    color: #5a5f66;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.swrlerChips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.swrlerChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 14px 0 10px;
+    border: 1px solid #dfe2e7;
+    border-radius: 22px;
+    background: #fff;
+    color: #222222;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.swrlerChip:hover {
+    background: #f3f5f7;
+}
+
+.pageEmpty {
+    margin: 0;
+    color: #5a5f66;
+    line-height: 1.5;
+}
+
+/* Keyboard focus */
+.pageTab:focus-visible, .person:focus-visible, .linkRow:focus-visible, .whoLink:focus-visible,
+.swrlerChip:focus-visible, .pageMoreButton:focus-visible, .pageAction:focus-visible, .pageToggle:focus-visible {
+    outline: 3px solid #1769d6;
+    outline-offset: 2px;
+}
+
+@media (max-width: 420px) {
+    .pageHeroPoster {
+        width: 96px;
+    }
+
+    #swrlFullPage .pageHeroTitle {
+        font-size: 25px;
+    }
+
+    .avatarLarge {
+        width: 68px;
+        height: 68px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .personLinked, .linkRow {
+        transition: none;
+    }
+
+    .personLinked:hover {
+        transform: none;
+    }
 
 .replyError {
     margin: 8px 0 0 0;

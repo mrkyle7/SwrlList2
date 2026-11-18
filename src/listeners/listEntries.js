@@ -3,6 +3,7 @@ import { Collection, listEntriesPath } from '../constants/Collection';
 import { DEFAULT_VISIBILITY, PRIVATE, Visibility, visibilityFromId } from '../constants/Visibility';
 import { swrlUser } from '../firebase/login';
 import { ListEntry } from '../model/listEntry';
+import { DEFAULT_PAGE_LAYOUT, PageLayout, pageLayoutFromId } from '../model/swrlPage';
 
 /**
  * My own list entries (swrlers/{uid}/listEntries), keyed by swrlID. This is
@@ -23,6 +24,9 @@ let readyPromise = Promise.resolve();
 let resolveFirstSnapshot;
 /** @type {Visibility} */
 let defaultVisibility = DEFAULT_VISIBILITY;
+/** How I like the swrl page laid out (my profile's `swrlPageLayout`).
+ * @type {PageLayout} */
+let pageLayout = DEFAULT_PAGE_LAYOUT;
 
 export default { setUpListEntriesListener, cancelListEntriesListener };
 
@@ -41,7 +45,7 @@ export function setUpListEntriesListener(firestore) {
     ready = false;
     errorCount = 0;
     const firstSnapshot = new Promise(resolve => resolveFirstSnapshot = resolve);
-    readyPromise = Promise.all([firstSnapshot, loadDefaultVisibility(firestore, swrlUser.uid)])
+    readyPromise = Promise.all([firstSnapshot, loadProfileSettings(firestore, swrlUser.uid)])
         .then(() => { ready = true; });
     subscribe(firestore, swrlUser.uid);
 }
@@ -90,18 +94,22 @@ function subscribe(firestore, uid) {
 }
 
 /**
- * Reads `defaultVisibility` from the user's swrlers doc (absent means
- * friends). When the read fails the default is unknown, so fail closed:
- * entries made meanwhile are private rather than shared by mistake.
+ * Reads my settings from my swrlers doc: `defaultVisibility` (absent means
+ * friends) and `swrlPageLayout` (absent means tabs). When the read fails the
+ * default visibility is unknown, so fail closed: entries made meanwhile are
+ * private rather than shared by mistake. The page layout just stays at its
+ * default then.
  *
  * @param {import('firebase/firestore').Firestore} firestore
  * @param {string} uid
  * @return {Promise<void>}
  */
-async function loadDefaultVisibility(firestore, uid) {
+async function loadProfileSettings(firestore, uid) {
     try {
         const swrlerDoc = await getDoc(doc(firestore, Collection.SWRLERS, uid));
-        defaultVisibility = visibilityFromId(swrlerDoc.exists() ? swrlerDoc.data().defaultVisibility : undefined);
+        const data = swrlerDoc.exists() ? swrlerDoc.data() : {};
+        defaultVisibility = visibilityFromId(data.defaultVisibility);
+        pageLayout = pageLayoutFromId(data.swrlPageLayout);
     } catch (error) {
         console.error("Couldn't read the default visibility, new entries will be private");
         console.error(error);
@@ -118,6 +126,7 @@ export function cancelListEntriesListener() {
     listeningUid = undefined;
     Object.keys(listEntriesCache).forEach(key => delete listEntriesCache[key]);
     defaultVisibility = DEFAULT_VISIBILITY;
+    pageLayout = DEFAULT_PAGE_LAYOUT;
     // Anyone still waiting for the first snapshot must not hang.
     if (resolveFirstSnapshot) resolveFirstSnapshot();
     resolveFirstSnapshot = undefined;
@@ -197,4 +206,23 @@ export function addListEntriesChangeListener(listener) {
  */
 export function setCurrentDefaultVisibility(visibility) {
     defaultVisibility = visibility;
+}
+
+/**
+ * How I like the swrl page laid out. The default until I choose (and for
+ * anyone not signed in).
+ *
+ * @return {PageLayout}
+ */
+export function getPageLayout() {
+    return pageLayout;
+}
+
+/**
+ * Updates the in-memory layout (after the user changes the setting).
+ *
+ * @param {PageLayout} layout
+ */
+export function setCurrentPageLayout(layout) {
+    pageLayout = layout;
 }
