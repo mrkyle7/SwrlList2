@@ -2974,6 +2974,30 @@ button.pageActionPrimary:hover {
     font-weight: 600;
 }
 
+.pageHeroChips {
+    align-items: center;
+}
+
+.pageHeroMore {
+    min-height: 36px;
+    border: 1.5px solid rgba(255, 255, 255, 0.6);
+    background: transparent;
+    color: #fff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.pageHeroMore:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.pageHeroMore:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+
 .pageHeroTagline {
     margin: 18px 0 0;
     font-size: 17px;
@@ -3422,6 +3446,20 @@ button.pageActionPrimary:hover {
     max-width: 28px;
     max-height: 28px;
     object-fit: contain;
+}
+
+/* A site's own square icon fills the tile, its corners rounded to match */
+.linkRowIconLogo {
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.linkRowIconLogo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    object-fit: cover;
 }
 
 .linkRowName {

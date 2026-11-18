@@ -5,7 +5,7 @@ import { TmdbPerson } from '../src/model/tmdbPerson';
 import {
     TABS, POSTER, DEFAULT_PAGE_LAYOUT, pageLayoutFromId, pageLayouts,
     castAndCrew, peopleToShow, PEOPLE_SHOWN, initials, hueFor, detailFacts, metaLine,
-    groupLinks, linkDisplay, tabsToShow, activeTab, capitalise
+    groupLinks, linkDisplay, tabsToShow, activeTab, capitalise, splitGenres, GENRES_SHOWN
 } from '../src/model/swrlPage';
 
 /**
@@ -156,19 +156,21 @@ describe('groupLinks', () => {
 describe('linkDisplay', () => {
     it('gives known sites their proper names, whatever name was saved', () => {
         expect(linkDisplay(new Link('https://music.apple.com/gb/album/1', 'iTunes', 'img/itunes.svg')))
-            .toEqual({ url: 'https://music.apple.com/gb/album/1', name: 'Apple Music', icon: 'music', group: 'listen' });
+            .toEqual({ url: 'https://music.apple.com/gb/album/1', name: 'Apple Music', icon: 'music', group: 'listen', logo: 'img/links/apple-music.png' });
         expect(linkDisplay(new Link('https://podcasts.apple.com/gb/podcast/2', 'iTunes', undefined)).name).toBe('Apple Podcasts');
         expect(linkDisplay(new Link('https://boardgamegeek.com/boardgame/13', 'Geek URL', undefined)).name).toBe('BoardGameGeek');
         expect(linkDisplay(new Link('https://videogamegeek.com/videogame/9', 'Geek URL', undefined)))
             .toMatchObject({ name: 'VideoGameGeek', icon: 'videogame', group: 'play' });
         expect(linkDisplay(new Link('https://www.imdb.com/title/tt1/', 'imdb', undefined)).name).toBe('IMDb');
         expect(linkDisplay(new Link('https://openlibrary.org/books/OL1M', 'Open Library', undefined)).icon).toBe('book');
+        expect(linkDisplay(new Link('https://www.themoviedb.org/movie/1', 'TMDB', undefined)).logo).toBe('img/links/tmdb.png');
     });
     it('calls a home page the official site', () => {
         expect(linkDisplay(new Link('https://film.example/', 'TV Home Page', undefined))).toMatchObject({ name: 'Official site', icon: 'site', group: 'official' });
     });
-    it('keeps the name of anything else, with a plain link icon', () => {
+    it('keeps the name of anything else, with a plain link icon and no logo', () => {
         expect(linkDisplay(new Link('https://en.wikipedia.org/wiki/X', 'Wikipedia', undefined))).toMatchObject({ name: 'Wikipedia', icon: 'link', group: 'more' });
+        expect(linkDisplay(new Link('https://en.wikipedia.org/wiki/X', 'Wikipedia', undefined)).logo).toBeUndefined();
     });
     it('does not mistake a look-alike host for a known site', () => {
         expect(linkDisplay(new Link('https://notimdb.com/x', 'Somewhere', undefined)).name).toBe('Somewhere');
@@ -201,3 +203,18 @@ describe('capitalise', () => {
         expect(capitalise('')).toBe('');
     });
 });
+
+describe('splitGenres', () => {
+    const many = ['Naturalists', 'Ichthyology', 'Biography', 'Biology', 'Classification', 'Presidents', 'Educators'];
+    it('shows the first few and counts the rest', () => {
+        expect(splitGenres(many, false)).toEqual({ shown: many.slice(0, GENRES_SHOWN), hidden: many.length - GENRES_SHOWN });
+    });
+    it('shows them all when asked', () => {
+        expect(splitGenres(many, true)).toEqual({ shown: many, hidden: 0 });
+    });
+    it('needs no "more" for a short list, even with exactly the limit', () => {
+        expect(splitGenres(['Drama'], false)).toEqual({ shown: ['Drama'], hidden: 0 });
+        expect(splitGenres(many.slice(0, GENRES_SHOWN), false).hidden).toBe(0);
+    });
+});
+

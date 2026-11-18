@@ -254,7 +254,21 @@ export function buildLinks(details) {
             row.target = '_blank';
             row.rel = 'noopener';
             const badge = element('span', 'linkRowIcon');
-            badge.appendChild(icon(LINK_ICONS[link.icon] || ICON_LINK));
+            const glyph = () => icon(LINK_ICONS[link.icon] || ICON_LINK);
+            if (link.logo) {
+                // the site's own icon, filling the tile; the plain icon if it will not load
+                badge.classList.add('linkRowIconLogo');
+                const image = document.createElement('img');
+                image.alt = '';
+                image.src = link.logo;
+                image.addEventListener('error', () => {
+                    badge.classList.remove('linkRowIconLogo');
+                    image.replaceWith(glyph());
+                });
+                badge.appendChild(image);
+            } else {
+                badge.appendChild(glyph());
+            }
             row.appendChild(badge);
             row.appendChild(element('span', 'linkRowName', link.name));
             const external = element('span', 'linkRowExternal');
