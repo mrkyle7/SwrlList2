@@ -114,59 +114,6 @@
   </div>
   <div id="menuSwipeable"></div>
   <div id='centre' class="main">
-    <div id="fade" class="hidden"></div>
-    <div id="filters" class="hidden" role="dialog" aria-label="Filter and sort">
-      <form>
-        <h3>Show</h3>
-        <div class="chips">
-          <input type="radio" id="allTypes" name="whereFilter" value="-1">
-          <label for="allTypes">All</label>
-          <input type="radio" id="filmFilter" name="whereFilter" value="1">
-          <label for="filmFilter">Films</label>
-          <input type="radio" id="tvFilter" name="whereFilter" value="2">
-          <label for="tvFilter">TV</label>
-          <input type="radio" id="bookFilter" name="whereFilter" value="3">
-          <label for="bookFilter">Books</label>
-          <input type="radio" id="albumFilter" name="whereFilter" value="4">
-          <label for="albumFilter">Albums</label>
-          <input type="radio" id="podcastFilter" name="whereFilter" value="5">
-          <label for="podcastFilter">Podcasts</label>
-          <input type="radio" id="boardGameFilter" name="whereFilter" value="6">
-          <label for="boardGameFilter">Board games</label>
-          <input type="radio" id="videoGames" name="whereFilter" value="7">
-          <label for="videoGames">Video games</label>
-        </div>
-        <div class="chips">
-          <input type="checkbox" id="recommended" name="filter" value="1">
-          <label for="recommended">Swrled to you</label>
-        </div>
-        <div id="labelFilters" class="hidden">
-          <h3>Your labels</h3>
-          <div id="labelFilterList" class="chips"></div>
-        </div>
-        <div id="genreFilters" class="hidden">
-          <h3>Genres</h3>
-          <p class="sheetHint">Shows anything with at least one of the genres you pick.</p>
-          <input id="genreSearch" class="genreSearch hidden" type="search" placeholder="Find a genre" aria-label="Find a genre" autocomplete="off">
-          <div id="genreFilterList" class="chips"></div>
-          <p id="genreNone" class="sheetHint hidden">No genre matches that.</p>
-          <button type="button" id="genreMore" class="chipsMore hidden"></button>
-        </div>
-        <h3>Sort by</h3>
-        <div class="chips">
-          <input type="radio" id="recentlyupdated" name="sort" value="3" checked>
-          <label for="recentlyupdated">Recently updated</label>
-          <input type="radio" id="recentlyadded" name="sort" value="2">
-          <label for="recentlyadded">Recently added</label>
-          <input type="radio" id="alphabetical" name="sort" value="1">
-          <label for="alphabetical">A to Z</label>
-        </div>
-        <div class="sheetFooter">
-          <button type="button" id="clearFilters" class="sheetClear">Clear all</button>
-          <input type="submit" id="submitFilters" class="sheetApply" value="Show results">
-        </div>
-      </form>
-    </div>
     <div id="sections" class="sections hidden">
       <div class="homeGreeting homeDesktop"><h2 id="homeGreetingText">Hi</h2><p>What are you in the mood for?</p></div>
       <div class="section watch">
@@ -510,32 +457,87 @@
       <img class="swrlSpinnerListCount loadingSpinner" src="img/spinner.gif" />
     </div>
 
-    <div id="loginSheetBackdrop" class="sheetBackdrop hidden"></div>
-    <div id="loginSheet" class="bottomSheet hidden" role="dialog" aria-modal="true" aria-labelledby="loginSheetTitle">
-      <h3 id="loginSheetTitle">Log in</h3>
-      <p class="loginSheetText">Swrl List keeps your list and lets you swrl things to your friends. It's free, and you log in with your Google account.</p>
-      <button type="button" id="loginSheetGo" class="sheetApply">Log in with Google</button>
-      <button type="button" id="loginSheetCancel" class="sheetCancel">Not now</button>
-    </div>
-    <div id="pickSheetBackdrop" class="sheetBackdrop hidden"></div>
-    <div id="pickSheet" class="bottomSheet hidden" role="dialog" aria-modal="true" aria-labelledby="pickSheetTitle">
-      <h3 id="pickSheetTitle">What should you watch?</h3>
-      <p class="pickSheetHint">We'll pick three from your list. Swrls from friends come up more often.</p>
-      <div id="pickTypes" class="chips"></div>
-      <div id="pickLabels" class="chips"></div>
-      <div class="chips">
-        <input type="checkbox" id="pickSwrledOnly">
-        <label for="pickSwrledOnly">Only swrled to me</label>
-      </div>
-      <div id="pickResults" class="pickResults hidden"></div>
-      <p id="pickEmpty" class="pickEmpty hidden"></p>
-      <button type="button" id="pickGo" class="sheetApply">Pick three for me</button>
-      <button type="button" id="pickClose" class="sheetCancel">Close</button>
-    </div>
     <div id="toasterMessage">
       <span id="toasterMessageText"></span>
     </div>
 
+  </div>
+  <!-- dialogs sit outside the main area, so on desktop (where it is a fixed layer)
+       the backdrop can cover the sidebar and title bar too -->
+  <div id="fade" class="hidden"></div>
+  <div id="filters" class="hidden" role="dialog" aria-label="Filter and sort">
+    <form>
+      <h3>Show</h3>
+      <div class="chips">
+        <input type="radio" id="allTypes" name="whereFilter" value="-1">
+        <label for="allTypes">All</label>
+        <input type="radio" id="filmFilter" name="whereFilter" value="1">
+        <label for="filmFilter">Films</label>
+        <input type="radio" id="tvFilter" name="whereFilter" value="2">
+        <label for="tvFilter">TV</label>
+        <input type="radio" id="bookFilter" name="whereFilter" value="3">
+        <label for="bookFilter">Books</label>
+        <input type="radio" id="albumFilter" name="whereFilter" value="4">
+        <label for="albumFilter">Albums</label>
+        <input type="radio" id="podcastFilter" name="whereFilter" value="5">
+        <label for="podcastFilter">Podcasts</label>
+        <input type="radio" id="boardGameFilter" name="whereFilter" value="6">
+        <label for="boardGameFilter">Board games</label>
+        <input type="radio" id="videoGames" name="whereFilter" value="7">
+        <label for="videoGames">Video games</label>
+      </div>
+      <div class="chips">
+        <input type="checkbox" id="recommended" name="filter" value="1">
+        <label for="recommended">Swrled to you</label>
+      </div>
+      <div id="labelFilters" class="hidden">
+        <h3>Your labels</h3>
+        <div id="labelFilterList" class="chips"></div>
+      </div>
+      <div id="genreFilters" class="hidden">
+        <h3>Genres</h3>
+        <p class="sheetHint">Shows anything with at least one of the genres you pick.</p>
+        <input id="genreSearch" class="genreSearch hidden" type="search" placeholder="Find a genre" aria-label="Find a genre" autocomplete="off">
+        <div id="genreFilterList" class="chips"></div>
+        <p id="genreNone" class="sheetHint hidden">No genre matches that.</p>
+        <button type="button" id="genreMore" class="chipsMore hidden"></button>
+      </div>
+      <h3>Sort by</h3>
+      <div class="chips">
+        <input type="radio" id="recentlyupdated" name="sort" value="3" checked>
+        <label for="recentlyupdated">Recently updated</label>
+        <input type="radio" id="recentlyadded" name="sort" value="2">
+        <label for="recentlyadded">Recently added</label>
+        <input type="radio" id="alphabetical" name="sort" value="1">
+        <label for="alphabetical">A to Z</label>
+      </div>
+      <div class="sheetFooter">
+        <button type="button" id="clearFilters" class="sheetClear">Clear all</button>
+        <input type="submit" id="submitFilters" class="sheetApply" value="Show results">
+      </div>
+    </form>
+  </div>
+  <div id="loginSheetBackdrop" class="sheetBackdrop hidden"></div>
+  <div id="loginSheet" class="bottomSheet hidden" role="dialog" aria-modal="true" aria-labelledby="loginSheetTitle">
+    <h3 id="loginSheetTitle">Log in</h3>
+    <p class="loginSheetText">Swrl List keeps your list and lets you swrl things to your friends. It's free, and you log in with your Google account.</p>
+    <button type="button" id="loginSheetGo" class="sheetApply">Log in with Google</button>
+    <button type="button" id="loginSheetCancel" class="sheetCancel">Not now</button>
+  </div>
+  <div id="pickSheetBackdrop" class="sheetBackdrop hidden"></div>
+  <div id="pickSheet" class="bottomSheet hidden" role="dialog" aria-modal="true" aria-labelledby="pickSheetTitle">
+    <h3 id="pickSheetTitle">What should you watch?</h3>
+    <p class="pickSheetHint">We'll pick three from your list. Swrls from friends come up more often.</p>
+    <div id="pickTypes" class="chips"></div>
+    <div id="pickLabels" class="chips"></div>
+    <div class="chips">
+      <input type="checkbox" id="pickSwrledOnly">
+      <label for="pickSwrledOnly">Only swrled to me</label>
+    </div>
+    <div id="pickResults" class="pickResults hidden"></div>
+    <p id="pickEmpty" class="pickEmpty hidden"></p>
+    <button type="button" id="pickGo" class="sheetApply">Pick three for me</button>
+    <button type="button" id="pickClose" class="sheetCancel">Close</button>
   </div>
   <template id="swrl">
     <div class="swrl swrlCard">
