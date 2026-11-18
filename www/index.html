@@ -83,6 +83,29 @@
       <span id="appVersion" class="appVersion"></span>
     </div>
   </div>
+  <nav id="desktopSidebar" class="desktopSidebar" aria-label="Main">
+    <div class="sideBrand"><span class="sideLogo"><img src="img/logo_transparent.svg" alt="" /></span>Swrl List</div>
+    <div class="sideItems">
+      <a href="#" class="sideItem" data-nav="home"><span class="sideIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></span><span>Home</span></a>
+      <a href="#" class="sideItem" data-nav="watch"><span class="sideDot" style="background:#3EB283"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 6l2 4M12 6l2 4M17 6l2 4"/></svg></span><span>Watch</span></a>
+      <a href="#" class="sideItem" data-nav="read"><span class="sideDot" style="background:#F6A900"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 1zM20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 1z"/></svg></span><span>Read</span></a>
+      <a href="#" class="sideItem" data-nav="listen"><span class="sideDot" style="background:#b042f4"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="5" height="6" rx="2"/><rect x="16" y="14" width="5" height="6" rx="2"/></svg></span><span>Listen</span></a>
+      <a href="#" class="sideItem" data-nav="play"><span class="sideDot" style="background:#71A8D6"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9h12a4 4 0 0 1 4 4v1a3 3 0 0 1-5.2 2L15 14H9l-1.8 2A3 3 0 0 1 2 14v-1a4 4 0 0 1 4-4zM8 11v4M6 13h4"/></svg></span><span>Play</span></a>
+      <div class="sideSep"></div>
+      <a href="#" class="sideItem" data-nav="swrls"><span class="sideIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13l2.5-7h11L20 13v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zM4 13h5l1 2h4l1-2h5"/></svg></span><span>Swrls</span><span class="sideCount hidden">0</span></a>
+      <a href="#" class="sideItem" data-nav="friends"><span class="sideIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 5.2a3 3 0 0 1 0 5.6M17.5 13.6A5 5 0 0 1 20.5 19"/></svg></span><span>Friends</span></a>
+      <a href="#" class="sideItem" data-nav="saved"><span class="sideIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></span><span>Saved searches</span></a>
+      <a href="#" class="sideItem" data-nav="settings"><span class="sideIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></span><span>Settings</span></a>
+      <a href="#" class="sideItem" data-nav="about"><span class="sideIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg></span><span>What's a Swrl?</span></a>
+      <a href="#" class="sideItem" data-nav="login"><span class="sideIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5"/></svg></span><span>Log in</span></a>
+    </div>
+    <div class="sideMe">
+      <img class="sidePhoto hidden" src="" alt="" />
+      <span class="sideName"></span>
+      <a href="#" class="sideLogout hidden" data-nav="logout">Log out</a>
+    </div>
+    <div class="sideFooter"><a href="/privacy_policy.html" target="_blank" rel="noopener">Privacy</a><a href="https://github.com/mrkyle7/SwrlList2/issues" target="_blank" rel="noopener">Support</a><span class="sideVersion"></span></div>
+  </nav>
   <div id="swrlSearchBar" class="searchField">
     <input id="swrlSearch" class="hidden" type="text" placeholder="Search" enterkeyhint="search" autocomplete="off" autofocus>
     <button type="button" class="searchClear" aria-label="Clear search" title="Clear">
@@ -145,10 +168,12 @@
       </form>
     </div>
     <div id="sections" class="sections hidden">
+      <div class="homeGreeting homeDesktop"><h2 id="homeGreetingText">Hi</h2><p>What are you in the mood for?</p></div>
       <div class="section watch">
         <div class="section-detail">
           <img class="icon" src="img/movie-24px.svg" />
           <h2 class="defaultTitle">Watch</h2>
+          <p class="sectionCount homeDesktop" data-category="watch"></p>
         </div>
       </div>
 
@@ -156,6 +181,7 @@
         <div class="section-detail">
           <img class="icon" src="img/menu_book-24px.svg" />
           <h2 class="defaultTitle">Read</h2>
+          <p class="sectionCount homeDesktop" data-category="read"></p>
         </div>
       </div>
 
@@ -163,6 +189,7 @@
         <div class="section-detail">
           <img class="icon" src="img/headset-24px.svg" />
           <h2 class="defaultTitle">Listen</h2>
+          <p class="sectionCount homeDesktop" data-category="listen"></p>
         </div>
       </div>
 
@@ -170,8 +197,13 @@
         <div class="section-detail">
           <img class="icon" src="img/videogame_asset-24px.svg" />
           <h2 class="defaultTitle">Play</h2>
+          <p class="sectionCount homeDesktop" data-category="play"></p>
         </div>
       </div>
+      <section id="homeSwrled" class="homeSwrled homeDesktop hidden" aria-labelledby="homeSwrledTitle">
+        <div class="homeSwrledHead"><h2 id="homeSwrledTitle">Swrled to you</h2><a href="#" id="homeSwrledAll">See all</a></div>
+        <div id="homeSwrledList" class="homeSwrledList"></div>
+      </section>
     </div>
 
     <div id="tabs" class="hidden tabs">
@@ -455,11 +487,16 @@
       <div id="swrlFullPageSections" class="pageSections">
         <div id="pageSection-friends" class="pageSection" role="tabpanel" aria-labelledby="pageTab-friends"></div>
         <div id="pageSection-overview" class="pageSection" role="tabpanel" aria-labelledby="pageTab-overview">
+          <div id="swrlFullPageRatings"></div>
           <div id="swrlFullPageCards"></div>
           <div id="swrlFullPagePrivateComments"></div>
         </div>
         <div id="pageSection-cast" class="pageSection" role="tabpanel" aria-labelledby="pageTab-cast"></div>
         <div id="pageSection-links" class="pageSection" role="tabpanel" aria-labelledby="pageTab-links"></div>
+      </div>
+      <div id="swrlDesktopColumns" class="pageColumns">
+        <div id="swrlDesktopMain" class="pageMain"></div>
+        <div id="swrlDesktopAside" class="pageAside"></div>
       </div>
       <div id="swrlAttribution" class="hidden"></div>
     </div>

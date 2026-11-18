@@ -78,3 +78,38 @@ export function statsSentence(stats) {
 export function activeFilterCount(state) {
     return (state.typeFilter ? 1 : 0) + state.filters.length + state.labelFilters.length + state.genreFilters.length;
 }
+
+/**
+ * How many swrls are on my list in each category, for the home screen's
+ * tiles: entries marked later, not dismissed.
+ *
+ * @param {{later: boolean, deleted: boolean, category: {name: string}}[]} entries
+ * @return {Object<string, number>} by category name
+ */
+export function countsByCategory(entries) {
+    /** @type {Object<string, number>} */
+    const counts = {};
+    entries.forEach(entry => {
+        if (!entry.later || entry.deleted || !entry.category) return;
+        counts[entry.category.name] = (counts[entry.category.name] || 0) + 1;
+    });
+    return counts;
+}
+
+/**
+ * The newest recommendations sent to me, one per swrl, for the home screen.
+ *
+ * @param {{swrlID: string, created?: Date}[]} recommendations
+ * @param {number} limit
+ * @return {string[]} swrl ids, newest first
+ */
+export function latestRecommendedSwrls(recommendations, limit) {
+    const sorted = [...recommendations].sort((a, b) =>
+        (b.created ? b.created.getTime() : 0) - (a.created ? a.created.getTime() : 0));
+    /** @type {string[]} */
+    const ids = [];
+    sorted.forEach(recommendation => {
+        if (ids.length < limit && !ids.includes(recommendation.swrlID)) ids.push(recommendation.swrlID);
+    });
+    return ids;
+}

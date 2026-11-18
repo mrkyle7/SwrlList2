@@ -4210,3 +4210,659 @@ button.pageActionPrimary:hover {
     }
 }
 
+
+/* ==========================================================================
+   Desktop, from 1025px wide: a sidebar instead of the menu button, a white
+   title bar, and screens that use the width (content up to 1120px). Phones
+   never see any of this. The content edge, used in several places, is
+   max(40px, 50% - 520px) of the area beside the sidebar.
+   ========================================================================== */
+
+.desktopSidebar, .homeDesktop, .pageColumns {
+    display: none;
+}
+
+@media only screen and (min-width: 1025px) {
+    /* --- the sidebar --- */
+    .desktopSidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+        width: 248px;
+        padding: 20px 14px 14px;
+        border-right: 1px solid #e6e8ec;
+        background: #fff;
+        overflow-y: auto;
+    }
+
+    .sideBrand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 4px 10px 18px;
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+    }
+
+    .sideLogo {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: #FF2E63;
+    }
+
+    .sideLogo img {
+        width: 22px;
+        height: 22px;
+        filter: brightness(0) invert(1);
+    }
+
+    .sideItems {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .sideItem {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 44px;
+        padding: 0 12px;
+        border-radius: 12px;
+        color: #333;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .sideItem:hover {
+        background: #f3f4f6;
+    }
+
+    .sideItem.on {
+        background: #fff0f4;
+        color: #b3123f;
+        font-weight: 800;
+    }
+
+    .sideItem:focus-visible, .sideLogout:focus-visible {
+        outline: 3px solid #1769d6;
+        outline-offset: 2px;
+    }
+
+    .sideDot, .sideIcon {
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+    }
+
+    .sideDot {
+        border-radius: 8px;
+    }
+
+    .sideDot svg, .sideIcon svg {
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .sideDot svg {
+        width: 16px;
+        height: 16px;
+        stroke: #fff;
+        stroke-width: 2.2;
+    }
+
+    .sideIcon svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        stroke-width: 1.9;
+    }
+
+    .sideCount {
+        display: grid;
+        place-items: center;
+        min-width: 22px;
+        height: 22px;
+        margin-left: auto;
+        padding: 0 7px;
+        box-sizing: border-box;
+        border-radius: 11px;
+        background: #4990e2;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .sideSep {
+        height: 1px;
+        margin: 10px 6px;
+        background: #eceef1;
+    }
+
+    .sideMe {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px 10px;
+        margin-top: auto;
+        padding: 12px 10px 4px;
+        border-top: 1px solid #eceef1;
+        font-weight: 700;
+    }
+
+    .sidePhoto {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+    }
+
+    .sideName {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .sideLogout {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        color: #b3123f;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .sideFooter {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 12px;
+        padding: 4px 10px 0;
+        color: #5a5f66;
+        font-size: 13px;
+    }
+
+    .sideFooter a {
+        color: inherit;
+    }
+
+    /* --- the phone menu and the coloured bar make way --- */
+    #menuButton, #sidebarMenu, #menuSwipeable, #inboxDisplay, #login {
+        display: none !important;
+    }
+
+    .header {
+        left: 248px;
+        right: 0;
+        width: auto;
+        border-bottom: 1px solid #e6e8ec;
+        background: #fff !important;
+    }
+
+    .header .title {
+        color: #222222;
+    }
+
+    .header .title-details {
+        align-items: center;
+        gap: 12px;
+        max-width: none;
+        margin-left: max(64px, calc(50% - 520px));
+        margin-right: 24px;
+    }
+
+    .title h1 {
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+
+    /* the category's colour and icon in a tile by the title */
+    .header.hasTitleTile .title-details::before {
+        content: '';
+        flex: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: var(--title-icon) center / 22px no-repeat, var(--title-tile);
+    }
+
+    body[data-screen="home"] .header {
+        display: none;
+    }
+
+    #backButtonDiv {
+        left: calc(248px + max(4px, 50vw - 704px));
+    }
+
+    #backButton {
+        filter: brightness(0) opacity(0.75);
+    }
+
+    #recommendSendContainer {
+        display: grid;
+        place-items: center;
+        box-sizing: border-box;
+        width: 40px;
+        height: 40px;
+        margin: 8px 16px;
+        border-radius: 50%;
+        background: #d81b4f;
+    }
+
+    #recommendSendButton {
+        width: 24px;
+    }
+
+    /* --- the main area sits beside the sidebar --- */
+    #centre {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 248px;
+        width: auto;
+        height: auto;
+        margin: 0;
+    }
+
+    #swrlSearchBar {
+        left: 248px;
+        right: 0;
+        width: auto;
+        max-width: 1040px;
+    }
+
+    .tabs, #swrlList, #recommendationList, #savedSearches, #searchResults, #recommend,
+    #friendsView, #settingsView, #aboutView, #loggingInView, #loggingInAnonymousView, #loadingView {
+        left: 0;
+        right: 0;
+        box-sizing: border-box;
+        width: auto;
+        max-width: 1120px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+
+    .swrlsContainer {
+        width: auto;
+    }
+
+    /* forms and reading screens stay a comfortable width */
+    #friendsView, #settingsView, #aboutView, #recommend {
+        max-width: 800px;
+    }
+
+    #recommendationList, #recommendationFilters, #recommendationTabs {
+        max-width: 880px;
+    }
+
+    #recommendationFilters {
+        width: auto;
+        padding: 0 40px;
+    }
+
+    /* tabs keep to their words, on the left, with the toolbar on the same row */
+    .tabs div {
+        flex: none;
+        width: auto;
+        padding: 0 16px 2px;
+    }
+
+    .listToolbar {
+        position: fixed;
+        top: 60px;
+        right: max(40px, calc(50vw - 124px - 520px));
+        z-index: 5;
+        gap: 10px;
+        padding: 0;
+    }
+
+    .listToolbarFilter, .listViewOption {
+        min-height: 40px;
+    }
+
+    /* --- lists: two columns of rows, or three of detailed cards --- */
+    #swrlList, #resultList {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-content: start;
+        gap: 12px;
+    }
+
+    #swrlList {
+        padding-top: 16px;
+        padding-bottom: 24px;
+    }
+
+    #swrlList > :not(.swrlCard), #resultList > :not(.swrlCard) {
+        grid-column: 1 / -1;
+    }
+
+    #swrlList .swrl.swrlCard, #resultList .swrl.swrlCard {
+        border: 1px solid #e6e8ec;
+        border-radius: 14px;
+    }
+
+    .main[data-list-view="detailed"] #swrlList, .main[data-list-view="detailed"] #resultList {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .main[data-list-view="detailed"] :is(#swrlList, #resultList) .swrl.swrlCard {
+        margin: 0;
+    }
+
+    .pickBar {
+        margin: 6px 0 0;
+    }
+
+    /* --- home: a greeting, the four categories in a row, then swrls sent to me --- */
+    .main .sections {
+        top: 0;
+        bottom: 0;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        align-content: start;
+        gap: 16px;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 36px max(40px, calc(50% - 520px)) 40px;
+        overflow-y: auto;
+    }
+
+    .homeDesktop {
+        display: block;
+    }
+
+    .homeGreeting, .homeSwrled {
+        grid-column: 1 / -1;
+    }
+
+    .homeGreeting h2 {
+        margin: 0;
+        font-size: 34px;
+        font-weight: 800;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+    }
+
+    .homeGreeting p {
+        margin: 4px 0 8px;
+        color: #5a5f66;
+    }
+
+    .main .section, .selected.section {
+        width: auto;
+        height: auto;
+        min-height: 168px;
+        margin: 0;
+        padding: 20px;
+        border-radius: 18px;
+        box-sizing: border-box;
+    }
+
+    .main .section:hover {
+        filter: brightness(1.04);
+    }
+
+    .main .section-detail, .main .selected .section-detail {
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: space-between;
+        width: 100%;
+        margin: 0;
+        font-size: inherit;
+    }
+
+    .main .section .icon {
+        width: 34px;
+        max-height: 34px;
+        margin: 0;
+    }
+
+    .main .section h2 {
+        margin: 24px 0 0;
+        font-size: 28px;
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -0.01em;
+    }
+
+    .sectionCount {
+        margin: 4px 0 0;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .homeSwrledHead {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin: 20px 0 12px;
+    }
+
+    .homeSwrledHead h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+
+    .homeSwrledHead a {
+        color: #b3123f;
+        font-weight: 700;
+    }
+
+    .homeSwrledList {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .homeSwrledList .swrl.swrlCard {
+        border: 1px solid #e6e8ec;
+        border-radius: 14px;
+    }
+
+    /* --- the swrl page: a wide header, then a main column and a side column --- */
+    #swrlFullPage {
+        left: 0;
+        right: 0;
+        width: auto;
+        margin: 0;
+    }
+
+    #swrlFullPage[data-layout="desktop"] .pageHeroInner {
+        box-sizing: border-box;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 32px 40px;
+    }
+
+    #swrlFullPage[data-layout="desktop"] .pageHeroRow {
+        align-items: flex-end;
+        gap: 36px;
+    }
+
+    #swrlFullPage[data-layout="desktop"] .pageHeroPoster {
+        width: 220px;
+        max-height: none;
+        border-radius: 16px;
+    }
+
+    #swrlFullPage[data-layout="desktop"] .pageHero[data-shape="square"] .pageHeroPoster {
+        width: 220px;
+        height: 220px;
+    }
+
+    #swrlFullPage[data-layout="desktop"] .pageHeroTitle {
+        font-size: 44px;
+        line-height: 1.05;
+    }
+
+    #swrlFullPage[data-layout="desktop"] .pageHeroMeta {
+        font-size: 17px;
+    }
+
+    #swrlFullPage[data-layout="desktop"] .pageHeroChips {
+        margin-top: 14px;
+    }
+
+    #swrlFullPage[data-layout="desktop"] .pageHeroTagline {
+        margin-top: 14px;
+        font-size: 18px;
+    }
+
+    #swrlFullPage[data-layout="desktop"] .pageHero .swrlVisibility {
+        top: 32px;
+        right: 40px;
+    }
+
+    /* the buttons join the title, in one row of pills */
+    #swrlFullPage[data-layout="desktop"] .pageButtons {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        max-width: none;
+        margin: 0;
+        padding: 22px 0 0;
+    }
+
+    #swrlFullPage[data-layout="desktop"] .pageActions,
+    #swrlFullPage[data-layout="desktop"] .pageToggles {
+        display: contents;
+    }
+
+    #swrlFullPage[data-layout="desktop"] .pageAction,
+    #swrlFullPage[data-layout="desktop"] .pageToggle {
+        flex: none;
+        gap: 8px;
+        min-height: 44px;
+        padding: 0 16px;
+        border: 1.5px solid rgba(255, 255, 255, 0.75);
+        border-radius: 22px;
+        background: transparent;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    #swrlFullPage[data-layout="desktop"] .pageToggle:not(.pageToggleOn) img {
+        filter: brightness(0) invert(1);
+    }
+
+    #swrlFullPage[data-layout="desktop"] button.pageAction:hover,
+    #swrlFullPage[data-layout="desktop"] button.pageToggle:hover {
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+    #swrlFullPage[data-layout="desktop"] .pageActionPrimary,
+    #swrlFullPage[data-layout="desktop"] button.pageActionPrimary:hover {
+        border-color: #d81b4f;
+        background: #d81b4f;
+        color: #fff;
+    }
+
+    #swrlFullPage[data-layout="desktop"] .pageActionOn,
+    #swrlFullPage[data-layout="desktop"] button.pageActionOn:hover,
+    #swrlFullPage[data-layout="desktop"] .pageToggleOn,
+    #swrlFullPage[data-layout="desktop"] button.pageToggleOn:hover {
+        border-color: #fff0f4;
+        background: #fff0f4;
+        color: #b3123f;
+    }
+
+    #swrlFullPage[data-layout="desktop"] .swrlRecommend.pageAction,
+    #swrlFullPage[data-layout="desktop"] button.swrlRecommend.pageAction:hover {
+        border-color: #fff;
+        background: #fff;
+        color: #222222;
+    }
+
+    #swrlFullPage[data-layout="desktop"] .pageToggles .swrlButtonSpinner {
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        background: none;
+    }
+
+    #swrlFullPage[data-layout="desktop"] #swrlFullPageLabels,
+    #swrlFullPage .sharedBanner {
+        box-sizing: border-box;
+        max-width: 1120px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    #swrlFullPage[data-layout="desktop"] #swrlFullPageLabels {
+        padding: 16px 40px 0;
+    }
+
+    #swrlFullPage[data-layout="desktop"] #swrlFullPageLabels .labels {
+        justify-content: flex-start;
+    }
+
+    #swrlFullPage[data-layout="desktop"] #swrlFullPageSections {
+        display: none;
+    }
+
+    #swrlFullPage[data-layout="desktop"] .pageColumns {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 340px;
+        align-items: start;
+        gap: 36px;
+        box-sizing: border-box;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 4px 40px 40px;
+    }
+
+    .pageAside {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding-top: 24px;
+    }
+
+    .pageAside .pageBlock, .pageAside .card {
+        margin: 0;
+        padding: 16px;
+        border: 1px solid #e6e8ec;
+        border-radius: 16px;
+        background: #fff;
+    }
+
+    .pageAside .blockTitle, #swrlFullPage .pageAside .cardTitle {
+        font-size: 17px;
+    }
+
+    .pageAside > :empty {
+        display: none;
+    }
+
+    .pageAside .ratingTile {
+        padding: 10px 4px;
+    }
+
+    .pageAside .ratingValue {
+        font-size: 20px;
+    }
+}

@@ -54,3 +54,31 @@ describe('activeFilterCount', () => {
         expect(activeFilterCount({ typeFilter: {}, filters: [1], labelFilters: ['a', 'b'], genreFilters: ['Drama'] })).toBe(5);
     });
 });
+
+import { countsByCategory, latestRecommendedSwrls } from '../src/model/listView';
+
+describe('countsByCategory', () => {
+    const watch = { name: 'watch' }, read = { name: 'read' };
+    it('counts what is on my list per category, leaving out done-only and dismissed', () => {
+        expect(countsByCategory([
+            { later: true, deleted: false, category: watch },
+            { later: true, deleted: false, category: watch },
+            { later: false, deleted: false, category: watch },
+            { later: true, deleted: true, category: read },
+            { later: true, deleted: false, category: read }
+        ])).toEqual({ watch: 2, read: 1 });
+    });
+    it('is empty for an empty list', () => {
+        expect(countsByCategory([])).toEqual({});
+    });
+});
+
+describe('latestRecommendedSwrls', () => {
+    it('gives the newest swrls first, each once, up to the limit', () => {
+        const day = n => new Date(2026, 0, n);
+        expect(latestRecommendedSwrls([
+            { swrlID: 'a', created: day(1) }, { swrlID: 'b', created: day(5) }, { swrlID: 'a', created: day(9) },
+            { swrlID: 'c', created: day(3) }, { swrlID: 'd' }
+        ], 3)).toEqual(['a', 'b', 'c']);
+    });
+});
