@@ -3576,6 +3576,7 @@ button.pageActionPrimary:hover {
     .personLinked:hover {
         transform: none;
     }
+}
 
 .replyError {
     margin: 8px 0 0 0;
