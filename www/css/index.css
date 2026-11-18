@@ -3354,14 +3354,14 @@ button.pageActionPrimary:hover {
 /* Cast and crew */
 .people {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px 8px;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 20px 16px;
 }
 
 .person {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
     padding: 4px 0;
     border: 0;
@@ -3369,7 +3369,7 @@ button.pageActionPrimary:hover {
     background: none;
     color: inherit;
     font: inherit;
-    text-align: center;
+    text-align: left;
 }
 
 .personLinked {
@@ -4114,5 +4114,99 @@ button.pageActionPrimary:hover {
 
 .pickBarButton {
     background: #d81b4f;
+}
+
+/* Recommendations: who from, then two toggles that also show swrls I've
+   done or already have on my list. Same look as the list toolbar. */
+#recommendationFilters {
+    height: 64px;
+    padding: 0 12px;
+    border-bottom: 1px solid #eceef1;
+}
+
+#recommendationList.withFilters {
+    top: 168px;
+}
+
+#recommendationFilters .senderSelect {
+    order: -1;
+    height: 44px;
+    padding: 0 30px 0 38px;
+    border-color: #222222;
+    border-radius: 22px;
+    /* a people icon says who the list is from; the chevron says it opens */
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23222' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='8' r='3.2'/%3E%3Cpath d='M3.5 19a5.5 5.5 0 0 1 11 0M16 5.2a3 3 0 0 1 0 5.6M17.5 13.6A5 5 0 0 1 20.5 19'/%3E%3C/svg%3E") no-repeat 12px center / 20px 20px,
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23222' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center,
+        #fff;
+    font-weight: 700;
+}
+
+@media (max-width: 374px) {
+    #recommendationFilters {
+        gap: 6px;
+    }
+
+    #recommendationFilters .senderSelect {
+        padding: 0 24px 0 32px;
+        background-position: 9px center, right 9px center;
+        font-size: 14px;
+    }
+
+    #recommendationFilters label {
+        gap: 4px;
+        padding: 0 9px 0 8px;
+        font-size: 14px;
+    }
+}
+
+#recommendationFilters label {
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 12px 0 10px;
+    border-color: #dfe2e7;
+    border-radius: 22px;
+    background: #fff;
+    color: #444;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* a tick box inside the toggle, so it reads as "also show" */
+#recommendationFilters label::before {
+    content: '';
+    flex: none;
+    box-sizing: border-box;
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid #8a9097;
+    border-radius: 4px;
+    background: #fff center / 11px no-repeat;
+}
+
+#recommendationFilters input:checked + label {
+    border-color: #d81b4f;
+    background: #fff0f4;
+    color: #b3123f;
+    font-weight: 700;
+}
+
+#recommendationFilters input:checked + label::before {
+    border-color: #d81b4f;
+    background-color: #d81b4f;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.3 2.3 4.7-5' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+#recommendationFilters input:focus-visible + label, #recommendationFilters .senderSelect:focus-visible {
+    outline: 3px solid #1769d6;
+    outline-offset: 2px;
+}
+
+@media only screen and (min-width: 1025px) {
+    #recommendationFilters {
+        width: 640px;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
 }
 
