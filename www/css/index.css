@@ -3987,6 +3987,7 @@ button.pageActionPrimary:hover {
     display: grid;
     grid-auto-flow: column;
     grid-auto-columns: 1fr;
+    align-items: stretch;
     justify-self: stretch;
     gap: 1px;
     margin: 0;
@@ -3997,12 +3998,15 @@ button.pageActionPrimary:hover {
 }
 
 .main[data-list-view="detailed"] :is(#swrlList, #resultList) .swrl.swrlCard .swrlButton {
+    /* fill the row, so a two-line label never leaves the others floating */
+    align-self: stretch;
+    justify-content: flex-start;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
     width: auto;
     height: auto;
     min-height: 56px;
-    padding: 6px 2px;
+    padding: 10px 2px 8px;
     border-radius: 0;
     background: #fff;
 }
