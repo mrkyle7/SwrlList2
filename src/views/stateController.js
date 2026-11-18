@@ -2,7 +2,7 @@ import { Home } from "./homePage";
 import { State } from "../model/state";
 import { InboxRecommendations, SentRecommendations } from "./recommendations";
 import { initSearchBar, SearchView } from "./searchResults";
-import { Category, Categories, WATCH, READ, LISTEN, PLAY } from "../constants/Category";
+import { Category, Categories, WATCH, READ, LISTEN, PLAY, ALL } from "../constants/Category";
 import { swrlUser } from "../firebase/login";
 import { YourListView, DiscoverView } from "./swrlList";
 import { Recommend } from "./recommend";
@@ -30,6 +30,7 @@ import { activeFilterCount, listViewFromId } from "../model/listView";
 import setListView from "../actions/setListView";
 import { applyListView, bindListToolbar, setFilterCount } from "../components/listToolbar";
 import { showToasterMessage } from "../components/toaster";
+import { initDesktopSidebar, setActiveSidebarItem } from "../components/desktopSidebar";
 
 /** How many genres show before "Show all", and from how many the search box appears. */
 const FEW_GENRES = 8;
@@ -137,6 +138,61 @@ export class StateController {
     _updateTitleBar() {
         this.currentState.view.screen.updateTitleBar();
         this._updateFilterIndicator();
+        this._updateDesktop();
+    }
+
+    /**
+     * For the desktop layout: which sidebar item is the current screen, the
+     * screen's name on <body data-screen> (the stylesheet hides the top bar on
+     * home), and the category's colour and icon for the tile by the title.
+     */
+    _updateDesktop() {
+        const state = this.currentState;
+        const screen = state.view.screen;
+        /** @type {string | undefined} */
+        let key;
+        let name = 'other';
+        /** @type {Category | undefined} */
+        let category;
+        if (screen === this.homeScreen) {
+            key = 'home'; name = 'home';
+        } else if (screen === this.listScreen) {
+            category = state.selectedCategory; key = category ? category.name : undefined; name = 'list';
+        } else if (screen === this.swrlScreen) {
+            category = state.swrl ? state.swrl.category : undefined; key = category ? category.name : undefined; name = 'swrl';
+        } else if (screen === this.recommendationsScreen) {
+            key = 'swrls'; name = 'recommendations';
+        } else if (screen === this.friendsScreen) {
+            key = 'friends'; name = 'friends';
+        } else if (screen === this.savedSearches) {
+            key = 'saved'; name = 'saved';
+        } else if (screen === this.settingsScreen) {
+            key = 'settings'; name = 'settings';
+        } else if (screen === this.aboutScreen) {
+            key = 'about'; name = 'about';
+        } else if (screen === this.swrlerListScreen) {
+            name = 'swrler';
+        }
+        setActiveSidebarItem(key);
+        document.body.dataset.screen = name;
+        const header = document.getElementById('header');
+        const tile = category && category.image && category !== ALL;
+        header.classList.toggle('hasTitleTile', Boolean(tile));
+        if (tile) {
+            header.style.setProperty('--title-tile', category.colour);
+            // from the site root: the stylesheet is injected, so a relative path would follow the page's URL
+            header.style.setProperty('--title-icon', `url(/${category.image})`);
+        }
+    }
+
+    /** From the desktop sidebar: a category's list, as its tile on the home screen opens it. */
+    _openCategory(name) {
+        const category = Categories.find(c => c.name === name);
+        if (!category) return;
+        const signedIn = swrlUser && !swrlUser.isAnonymous;
+        const state = new State(signedIn ? this.yourListView : this.discoverView);
+        state.selectedCategory = category;
+        this.changeState(state);
     }
 
     /**
@@ -181,6 +237,11 @@ export class StateController {
             this.openFilters();
         });
         bindListToolbar(() => this.openFilters(), id => this.changeListView(id));
+        initDesktopSidebar({
+            home: () => { if (this.currentState.view !== this.homeView) this.changeState(new State(this.homeView)); },
+            category: name => this._openCategory(name),
+            inbox: () => { if (this.currentState.view !== this.inboxView) this.changeState(new State(this.inboxView)); }
+        });
         this._bindSheetAndTabs();
     }
 

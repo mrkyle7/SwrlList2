@@ -66,6 +66,19 @@ containers that views attach into.
   element each list view mounts at its top; the choice is `.main[data-list-view]`,
   which the stylesheet follows, so cards are built with their detailed parts and
   never redrawn on a switch).
+- **Desktop (from 1025px wide; phones never see it):** `components/desktopSidebar.js`
+  is the sidebar that replaces the menu button. It mirrors the slide-out menu
+  (signed-in items, name, photo, inbox count, version) by watching those
+  elements, and clicks the menu's own items. `StateController._updateDesktop()`
+  marks the active item, sets `<body data-screen>` (the top bar hides on home) and
+  the category tile by the title. `#centre` becomes a fixed area beside the
+  sidebar, so the screens' absolute `top` offsets still hold. The swrl page
+  moves its blocks into the header and two columns on desktop
+  (`placeForDesktop` in `views/swrlFullPage.js`, `data-layout="desktop"`) and back
+  when the window narrows; the Tabs / Poster setting applies on phones. The
+  home screen's greeting, counts and "Swrled to you" strip (`views/homePage.js`)
+  show on desktop only. The desktop CSS is one `@media (min-width: 1025px)` block
+  at the end of `www/css/index.css`.
 - `src/index.js` — on DOM ready → init Firebase → create the
   singleton `StateController` → set up login → show initial screen.
 

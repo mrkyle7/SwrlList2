@@ -42,6 +42,21 @@ const detailsContainer = document.getElementById('swrlFullPageCards');
 const castContainer = document.getElementById('pageSection-cast');
 const linksContainer = document.getElementById('pageSection-links');
 const friendsContainer = document.getElementById('pageSection-friends');
+const ratingsContainer = document.getElementById('swrlFullPageRatings');
+const notesContainer = document.getElementById('swrlFullPagePrivateComments');
+const overviewSection = document.getElementById('pageSection-overview');
+const sectionsContainer = document.getElementById('swrlFullPageSections');
+const desktopMain = document.getElementById('swrlDesktopMain');
+const desktopAside = document.getElementById('swrlDesktopAside');
+const heroRow = hero.querySelector('.pageHeroRow');
+const heroText = hero.querySelector('.pageHeroText');
+const buttonsContainer = swrlFullPageView.querySelector('.pageButtonsContainer');
+
+/** The desktop layout starts here (www/css/index.css uses the same width). */
+const desktopQuery = window.matchMedia('(min-width: 1025px)');
+desktopQuery.addEventListener('change', () => {
+    if (!swrlFullPageView.classList.contains('hidden')) applyLayout();
+});
 
 /** The page's sections, by the id of the tab that shows each. */
 const sectionIds = ['friends', 'overview', 'cast', 'links'];
@@ -220,6 +235,15 @@ function drawHeroGenres(genres) {
  * affects the tabs changes (details arriving, the badge).
  */
 function applyLayout() {
+    const desktop = desktopQuery.matches;
+    placeForDesktop(desktop);
+    if (desktop) {
+        // room for everything at once: the Tabs / Poster choice is for phones
+        swrlFullPageView.dataset.layout = 'desktop';
+        tabBar.classList.add('hidden');
+        sectionIds.forEach(id => document.getElementById(`pageSection-${id}`).classList.remove('hidden'));
+        return;
+    }
     const layout = getPageLayout();
     const tabsLayout = layout === TABS;
     swrlFullPageView.dataset.layout = layout.id;
@@ -240,6 +264,27 @@ function applyLayout() {
         markActiveTab(tabBar, openTab);
     });
     showOpenSection();
+}
+
+/**
+ * Moves the page's blocks between the phone order and the desktop one. On a
+ * desktop the genres, tagline and buttons join the title in the header, the
+ * story and cast fill the main column, and friends, ratings, links and my
+ * notes sit in the side column. Safe to call again either way.
+ *
+ * @param {boolean} desktop
+ */
+function placeForDesktop(desktop) {
+    if (desktop) {
+        heroText.append(heroGenres, heroTagline, buttonsContainer);
+        desktopMain.append(detailsContainer, castContainer);
+        desktopAside.append(friendsContainer, ratingsContainer, linksContainer, notesContainer);
+    } else if (buttonsContainer.parentElement === heroText) {
+        heroRow.after(heroGenres, heroTagline);
+        hero.after(buttonsContainer);
+        overviewSection.append(ratingsContainer, detailsContainer, notesContainer);
+        sectionsContainer.append(friendsContainer, overviewSection, castContainer, linksContainer);
+    }
 }
 
 /** In the tab layout, shows only the open tab's section. */
@@ -503,9 +548,10 @@ function updateDetails(swrl, swrlExists, firestore, stateController) {
 function renderDetailSections(swrl, stateController) {
     const details = swrl.details;
     destroyDetailSections();
-    [buildRatings(details), buildStory(details)]
-        .filter(block => block !== undefined)
-        .forEach(block => detailsContainer.appendChild(block));
+    const ratings = buildRatings(details);
+    if (ratings) ratingsContainer.appendChild(ratings);
+    const story = buildStory(details);
+    if (story) detailsContainer.appendChild(story);
     const cast = buildCast(details, person => searchForPerson(person, stateController));
     if (cast) castContainer.appendChild(cast);
     const links = buildLinks(details);
@@ -536,6 +582,7 @@ function destroySwrlFullPage() {
 }
 
 function destroyDetailSections() {
+    ratingsContainer.replaceChildren();
     detailsContainer.replaceChildren();
     castContainer.replaceChildren();
     linksContainer.replaceChildren();
