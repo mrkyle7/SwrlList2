@@ -1,10 +1,14 @@
 import { INBOX, SENT } from '../constants/View';
-import { recommendationsInboxCache, recommendationsSentCache, inboxReady } from '../listeners/recommendations';
+import { recommendationsInboxCache, recommendationsSentCache, inboxReady, hasUnreadReply } from '../listeners/recommendations';
 import { Collection } from '../constants/Collection';
 import { renderRecommendation } from '../components/recommendation';
+import { cancelReplyListeners } from '../components/recommendationReplies';
 import { swrlUser } from '../firebase/login';
 import { Constant } from '../constants/Constant';
-import { Recommendation } from '../model/recommendation';
+import { State } from '../model/state';
+import { Recommendation, myStateOfSwrl, showInboxRecommendation, sendersOf, fromSender } from '../model/recommendation';
+import { getSwrlerCached } from '../firebase/swrler';
+import { getListEntry, whenListEntriesReady } from '../listeners/listEntries';
 import { UIView } from './UIView';
 import { StateController } from './stateController';
 
@@ -17,6 +21,7 @@ export class InboxRecommendations extends UIView {
     }
 
     show() {
+        inboxController = this.stateController;
         showRecommendations(this.stateController, INBOX, this.firestore);
     }
 
@@ -52,6 +57,20 @@ const sentTab = document.getElementById('sentTab');
 const recommendationList = document.getElementById('recommendationList');
 const recommendationTabs = document.getElementById('recommendationTabs');
 
+const filtersDiv = document.getElementById('recommendationFilters');
+/** @type {HTMLInputElement} */
+// @ts-ignore
+const showDoneBox = document.getElementById('showDoneRecommendations');
+/** @type {HTMLInputElement} */
+// @ts-ignore
+const showOnListBox = document.getElementById('showOnListRecommendations');
+/** @type {HTMLSelectElement} */
+// @ts-ignore
+const senderSelect = document.getElementById('recommendationSender');
+
+/** @type {StateController} set while the inbox is showing, so a filter change can re-render it */
+let inboxController;
+
 /** @type {number} */
 export let currentRenderID;
 
@@ -70,6 +89,9 @@ const showRecommendations = async (stateController, view, firestore) => {
         console.log('waiting for inbox...')
         await new Promise(resolve => setTimeout(resolve, 300))
     }
+    // the filters are about my own list, so they belong to what I was sent
+    filtersDiv.classList.toggle('hidden', view !== INBOX);
+    recommendationList.classList.toggle('withFilters', view === INBOX);
     if (view === INBOX) {
         inboxTab.classList.add('selected');
         sentTab.classList.remove('selected');
@@ -82,12 +104,16 @@ const showRecommendations = async (stateController, view, firestore) => {
 }
 
 const destroyRecommendations = () => {
+    cancelReplyListeners();
     recommendationTabs.classList.add('hidden');
+    filtersDiv.classList.add('hidden');
+    recommendationList.classList.remove('withFilters');
     recommendationList.classList.add('hidden');
     loadingSpinner.classList.add('hidden');
 }
 
 const clearList = () => {
+    cancelReplyListeners();
     while (recommendationList.firstChild) {
         recommendationList.removeChild(recommendationList.firstChild);
     }
@@ -100,12 +126,44 @@ const clearList = () => {
  * @param {import('firebase/firestore').Firestore} firestore 
  * @param {number} renderID
  */
+/**
+ * Lists the people who sent me something in the "From" menu, by name, keeping
+ * the current choice. Names arrive after the first draw, so it is refilled.
+ *
+ * @param {Recommendation[]} recommendations everything in my inbox
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+const fillSenders = (recommendations, firestore) => {
+    const chosen = senderSelect.value;
+    Promise.all(sendersOf(recommendations).map(async uid => {
+        const swrler = await getSwrlerCached(uid, firestore);
+        return { uid, name: swrler ? swrler.displayName : 'Someone' };
+    })).then(senders => {
+        senders.sort((a, b) => a.name.localeCompare(b.name));
+        while (senderSelect.options.length > 1) senderSelect.remove(1);
+        senders.forEach(sender => senderSelect.add(new Option(`From ${sender.name}`, sender.uid)));
+        // a sender who has since gone leaves "Everyone"
+        senderSelect.value = senders.some(sender => sender.uid === chosen) ? chosen : '';
+    });
+}
+
 const showInboxFromCache = (stateController, view, firestore, renderID) => {
     //Object.values wasn't supported in the old Cordova browser
     const recommendations = [];
     Object.keys(recommendationsInboxCache).forEach(i => recommendations.push(recommendationsInboxCache[i]));
 
-    renderRecommendations(stateController, recommendations, view, firestore, renderID);
+    // my own entries must have loaded, or everything would look as if it were neither done nor on my list
+    whenListEntriesReady().then(() => {
+        if (renderID !== currentRenderID) return;
+        const filters = { showDone: showDoneBox.checked, showOnList: showOnListBox.checked };
+        fillSenders(recommendations, firestore);
+        const shown = fromSender(recommendations, senderSelect.value).filter(recommendation => showInboxRecommendation({
+            unread: !recommendation.read.includes(swrlUser.uid),
+            hasUnreadReply: hasUnreadReply(recommendation.id),
+            ...myStateOfSwrl(getListEntry(recommendation.swrlID))
+        }, filters));
+        renderRecommendations(stateController, shown, view, firestore, renderID);
+    });
 }
 
 /**
@@ -158,3 +216,6 @@ const renderRecommendations = async (stateController, recommendations, view, fir
         }
     });
 }
+[showDoneBox, showOnListBox, senderSelect].forEach(box => box.addEventListener('change', () => {
+    if (inboxController) inboxController.changeState(new State(inboxController.inboxView));
+}));

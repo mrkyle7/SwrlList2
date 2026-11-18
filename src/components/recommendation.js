@@ -14,6 +14,8 @@ import { State } from '../model/state';
 import { Swrl } from '../model/swrl';
 import { typeLabel } from '../constants/Type';
 import { whenListEntriesReady } from '../listeners/listEntries';
+import { addReplies } from './recommendationReplies';
+import { hasUnreadReply } from '../listeners/recommendations';
 
 /**
  * 
@@ -25,7 +27,7 @@ import { whenListEntriesReady } from '../listeners/listEntries';
  * @return {Promise<HTMLElement>}
  */
 export const renderRecommendation = async (stateController, view, recommendation, firestore, container) => {
-    if (!recommendation.dismissed || recommendation.dismissed.indexOf(swrlUser.uid) === -1) {
+    if (!recommendation.dismissed || recommendation.dismissed.indexOf(swrlUser.uid) === -1 || hasUnreadReply(recommendation.id)) {
         /** @type {HTMLTemplateElement} */
         // @ts-ignore
         let recommendationTemplate = document.getElementById('recommendation');
@@ -152,7 +154,7 @@ export const renderRecommendation = async (stateController, view, recommendation
             // @ts-ignore
             let recommendationMessageFragment = recommendationMessageTemplate.content.cloneNode(true);
             let $recommendationMessage = recommendationMessageFragment.querySelector.bind(recommendationMessageFragment);
-            $recommendationMessage('.recommenderMessage').innerText = toSwrlersText;
+            $recommendationMessage('.recommenderMessage').innerText = toSwrlersText ? `To ${toSwrlersText}` : '';
             recommendationDiv.appendChild(recommendationMessageFragment);
         }
 
@@ -223,6 +225,7 @@ export const renderRecommendation = async (stateController, view, recommendation
             recommendationDiv.appendChild(recommendationActionsFragment);
 
         }
+        addReplies(recommendationDiv, recommendation, firestore);
         showRead(view, recommendation, recommendationDiv);
         return recommendationFragment;
     }

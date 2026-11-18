@@ -72,3 +72,13 @@ export const friendRequestId = (from, to) => `${from}_${to}`;
  * @return {string[]} path segments, for collection(firestore, ...segments)
  */
 export const labelsPath = (uid) => [Collection.SWRLERS, uid, 'labels'];
+
+/**
+ * Markers for recommendations with replies I have not read yet:
+ * swrlers/{uid}/unreadReplies/{recommendationID}. Written by a Cloud Function,
+ * deleted by the owner when they open the conversation.
+ *
+ * @param {string} uid
+ * @return {string[]} path segments, for collection(firestore, ...segments)
+ */
+export const unreadRepliesPath = (uid) => [Collection.SWRLERS, uid, 'unreadReplies'];

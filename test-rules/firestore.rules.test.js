@@ -457,6 +457,58 @@ describe('recommendations', () => {
         await assertFails(deleteDoc(doc(as('owner'), 'recommendations/r1')));
         await assertFails(deleteDoc(doc(as('bob'), 'recommendations/r1')));
     });
+
+    describe('replies', () => {
+        const reply = (from, thread, extra = {}) => ({ from, thread, text: 'hi', created: serverTimestamp(), ...extra });
+        beforeEach(async () => {
+            await env.withSecurityRulesDisabled(async (context) => {
+                const db = context.firestore();
+                await setDoc(doc(db, 'recommendations/r1/replies/toBob'), { from: 'owner', thread: 'bob', text: 'a', created: new Date() });
+                await setDoc(doc(db, 'recommendations/r1/replies/toCarol'), { from: 'owner', thread: 'carol', text: 'b', created: new Date() });
+            });
+        });
+        const replies = (db) => collection(db, 'recommendations/r1/replies');
+
+        it('the sender reads every thread', async () => {
+            await assertSucceeds(getDocs(replies(as('owner'))));
+            await assertSucceeds(getDoc(doc(as('owner'), 'recommendations/r1/replies/toCarol')));
+        });
+        it('a receiver reads only their own thread', async () => {
+            await assertSucceeds(getDocs(query(replies(as('bob')), where('thread', '==', 'bob'))));
+            await assertSucceeds(getDoc(doc(as('bob'), 'recommendations/r1/replies/toBob')));
+            await assertFails(getDoc(doc(as('bob'), 'recommendations/r1/replies/toCarol')));
+            await assertFails(getDocs(replies(as('bob'))));
+            await assertFails(getDocs(query(replies(as('bob')), where('thread', '==', 'carol'))));
+        });
+        it('others cannot read', async () => {
+            await assertFails(getDocs(query(replies(as('dave')), where('thread', '==', 'dave'))));
+            await assertFails(getDoc(doc(as('dave'), 'recommendations/r1/replies/toBob')));
+            await assertFails(getDocs(replies(signedOut())));
+        });
+        it('the sender may write to any receiver, before they have replied', async () => {
+            await assertSucceeds(addDoc(replies(as('owner')), reply('owner', 'bob')));
+            await assertSucceeds(addDoc(replies(as('owner')), reply('owner', 'carol')));
+            await assertFails(addDoc(replies(as('owner')), reply('owner', 'dave')));
+        });
+        it('a receiver may write only to their own thread, as themselves', async () => {
+            await assertSucceeds(addDoc(replies(as('bob')), reply('bob', 'bob')));
+            await assertFails(addDoc(replies(as('bob')), reply('bob', 'carol')));
+            await assertFails(addDoc(replies(as('bob')), reply('owner', 'bob')));
+            await assertFails(addDoc(replies(as('dave')), reply('dave', 'dave')));
+        });
+        it('checks the shape of a reply', async () => {
+            await assertFails(addDoc(replies(as('bob')), reply('bob', 'bob', { text: '' })));
+            await assertFails(addDoc(replies(as('bob')), reply('bob', 'bob', { text: 'x'.repeat(1001) })));
+            await assertFails(addDoc(replies(as('bob')), reply('bob', 'bob', { text: 5 })));
+            await assertFails(addDoc(replies(as('bob')), reply('bob', 'bob', { created: new Date(0) })));
+            await assertFails(addDoc(replies(as('bob')), reply('bob', 'bob', { extra: 1 })));
+        });
+        it('cannot be edited or deleted by a client', async () => {
+            await assertFails(updateDoc(doc(as('owner'), 'recommendations/r1/replies/toBob'), { text: 'changed' }));
+            await assertFails(deleteDoc(doc(as('owner'), 'recommendations/r1/replies/toBob')));
+            await assertFails(deleteDoc(doc(as('bob'), 'recommendations/r1/replies/toBob')));
+        });
+    });
 });
 
 describe('messagingtokens', () => {
@@ -496,5 +548,23 @@ describe('everything else', () => {
     it('is denied', async () => {
         await assertFails(setDoc(doc(as('bob'), 'somethingelse/x'), { a: 1 }));
         await assertFails(getDoc(doc(as('bob'), 'somethingelse/x')));
+    });
+});
+
+describe('unread reply markers', () => {
+    beforeEach(async () => {
+        await env.withSecurityRulesDisabled(async (context) => {
+            await setDoc(doc(context.firestore(), 'swrlers/bob/unreadReplies/r1'), { recommendationID: 'r1', from: 'owner', at: new Date() });
+        });
+    });
+    it('the owner reads and deletes their own', async () => {
+        await assertSucceeds(getDoc(doc(as('bob'), 'swrlers/bob/unreadReplies/r1')));
+        await assertSucceeds(getDocs(collection(as('bob'), 'swrlers/bob/unreadReplies')));
+        await assertSucceeds(deleteDoc(doc(as('bob'), 'swrlers/bob/unreadReplies/r1')));
+    });
+    it('nobody else reads them, and no client writes them', async () => {
+        await assertFails(getDoc(doc(as('carol'), 'swrlers/bob/unreadReplies/r1')));
+        await assertFails(setDoc(doc(as('bob'), 'swrlers/bob/unreadReplies/r2'), { recommendationID: 'r2' }));
+        await assertFails(setDoc(doc(as('owner'), 'swrlers/bob/unreadReplies/r2'), { recommendationID: 'r2' }));
     });
 });

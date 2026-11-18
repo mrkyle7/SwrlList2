@@ -67,6 +67,8 @@ same email, so you can pre-create users with the admin SDK and know their uids.
 | `swrlers/{uid}/privateComments/...` | | Private notes, see below. |
 | `friendRequests` | `{fromUid}_{toUid}` | `{ from, to, created, status: 'pending' \| 'accepted' }`. `from` creates it pending; `to` may only set `accepted`; either may delete (cancel/decline). |
 | `recommendations` | auto id | `from`, `to: string[]` (uids), `swrlID`, `message`, `created`, optional `read` / `dismissed` uid arrays. Readable by `from` and the receivers only. |
+| `recommendations/{id}/replies/{replyID}` | auto id | `{ from, thread, text, created }`: the conversation about a recommendation. `thread` is a receiver's uid, so each receiver has a private thread with the sender. The sender reads all threads and may write to any receiver's (before they have replied); a receiver reads and writes only `thread == own uid` (their query must say so). Created by clients, never edited or deleted. |
+| `swrlers/{uid}/unreadReplies/{recommendationID}` | recommendation id | `{ recommendationID, from, at }`: "you have an unread reply", written only by `recommendationReplyNotification`; the owner reads it and deletes it when opening the conversation. Drives the inbox badge and the always-show rule of the recommendations filters. |
 | `messagingtokens` | the FCM token | `{ uid, token }` for push notifications; the owner only. |
 | `savedsearches` | auto id | User-saved searches for discover; owner only. |
 
@@ -252,6 +254,8 @@ it's `undefined` until `setUpLogin` resolves.
 - `recommendationNotification` - on a new `recommendations` doc, sends a push
   notification to the receivers' tokens (`sendEachForMulticast`) and deletes
   tokens FCM reports as dead.
+- `recommendationReplyNotification` - on a new reply, pushes to the other person
+  in the thread (the receiver when the sender wrote it, otherwise the sender).
 - `userActivityNotification` - watches `swrlers/{swrlerID}` and pings
   Pushover with a login/delete message. It alerts a login only when
   `lastLoginTime` changed (writing the profile for another reason, such as the

@@ -49,3 +49,24 @@ test('an update that keeps lastLoginTime is not a login', () => {
     assert.equal(userActivityText(profile(10), undefined, 'owner'), 'User Bob was deleted');
     assert.equal(userActivityText(profile(10, { uid: 'owner' }), profile(20, { uid: 'owner' }), 'owner'), undefined);
 });
+
+const { replyMessage, replyRecipient } = require('../messages');
+
+test('reply message names who replied and about what', () => {
+    const message = replyMessage(['t'], { displayName: 'Bob' }, { details: { title: 'Alien' } }, 'Loved it');
+    assert.equal(message.notification.title, 'Bob replied about Alien');
+    assert.equal(message.notification.body, 'Loved it');
+    assert.deepEqual(message.tokens, ['t']);
+});
+
+test('reply message falls back and shortens long text', () => {
+    const message = replyMessage(['t'], {}, {}, 'x'.repeat(200));
+    assert.equal(message.notification.title, 'Someone replied about a swrl');
+    assert.equal(message.notification.body.length, 100);
+});
+
+test('a reply goes to the thread receiver when the sender wrote it, otherwise the sender', () => {
+    const recommendation = { from: 'ann', to: ['bob', 'cy'] };
+    assert.equal(replyRecipient(recommendation, { from: 'ann', thread: 'bob' }), 'bob');
+    assert.equal(replyRecipient(recommendation, { from: 'cy', thread: 'cy' }), 'ann');
+});
