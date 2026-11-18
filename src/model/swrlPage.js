@@ -191,21 +191,23 @@ export function metaLine(details) {
  * @property {string} name what the row says: the site's proper name
  * @property {'music' | 'podcast' | 'boardgame' | 'videogame' | 'film' | 'book' | 'site' | 'link'} icon
  * @property {'listen' | 'play' | 'more' | 'official'} group
+ * @property {string} [logo] the site's own square icon, kept in img/links
  */
 
 /**
- * Sites we link to, by host: their proper names and a plain icon for the kind of site.
+ * Sites we link to, by host: their proper names, their own square icons and a
+ * plain icon for the kind of site (used if the logo will not load).
  *
- * @type {{host: string, name: string, icon: DisplayLink['icon'], group: DisplayLink['group']}[]}
+ * @type {{host: string, name: string, icon: DisplayLink['icon'], group: DisplayLink['group'], logo: string}[]}
  */
 const KNOWN_SITES = [
-    { host: 'music.apple.com', name: 'Apple Music', icon: 'music', group: 'listen' },
-    { host: 'podcasts.apple.com', name: 'Apple Podcasts', icon: 'podcast', group: 'listen' },
-    { host: 'boardgamegeek.com', name: 'BoardGameGeek', icon: 'boardgame', group: 'play' },
-    { host: 'videogamegeek.com', name: 'VideoGameGeek', icon: 'videogame', group: 'play' },
-    { host: 'themoviedb.org', name: 'The Movie Database', icon: 'film', group: 'more' },
-    { host: 'imdb.com', name: 'IMDb', icon: 'film', group: 'more' },
-    { host: 'openlibrary.org', name: 'Open Library', icon: 'book', group: 'more' }
+    { host: 'music.apple.com', name: 'Apple Music', icon: 'music', group: 'listen', logo: 'img/links/apple-music.png' },
+    { host: 'podcasts.apple.com', name: 'Apple Podcasts', icon: 'podcast', group: 'listen', logo: 'img/links/apple-podcasts.png' },
+    { host: 'boardgamegeek.com', name: 'BoardGameGeek', icon: 'boardgame', group: 'play', logo: 'img/links/geek.png' },
+    { host: 'videogamegeek.com', name: 'VideoGameGeek', icon: 'videogame', group: 'play', logo: 'img/links/geek.png' },
+    { host: 'themoviedb.org', name: 'The Movie Database', icon: 'film', group: 'more', logo: 'img/links/tmdb.png' },
+    { host: 'imdb.com', name: 'IMDb', icon: 'film', group: 'more', logo: 'img/links/imdb.png' },
+    { host: 'openlibrary.org', name: 'Open Library', icon: 'book', group: 'more', logo: 'img/links/openlibrary.png' }
 ];
 
 /**
@@ -221,8 +223,8 @@ function hostOf(url) {
 }
 
 /**
- * What a link row shows. Known sites get their proper name and an icon for
- * their kind, worked out from the address, so swrls saved with old names
+ * What a link row shows. Known sites get their proper name and their own
+ * icon, worked out from the address, so swrls saved with old names
  * ("iTunes", "Geek URL") show the right one too. A film's or show's home page
  * becomes "Official site"; anything else keeps the name it came with.
  *
@@ -233,7 +235,7 @@ export function linkDisplay(link) {
     const host = hostOf(link.url);
     const known = KNOWN_SITES.find(site => host === site.host || host.endsWith('.' + site.host));
     if (known) {
-        return { url: link.url, name: known.name, icon: known.icon, group: known.group };
+        return { url: link.url, name: known.name, icon: known.icon, group: known.group, logo: known.logo };
     }
     const name = (link.name || '').toLowerCase();
     if (name.includes('home page') || name.includes('homepage') || name.includes('official') || name.includes('website')) {
@@ -297,3 +299,22 @@ export function activeTab(tabs, wanted) {
 export function capitalise(text) {
     return text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
 }
+
+/** How many genres the swrl page's header shows before "+N more". */
+export const GENRES_SHOWN = 4;
+
+/**
+ * The genres to show in the header, and how many are tucked behind "+N more".
+ * Books can come with twenty or more subjects, which would fill the screen.
+ *
+ * @param {string[]} genres
+ * @param {boolean} showAll
+ * @return {{shown: string[], hidden: number}}
+ */
+export function splitGenres(genres, showAll) {
+    if (showAll || genres.length <= GENRES_SHOWN) {
+        return { shown: genres, hidden: 0 };
+    }
+    return { shown: genres.slice(0, GENRES_SHOWN), hidden: genres.length - GENRES_SHOWN };
+}
+

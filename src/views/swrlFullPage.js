@@ -15,7 +15,7 @@ import { getPageLayout, whenListEntriesReady } from '../listeners/listEntries';
 import { getEntriesForSwrl } from '../firebase/swrlEntries';
 import { Recommendation } from '../model/recommendation';
 import { Swrl } from '../model/swrl';
-import { TABS, activeTab, capitalise, metaLine, tabsToShow } from '../model/swrlPage';
+import { TABS, activeTab, capitalise, metaLine, splitGenres, tabsToShow } from '../model/swrlPage';
 import { addAddButton, addLoveButton, addRecommendButton, addDoneButton } from '../components/buttons';
 import { drawTabs, markActiveTab } from '../components/pageTabs';
 import {
@@ -55,6 +55,8 @@ let socialCardsToken = undefined;
 let openTab = 'overview';
 /** People who have swrled this to me, shown on the Friends tab. */
 let friendsBadge = 0;
+/** Whether the header shows every genre, after "+N more". */
+let allGenresShown = false;
 
 export class SwrlFullPage extends UIView {
     /**
@@ -91,6 +93,7 @@ async function showSwrlFullPage(stateController) {
     socialCardsToken = Math.random();
     openTab = 'overview';
     friendsBadge = 0;
+    allGenresShown = false;
     const swrl = stateController.currentState.swrl;
     const firestore = stateController.firestore;
     showAttribution('swrlAttribution', swrl.type.attribution);
@@ -179,9 +182,32 @@ function renderHero(swrl) {
     heroTitle.textContent = details.title;
     heroMeta.textContent = metaLine(details);
     heroMeta.classList.toggle('hidden', !heroMeta.textContent);
-    heroGenres.replaceChildren(...details.genres.map(genre => element('span', 'pageHeroChip', genre)));
+    drawHeroGenres(details.genres);
     heroTagline.textContent = details.tagline ? `“${details.tagline.replace(/^["“]|["”]$/g, '')}”` : '';
     heroTagline.classList.toggle('hidden', !details.tagline);
+}
+
+/**
+ * The genre chips in the header: the first few, then "+N more", which shows
+ * the rest in place (and "Show fewer" folds them away again).
+ *
+ * @param {string[]} genres
+ */
+function drawHeroGenres(genres) {
+    const { shown, hidden } = splitGenres(genres, allGenresShown);
+    const chips = shown.map(genre => element('span', 'pageHeroChip', genre));
+    if (allGenresShown || hidden > 0) {
+        const more = /** @type {HTMLButtonElement} */ (element('button', 'pageHeroChip pageHeroMore',
+            allGenresShown ? 'Show fewer' : `+${hidden} more`));
+        more.type = 'button';
+        more.setAttribute('aria-expanded', String(allGenresShown));
+        more.addEventListener('click', () => {
+            allGenresShown = !allGenresShown;
+            drawHeroGenres(genres);
+        });
+        chips.push(more);
+    }
+    heroGenres.replaceChildren(...chips);
 }
 
 /**
