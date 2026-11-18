@@ -1,4 +1,5 @@
 import { zip } from '../utils/zip';
+import { settle } from './settle';
 import { Type, BOARDGAME, VIDEOGAME } from '../constants/Type';
 import { PLAY } from '../constants/Category';
 import { Search } from './search';
@@ -15,32 +16,15 @@ export class PlaySearch extends Search {
      * @param {string} query
      * @param {AbortSignal} signal
      * @param {number} id
-     * @return {Promise<{id: number, results: Swrl[]}>}     
+     * @return {Promise<{id: number, results: Swrl[], failed?: string[]}>}     
      */
-    run(query, signal, id) {
-        return new Promise(function (resolve, reject) {
-
-            const encodedQuery = encodeURIComponent(query);
-
-            const searches = [boardgameSearch(encodedQuery, signal), videoGameSearch(encodedQuery, signal)];
-            Promise.all(searches.map(search => search.then(
-                results => ({ results: results, error: undefined }),
-                error => ({ results: [], error: error }))))
-                .then(function ([boardGames, videoGames]) {
-                    // One type failing should not hide the other's results,
-                    // but if both fail the user should see an error.
-                    if (signal && signal.aborted) {
-                        // Superseded by a newer search; the caller ignores stale ids.
-                        resolve({ id: id, results: [] });
-                    } else if (boardGames.error && videoGames.error) {
-                        console.error('Error getting play results');
-                        console.error(boardGames.error);
-                        reject(boardGames.error);
-                    } else {
-                        resolve({ id: id, results: zip(boardGames.results, videoGames.results) });
-                    }
-                })
-        });
+    async run(query, signal, id) {
+        const encodedQuery = encodeURIComponent(query);
+        const { results, failed } = await settle([
+            { name: 'board games', run: () => boardgameSearch(encodedQuery, signal) },
+            { name: 'video games', run: () => videoGameSearch(encodedQuery, signal) }
+        ], signal);
+        return { id: id, results: zip(...results), failed };
     }
 }
 

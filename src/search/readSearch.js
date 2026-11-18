@@ -16,9 +16,25 @@ export class ReadSearch extends Search {
      * @param {string} query
      * @param {AbortSignal} signal
      * @param {number} id
-     * @return {Promise<{id: number, results: Swrl[]}>}      
+     * @return {Promise<{id: number, results: Swrl[], failed?: string[]}>}      
      */
     async run(query, signal, id) {
+        try {
+            return await this.search(query, signal, id);
+        } catch (error) {
+            if (signal && signal.aborted) return { id: id, results: [] };
+            console.error(error);
+            return { id: id, results: [], failed: ['books'] };
+        }
+    }
+
+    /**
+     * @param {string} query
+     * @param {AbortSignal} signal
+     * @param {number} id
+     * @return {Promise<{id: number, results: Swrl[]}>}
+     */
+    async search(query, signal, id) {
         const encodedQuery = encodeURIComponent(query);
         // Open Library only returns the fields that are asked for, and isbn
         // is not one of the defaults.

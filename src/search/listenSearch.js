@@ -5,6 +5,7 @@ import { Swrl } from '../model/swrl';
 import { Details } from '../model/details';
 import { Search } from './search';
 import { Link } from '../model/link';
+import { getJson, settle } from './settle';
 
 export class ListenSearch extends Search {
 
@@ -16,22 +17,15 @@ export class ListenSearch extends Search {
      * @param {string} query
      * @param {AbortSignal} signal
      * @param {number} id
-     * @return {Promise<{id: number, results: Swrl[]}>}
+     * @return {Promise<{id: number, results: Swrl[], failed?: string[]}>}
      */
-    run(query, signal, id) {
-        return new Promise(function (resolve, reject) {
-            const encodedQuery = encodeURIComponent(query);
-            const searches = [this.albumSearch(encodedQuery, signal), this.podcastSearch(encodedQuery, signal)];
-            Promise.all(searches)
-                .then(function ([albumResults, podcastResults]) {
-                    resolve({ id: id, results: zip(albumResults, podcastResults) });
-                })
-                .catch(function (error) {
-                    console.error('Error getting list results: ' + JSON.stringify(error))
-                    console.error(error);
-                    resolve({ id: id, results: [] })
-                })
-        }.bind(this))
+    async run(query, signal, id) {
+        const encodedQuery = encodeURIComponent(query);
+        const { results, failed } = await settle([
+            { name: 'albums', run: () => this.albumSearch(encodedQuery, signal) },
+            { name: 'podcasts', run: () => this.podcastSearch(encodedQuery, signal) }
+        ], signal);
+        return { id: id, results: zip(...results), failed };
     }
 
     /**
@@ -40,12 +34,9 @@ export class ListenSearch extends Search {
      * @return {Promise<Swrl[]>}
      */
     albumSearch(query, signal) {
-        return new Promise(async function (resolve, reject) {
-            const url = 'https://itunes.apple.com/search?term=' + query + '&media=music&entity=album';
-            try {
-                const response = await fetch(url, { signal });
-                const data = await response.json();
-                resolve(data.results.map(/**
+        // through our server: some phones and networks block Apple's API when the browser calls it
+        return getJson('/api/v1/itunes/search?term=' + query + '&media=music&entity=album', signal)
+            .then(data => (data.results || []).map(/**
                  * @param {{releaseDate: string; primaryGenreName: string; artworkUrl100: string; collectionName?: any; artistName?: any; collectionId?: any; }} result
                  * @return {Swrl}
                  */
@@ -79,12 +70,6 @@ export class ListenSearch extends Search {
                                 undefined,
                                 undefined));
                     }));
-            } catch (error) {
-                console.log('Fetch failed for Album search: ' + JSON.stringify(error));
-                console.error(error);
-                resolve([]);
-            }
-        }.bind(this))
     }
 
     /**
@@ -93,12 +78,8 @@ export class ListenSearch extends Search {
      * @return {Promise<Swrl[]>}
      */
     podcastSearch(query, signal) {
-        return new Promise(async function (resolve, reject) {
-            const url = 'https://itunes.apple.com/search?term=' + query + '&media=podcast&entity=podcast';
-            try {
-                const response = await fetch(url, { signal });
-                const data = await response.json();
-                resolve(data.results.map(/**
+        return getJson('/api/v1/itunes/search?term=' + query + '&media=podcast&entity=podcast', signal)
+            .then(data => (data.results || []).map(/**
                  * @param {any} result
                  * @return {Swrl}
                  */
@@ -133,12 +114,6 @@ export class ListenSearch extends Search {
                                 undefined),
                             undefined);
                     }));
-            } catch (error) {
-                console.log('Fetch failed for Podcast search: ' + JSON.stringify(error));
-                console.error(error);
-                resolve([]);
-            }
-        }.bind(this))
     }
 }
 
@@ -147,5 +122,5 @@ export class ListenSearch extends Search {
      */
 const getLargeImage = (result) => {
     const smallerImage = result.artworkUrl100;
-    return smallerImage.replace('100x100', '600x600');
+    return smallerImage ? smallerImage.replace('100x100', '600x600') : undefined;
 }

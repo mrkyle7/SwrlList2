@@ -71,6 +71,7 @@ function credential(name) {
  * @param {string} options.service name used in errors and logs
  * @param {string} options.host
  * @param {string} options.path upstream path without credentials; also the cache key
+ * @param {string} [options.logPath] what to log instead of the path, e.g. without a person's search term
  * @param {string} [options.credentialQuery] appended to path for the request only, so
  *   the key is never cached or logged
  * @param {Object<string, string>} [options.headers]
@@ -105,7 +106,7 @@ function relay(res, options) {
         res.setHeader('Cache-Control', 'public, max-age=3600');
         return res.type(options.contentType).send(body);
       }
-      console.error(options.service + ' responded ' + upstreamRes.statusCode + ' for ' + options.path);
+      console.error(options.service + ' responded ' + upstreamRes.statusCode + ' for ' + (options.logPath || options.path));
       if (upstreamRes.statusCode === 404) {
         return res.status(404).json({ error: options.service + ' has no such item' });
       }
@@ -117,7 +118,7 @@ function relay(res, options) {
   });
   upstream.on('timeout', function () { upstream.abort(); });
   upstream.on('error', function (err) {
-    console.error(options.service + ' request failed', err);
+    console.error(options.service + ' request failed for ' + (options.logPath || options.path), err);
     if (!res.headersSent) {
       res.status(502).json({ error: options.service + ' request failed' });
     }
@@ -132,6 +133,43 @@ function searchTerm(value) {
   const term = typeof value === 'string' ? value.trim() : '';
   return term.length > 0 && term.length <= 200 ? term : undefined;
 }
+
+// --- Apple iTunes (albums and podcasts) ----------------------------------------
+// No key needed, but browsers on some phones and networks fail to reach Apple's
+// API directly; through here they don't, and failures show in our logs.
+
+const ITUNES_SEARCH = { music: 'album', podcast: 'podcast' };
+const ITUNES_LOOKUP = ['song', 'podcast'];
+
+app.get('/api/v1/itunes/search', function (req, res) {
+  const term = searchTerm(req.query.term);
+  const media = typeof req.query.media === 'string' ? req.query.media : '';
+  const entity = Object.prototype.hasOwnProperty.call(ITUNES_SEARCH, media) ? ITUNES_SEARCH[media] : undefined;
+  if (!term || !entity || req.query.entity !== entity) {
+    return res.status(400).json({ error: 'Bad iTunes search' });
+  }
+  relay(res, {
+    service: 'iTunes',
+    host: 'itunes.apple.com',
+    path: '/search?term=' + encodeURIComponent(term) + '&media=' + media + '&entity=' + entity,
+    logPath: '/search ' + media,
+    contentType: 'application/json'
+  });
+});
+
+app.get('/api/v1/itunes/lookup', function (req, res) {
+  const id = typeof req.query.id === 'string' ? req.query.id : '';
+  const entity = typeof req.query.entity === 'string' ? req.query.entity : '';
+  if (!/^\d{1,15}$/.test(id) || !ITUNES_LOOKUP.includes(entity)) {
+    return res.status(400).json({ error: 'Bad iTunes lookup' });
+  }
+  relay(res, {
+    service: 'iTunes',
+    host: 'itunes.apple.com',
+    path: '/lookup?id=' + id + '&entity=' + entity,
+    contentType: 'application/json'
+  });
+});
 
 // --- The Movie Database --------------------------------------------------------
 
