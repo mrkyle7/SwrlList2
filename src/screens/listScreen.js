@@ -1,6 +1,6 @@
 import { StateController } from "../views/stateController";
 import { Screen } from "./Screen";
-import { hideLoginButtons } from "../firebase/login";
+import { showInboxButton } from "../firebase/login";
 
 export class ListScreen extends Screen {
     /**
@@ -22,8 +22,9 @@ export class ListScreen extends Screen {
         const recommendSendContainer = document.getElementById('recommendSendContainer');
         recommendSendContainer.classList.add('hidden');
         const filterContainer = document.getElementById('filterContainer');
-        filterContainer.classList.remove('hidden');
-        hideLoginButtons();
+        // the filter is in the toolbar under the tabs, so the inbox can sit top right
+        filterContainer.classList.add('hidden');
+        showInboxButton();
     }
 
     /**

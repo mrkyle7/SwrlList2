@@ -4,6 +4,7 @@ import { DEFAULT_VISIBILITY, PRIVATE, Visibility, visibilityFromId } from '../co
 import { swrlUser } from '../firebase/login';
 import { ListEntry } from '../model/listEntry';
 import { DEFAULT_PAGE_LAYOUT, PageLayout, pageLayoutFromId } from '../model/swrlPage';
+import { DEFAULT_LIST_VIEW, ListView, listViewFromId } from '../model/listView';
 
 /**
  * My own list entries (swrlers/{uid}/listEntries), keyed by swrlID. This is
@@ -27,6 +28,9 @@ let defaultVisibility = DEFAULT_VISIBILITY;
 /** How I like the swrl page laid out (my profile's `swrlPageLayout`).
  * @type {PageLayout} */
 let pageLayout = DEFAULT_PAGE_LAYOUT;
+/** How I like lists of swrls shown (my profile's `listView`).
+ * @type {ListView} */
+let listView = DEFAULT_LIST_VIEW;
 
 export default { setUpListEntriesListener, cancelListEntriesListener };
 
@@ -95,10 +99,11 @@ function subscribe(firestore, uid) {
 
 /**
  * Reads my settings from my swrlers doc: `defaultVisibility` (absent means
- * friends) and `swrlPageLayout` (absent means tabs). When the read fails the
+ * friends), `swrlPageLayout` (absent means tabs) and `listView` (absent
+ * means compact). When the read fails the
  * default visibility is unknown, so fail closed: entries made meanwhile are
- * private rather than shared by mistake. The page layout just stays at its
- * default then.
+ * private rather than shared by mistake. The page layout and list view just
+ * stay at their defaults then.
  *
  * @param {import('firebase/firestore').Firestore} firestore
  * @param {string} uid
@@ -110,6 +115,7 @@ async function loadProfileSettings(firestore, uid) {
         const data = swrlerDoc.exists() ? swrlerDoc.data() : {};
         defaultVisibility = visibilityFromId(data.defaultVisibility);
         pageLayout = pageLayoutFromId(data.swrlPageLayout);
+        listView = listViewFromId(data.listView);
     } catch (error) {
         console.error("Couldn't read the default visibility, new entries will be private");
         console.error(error);
@@ -127,6 +133,7 @@ export function cancelListEntriesListener() {
     Object.keys(listEntriesCache).forEach(key => delete listEntriesCache[key]);
     defaultVisibility = DEFAULT_VISIBILITY;
     pageLayout = DEFAULT_PAGE_LAYOUT;
+    listView = DEFAULT_LIST_VIEW;
     // Anyone still waiting for the first snapshot must not hang.
     if (resolveFirstSnapshot) resolveFirstSnapshot();
     resolveFirstSnapshot = undefined;
@@ -225,4 +232,23 @@ export function getPageLayout() {
  */
 export function setCurrentPageLayout(layout) {
     pageLayout = layout;
+}
+
+/**
+ * How I like lists of swrls shown: compact rows or detailed cards. The
+ * default until I choose (and for anyone not signed in).
+ *
+ * @return {ListView}
+ */
+export function getListView() {
+    return listView;
+}
+
+/**
+ * Updates the in-memory list view (when the user flips the switch).
+ *
+ * @param {ListView} view
+ */
+export function setCurrentListView(view) {
+    listView = view;
 }

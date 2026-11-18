@@ -84,7 +84,7 @@ export function detailsFromGeekItem(data, type) {
         ? decode(descriptions[0].textContent, { level: 'xml' })
         : undefined;
     const links = [new Link(`https://${type}geek.com/${type}/${id}`,
-        'Geek URL', 'img/bgg.svg')];
+        type === 'videogame' ? 'VideoGameGeek' : 'BoardGameGeek', undefined)];
 
     return new Details(id,
         names.length > 0 ? names[0].getAttribute('value') : 'Unknown',

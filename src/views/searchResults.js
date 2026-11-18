@@ -1,3 +1,4 @@
+import { mountListToolbar, unmountListToolbar } from '../components/listToolbar';
 import { appendAttribution, appendAttributions } from '../components/attribution';
 import { collection, doc, getDocs, addDoc, deleteDoc, query, where } from 'firebase/firestore';
 import { ALL, Category } from '../constants/Category';
@@ -184,6 +185,7 @@ function renderSavedSearches(querySnapshot, firestore, stateController) {
 }
 
 function destroySearch() {
+    unmountListToolbar();
     searchView.classList.remove('hidden');
     searchBar.classList.add('hidden');
     tabs.classList.add('hidden');
@@ -316,6 +318,7 @@ function showSearchingSpinner(searchText) {
 }
 
 function clearResults() {
+    unmountListToolbar();
     while (searchResulList.firstChild) {
         searchResulList.removeChild(searchResulList.firstChild);
     }
@@ -338,6 +341,8 @@ function processResults(results, firestore, searchText, stateController) {
     } else {
         resultsShowing = true;
         hideAllMessages();
+        // over the results only: with none, the saved searches card sits there
+        mountListToolbar(searchResultsContainer);
         results.forEach((swrl) => {
             renderSwrl(stateController, SEARCH, swrl, firestore, searchResulList);
         });

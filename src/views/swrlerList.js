@@ -1,3 +1,4 @@
+import { mountListToolbar, unmountListToolbar } from '../components/listToolbar';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 export default { showList, destroyList };
 
@@ -100,6 +101,7 @@ let friendBar;
 export function showList(swrler, view, firestore, stateController) {
     const tabs = document.getElementById('swrlerTabs');
     tabs.classList.remove('hidden');
+    mountListToolbar(swrlsContainer, friendBar);
 
     currentID = Math.random();
     const resultsID = currentID;
@@ -240,11 +242,11 @@ function renderNextSwrls(swrls, stateController, view, firestore, firstLoad) {
 }
 
 function clearList() {
-    while (swrlsContainer.firstChild) {
-        swrlsContainer.removeChild(swrlsContainer.firstChild);
-    }
-    // the friendship bar stays at the top of the list
-    if (friendBar && !friendBar.classList.contains('hidden')) swrlsContainer.appendChild(friendBar);
+    [...swrlsContainer.childNodes].forEach(node => {
+        if (!(node instanceof HTMLElement && node.id === 'listToolbar')) swrlsContainer.removeChild(node);
+    });
+    // the friendship bar stays at the top of the list, above the toolbar
+    if (friendBar && !friendBar.classList.contains('hidden')) swrlsContainer.prepend(friendBar);
 }
 
 /**
@@ -278,6 +280,7 @@ function renderFriendBar(swrler, firestore) {
 }
 
 export function destroyList() {
+    unmountListToolbar();
     if (unsubscribeFriends) unsubscribeFriends();
     unsubscribeFriends = undefined;
     if (friendBar && friendBar.parentNode) friendBar.parentNode.removeChild(friendBar);

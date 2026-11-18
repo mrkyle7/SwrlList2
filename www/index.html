@@ -225,6 +225,23 @@
       <img class="loggingInLogo" src="img/logo.png">
       <p class="loggingInMessage">Logging you in anonymously...</p>
     </div>
+    <div id="listToolbar" class="listToolbar hidden">
+      <button type="button" id="listFilterButton" class="listToolbarFilter">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7.5V18l-4 2v-7.5z"/></svg>
+        <span>Filter</span>
+        <span id="listFilterCount" class="listToolbarCount hidden"></span>
+      </button>
+      <div class="listViewSwitch" role="group" aria-label="How to show the list">
+        <button type="button" class="listViewOption" data-list-view="compact" aria-pressed="true" aria-label="Compact list">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <span>Compact</span>
+        </button>
+        <button type="button" class="listViewOption" data-list-view="detailed" aria-pressed="false" aria-label="Detailed list">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="13" width="16" height="7" rx="2"/></svg>
+          <span>Detailed</span>
+        </button>
+      </div>
+    </div>
     <div id="swrlListView" class="hidden">
       <img class="loadingbar hidden" src="img/loadingbar.svg" />
       <div id="swrlList" class="hidden swrlsContainer"></div>
@@ -484,13 +501,14 @@
 
   </div>
   <template id="swrl">
-    <div class="swrl">
+    <div class="swrl swrlCard">
       <div class="swrlBanner swrlDeleted hidden">Swrl Dismissed</div>
       <div class="swrlInfo">
-        <img class="swrlImage" src="" />
+        <img class="swrlImage" src="" alt="" />
         <div class="swrlDetails">
           <p class="swrlTitle"></p>
-          <p class="swrlReason hidden"><img class="swrlMiniIcon" src="img/logo_transparent.svg" alt="" /><span class="swrlReasonText"></span></p>
+          <p class="swrlMeta"></p>
+          <div class="swrlChips hidden"></div>
           <p class="swrlStats">
             <span class="swrlType"></span>
             <span class="swrlStat swrlStatList" title="People with this on a list"><img class="swrlMiniIcon" src="img/list.svg" alt="On lists:" /><img class="swrlSpinnerListCount swrlMiniIcon hidden" src="img/spinner.gif" alt="" /><span class="swrlListCount"></span></span>
@@ -499,6 +517,9 @@
           </p>
         </div>
       </div>
+      <p class="swrlReason hidden"><img class="swrlMiniIcon" src="img/logo_transparent.svg" alt="" /><span class="swrlReasonText"></span></p>
+      <p class="swrlOverview hidden"></p>
+      <p class="swrlStatsText hidden"></p>
       <div class="swrlButtons">
 
       </div>
@@ -607,14 +628,14 @@
   </template>
   <template id="swrlButtons">
     <img class="swrlButtonSpinner swrlButton hidden" src="img/spinner.gif" alt="Loading" />
-    <button type="button" class="swrlDelete swrlButton hidden" aria-label="Dismiss" title="Dismiss"><img src="img/delete.svg" alt="" /></button>
-    <button type="button" class="swrlLoved swrlButton hidden" aria-label="Loved. Tap to undo" title="Loved. Tap to undo"><img src="img/loved.svg" alt="" /></button>
-    <button type="button" class="swrlNotLoved swrlButton hidden" aria-label="Love" title="Love"><img src="img/notLoved.svg" alt="" /></button>
-    <button type="button" class="swrlRecommend swrlButton hidden" aria-label="Swrl to a friend" title="Swrl to a friend"><img src="img/logo_transparent.svg" alt="" /></button>
-    <button type="button" class="swrlDone swrlButton hidden" aria-label="Done. Tap to undo" title="Done. Tap to undo"><img src="img/check_circle-24px.svg" alt="" /></button>
-    <button type="button" class="swrlNotDone swrlButton hidden" aria-label="Mark as done" title="Mark as done"><img src="img/check_circle_outline-24px.svg" alt="" /></button>
-    <button type="button" class="swrlAdded swrlButton hidden" aria-label="On your list. Tap to remove" title="On your list. Tap to remove"><img src="img/playlist_add_check-24px.svg" alt="" /></button>
-    <button type="button" class="swrlNotAdded swrlButton hidden" aria-label="Add to your list" title="Add to your list"><img src="img/playlist_add-24px.svg" alt="" /></button>
+    <button type="button" class="swrlDelete swrlButton hidden" aria-label="Dismiss" title="Dismiss"><img src="img/delete.svg" alt="" /><span class="swrlCardLabel">Dismiss</span></button>
+    <button type="button" class="swrlLoved swrlButton hidden" aria-label="Loved. Tap to undo" title="Loved. Tap to undo"><img src="img/loved.svg" alt="" /><span class="swrlCardLabel">Loved</span></button>
+    <button type="button" class="swrlNotLoved swrlButton hidden" aria-label="Love" title="Love"><img src="img/notLoved.svg" alt="" /><span class="swrlCardLabel">Love</span></button>
+    <button type="button" class="swrlRecommend swrlButton hidden" aria-label="Swrl to a friend" title="Swrl to a friend"><img src="img/logo_transparent.svg" alt="" /><span class="swrlCardLabel">Swrl to a friend</span></button>
+    <button type="button" class="swrlDone swrlButton hidden" aria-label="Done. Tap to undo" title="Done. Tap to undo"><img src="img/check_circle-24px.svg" alt="" /><span class="swrlCardLabel">Done</span></button>
+    <button type="button" class="swrlNotDone swrlButton hidden" aria-label="Mark as done" title="Mark as done"><img src="img/check_circle_outline-24px.svg" alt="" /><span class="swrlCardLabel">Mark as done</span></button>
+    <button type="button" class="swrlAdded swrlButton hidden" aria-label="On your list. Tap to remove" title="On your list. Tap to remove"><img src="img/playlist_add_check-24px.svg" alt="" /><span class="swrlCardLabel">On your list</span></button>
+    <button type="button" class="swrlNotAdded swrlButton hidden" aria-label="Add to your list" title="Add to your list"><img src="img/playlist_add-24px.svg" alt="" /><span class="swrlCardLabel">Add to list</span></button>
   </template>
   <template id="swrlPageButtons">
     <div class="pageActions">

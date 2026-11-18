@@ -30,7 +30,7 @@ export class ItunesPodcastGetter extends DetailGetter {
                     result.releaseDate ? result.releaseDate.substring(0, 4) : undefined,
                     result.genres,
                     [new Link(`https://podcasts.apple.com/gb/podcast/${result.collectionId}`,
-                        'iTunes', 'img/itunes.svg')],
+                        'Apple Podcasts', undefined)],
                     undefined,
                     undefined,
                     [],

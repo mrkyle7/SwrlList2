@@ -14,6 +14,18 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 const ICON_LINK = 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1';
 const ICON_EXTERNAL = 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5';
 
+/** A plain icon for each kind of site a link goes to (see linkDisplay). */
+const LINK_ICONS = {
+    music: 'M9 18V5l10-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM19 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z',
+    podcast: 'M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3',
+    boardgame: 'M7 4h10a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3zM8.5 8.5h.01M15.5 15.5h.01M12 12h.01M15.5 8.5h.01M8.5 15.5h.01',
+    videogame: 'M6 9h12a4 4 0 0 1 4 4v1a3 3 0 0 1-5.2 2L15 14H9l-1.8 2A3 3 0 0 1 2 14v-1a4 4 0 0 1 4-4zM8 11v4M6 13h4M15.5 12.5h.01M17.5 14.5h.01',
+    film: 'M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM7 5v14M17 5v14M3 9.5h4M3 14.5h4M17 9.5h4M17 14.5h4',
+    book: 'M5 5a2 2 0 0 1 2-2h12v15H7a2 2 0 0 0-2 2zM5 20a2 2 0 0 0 2 1h12v-3',
+    site: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.6 3.6 5.6 3.6 9s-1.1 6.4-3.6 9M12 3c-2.5 2.6-3.6 5.6-3.6 9s1.1 6.4 3.6 9',
+    link: ICON_LINK
+};
+
 /**
  * @param {string} tag
  * @param {string} [className]
@@ -242,14 +254,7 @@ export function buildLinks(details) {
             row.target = '_blank';
             row.rel = 'noopener';
             const badge = element('span', 'linkRowIcon');
-            if (link.logo) {
-                const image = document.createElement('img');
-                image.alt = '';
-                image.src = link.logo;
-                badge.appendChild(image);
-            } else {
-                badge.appendChild(icon(ICON_LINK));
-            }
+            badge.appendChild(icon(LINK_ICONS[link.icon] || ICON_LINK));
             row.appendChild(badge);
             row.appendChild(element('span', 'linkRowName', link.name));
             const external = element('span', 'linkRowExternal');

@@ -30,7 +30,7 @@ export class ItunesAlbumGetter extends DetailGetter {
                     result.releaseDate ? result.releaseDate.substring(0, 4) : undefined,
                     [result.primaryGenreName],
                     [new Link(`https://music.apple.com/gb/album/${result.collectionId}`,
-                        'iTunes', 'img/itunes.svg')],
+                        'Apple Music', undefined)],
                     undefined,
                     undefined,
                     [],

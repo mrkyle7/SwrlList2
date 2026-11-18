@@ -248,6 +248,15 @@ export const hideLoginButtons = () => {
     document.querySelector("#login").classList.add('hidden');
 }
 
+/**
+ * On list screens: the inbox top right for a signed-in user (the filter has
+ * moved to the toolbar under the tabs), and no "Log in" button.
+ */
+export const showInboxButton = () => {
+    document.querySelector("#login").classList.add('hidden');
+    document.querySelector("#inboxDisplay").classList.toggle('hidden', !swrlUser || swrlUser.isAnonymous);
+}
+
 export const showLoginButtons = () => {
     if (!swrlUser || swrlUser.isAnonymous) {
         document.querySelector("#login").classList.remove('hidden');

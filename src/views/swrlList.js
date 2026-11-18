@@ -22,6 +22,7 @@ import { renderCategoryStrips } from '../components/categoryStrips';
 import { ensureGenres, genresFor } from '../firebase/genres';
 import { matchesGenres } from '../model/genres';
 import { closeTonightPicker, showTonightPicker } from '../components/tonightPicker';
+import { mountListToolbar, unmountListToolbar } from '../components/listToolbar';
 
 export class YourListView extends UIView {
     /**
@@ -79,6 +80,7 @@ let currentView;
 export function showList(category, view, firestore, stateController) {
     const tabs = document.getElementById('tabs');
     tabs.classList.remove('hidden');
+    mountListToolbar(swrlsContainer);
 
     currentID = Math.random();
     const resultsID = currentID;
@@ -265,10 +267,28 @@ function renderNextSwrls(swrls, stateController, view, firestore, firstLoad) {
     if (swrlsContainer.querySelector('.swrl')) {
         appendAttribution(swrlsContainer, currentCategory.attribution);
     }
+    placePickBar();
+}
+
+/** The "Can't decide?" bar, while my list shows it. @type {HTMLElement | undefined} */
+let pickBar;
+
+/**
+ * Keeps the "Can't decide?" bar under the swrls: just above "Show more
+ * swrls" when there are more, otherwise above the data source's credit.
+ */
+function placePickBar() {
+    if (!pickBar) return;
+    const before = swrlsContainer.querySelector('.showMoreSwrls') || swrlsContainer.querySelector('.attribution');
+    if (before) {
+        before.before(pickBar);
+    } else {
+        swrlsContainer.appendChild(pickBar);
+    }
 }
 
 /**
- * "Can't decide?" above my list: opens the tonight picker.
+ * "Can't decide?" under my list: opens the tonight picker.
  *
  * @param {Category} category
  * @param {StateController} stateController
@@ -284,17 +304,21 @@ function addPickBar(category, stateController) {
     open.textContent = 'Pick for me';
     open.addEventListener('click', () => showTonightPicker(category, stateController));
     bar.append(text, open);
-    swrlsContainer.prepend(bar);
+    pickBar = bar;
+    placePickBar();
 }
 
+/** Empties the list, keeping the toolbar at its top. */
 function clearList() {
-    while (swrlsContainer.firstChild) {
-        swrlsContainer.removeChild(swrlsContainer.firstChild);
-    }
+    pickBar = undefined;
+    [...swrlsContainer.childNodes].forEach(node => {
+        if (!(node instanceof HTMLElement && node.id === 'listToolbar')) swrlsContainer.removeChild(node);
+    });
 }
 
 export function destroyList() {
     closeTonightPicker();
+    unmountListToolbar();
     const tabs = document.getElementById('tabs');
     tabs.classList.add('hidden');
     document.getElementById('swrlList').classList.add('hidden');

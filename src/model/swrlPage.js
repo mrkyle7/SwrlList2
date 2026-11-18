@@ -182,23 +182,64 @@ export function metaLine(details) {
 /**
  * @typedef {Object} LinkGroup
  * @property {string} title
- * @property {Link[]} links
+ * @property {DisplayLink[]} links
  */
 
 /**
- * @param {Link} link
- * @return {'listen' | 'official' | 'more'}
+ * @typedef {Object} DisplayLink
+ * @property {string} url
+ * @property {string} name what the row says: the site's proper name
+ * @property {'music' | 'podcast' | 'boardgame' | 'videogame' | 'film' | 'book' | 'site' | 'link'} icon
+ * @property {'listen' | 'play' | 'more' | 'official'} group
  */
-function linkKind(link) {
-    const url = (link.url || '').toLowerCase();
+
+/**
+ * Sites we link to, by host: their proper names and a plain icon for the kind of site.
+ *
+ * @type {{host: string, name: string, icon: DisplayLink['icon'], group: DisplayLink['group']}[]}
+ */
+const KNOWN_SITES = [
+    { host: 'music.apple.com', name: 'Apple Music', icon: 'music', group: 'listen' },
+    { host: 'podcasts.apple.com', name: 'Apple Podcasts', icon: 'podcast', group: 'listen' },
+    { host: 'boardgamegeek.com', name: 'BoardGameGeek', icon: 'boardgame', group: 'play' },
+    { host: 'videogamegeek.com', name: 'VideoGameGeek', icon: 'videogame', group: 'play' },
+    { host: 'themoviedb.org', name: 'The Movie Database', icon: 'film', group: 'more' },
+    { host: 'imdb.com', name: 'IMDb', icon: 'film', group: 'more' },
+    { host: 'openlibrary.org', name: 'Open Library', icon: 'book', group: 'more' }
+];
+
+/**
+ * @param {string} url
+ * @return {string} the host without "www.", or empty when the address is not a URL
+ */
+function hostOf(url) {
+    try {
+        return new URL(url).hostname.toLowerCase().replace(/^www\./, '');
+    } catch (error) {
+        return '';
+    }
+}
+
+/**
+ * What a link row shows. Known sites get their proper name and an icon for
+ * their kind, worked out from the address, so swrls saved with old names
+ * ("iTunes", "Geek URL") show the right one too. A film's or show's home page
+ * becomes "Official site"; anything else keeps the name it came with.
+ *
+ * @param {Link} link
+ * @return {DisplayLink}
+ */
+export function linkDisplay(link) {
+    const host = hostOf(link.url);
+    const known = KNOWN_SITES.find(site => host === site.host || host.endsWith('.' + site.host));
+    if (known) {
+        return { url: link.url, name: known.name, icon: known.icon, group: known.group };
+    }
     const name = (link.name || '').toLowerCase();
-    if (url.includes('music.apple.com') || url.includes('podcasts.apple.com')) {
-        return 'listen';
-    }
     if (name.includes('home page') || name.includes('homepage') || name.includes('official') || name.includes('website')) {
-        return 'official';
+        return { url: link.url, name: 'Official site', icon: 'site', group: 'official' };
     }
-    return 'more';
+    return { url: link.url, name: link.name || host || 'Link', icon: 'link', group: 'more' };
 }
 
 /**
@@ -209,13 +250,14 @@ function linkKind(link) {
  * @return {LinkGroup[]}
  */
 export function groupLinks(links) {
-    const titles = { listen: 'Listen', official: 'Official site', more: 'Find out more' };
+    const titles = { listen: 'Listen', play: 'Play', official: 'Official site', more: 'Find out more' };
+    const shown = links.filter(link => link.url).map(linkDisplay);
     /** @type {LinkGroup[]} */
     const groups = [];
-    ['listen', 'official', 'more'].forEach(kind => {
-        const inGroup = links.filter(link => link.url && linkKind(link) === kind);
+    ['listen', 'play', 'official', 'more'].forEach(group => {
+        const inGroup = shown.filter(link => link.group === group);
         if (inGroup.length > 0) {
-            groups.push({ title: titles[kind], links: inGroup });
+            groups.push({ title: titles[group], links: inGroup });
         }
     });
     return groups;
