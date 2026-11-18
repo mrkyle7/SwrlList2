@@ -2893,7 +2893,15 @@ button.pageActionPrimary:hover {
 
 .pageHeroInner {
     position: relative;
-    padding: 56px 20px 24px;
+    padding: 24px 20px;
+}
+
+/* "Who can see this": in the top right corner, level with the top of the
+   poster, rather than a row of its own above it. The kind chip at the top of
+   the text is short, so they never meet. */
+.pageHero .swrlVisibility {
+    top: 24px;
+    right: 20px;
 }
 
 .pageHeroRow {
