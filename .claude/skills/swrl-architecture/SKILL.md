@@ -105,6 +105,16 @@ containers that views attach into.
   desktop they become pills in the header. A new toggle must be checked at
   360px with the longest label.
 
+- **Shared UI helpers:** `components/headerColour.js` (`setHeaderColour`: every
+  screen's `updateTitleBar` colours the phone header through it, so the title
+  stays readable), `components/keyboard.js` (`makeKeyboardClickable`, the tabs'
+  roles and the "Skip to content" link), `components/updateCheck.js` (see
+  `swrl-build-deploy`, "New builds reach open apps").
+- **Swrls inbox cards** (`components/recommendation.js`) are list cards: built
+  from the `#swrl` template with `addDetailedParts` and the same buttons, plus
+  the sender line, a "New" pill and a footer (date, Reply, Mark as read,
+  Dismiss). On desktop `#recommendationList` is the list's two-column grid.
+
 ## Conventions
 
 - **One action per file** in `src/actions/`. Each default-exports a function

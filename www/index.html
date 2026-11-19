@@ -19,8 +19,8 @@
   <meta name="apple-mobile-web-app-title" content="Swrl List" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="msapplication-tap-highlight" content="no" />
-  <title>Swrl List 2</title>
-  <meta property="og:title" content="Swrl List 2"/>
+  <title>Swrl List</title>
+  <meta property="og:title" content="Swrl List"/>
   <meta name="description" content="Remember and recommend things you Should Watch Read or Listen to"/>
   <meta property="og:description" content="Remember and recommend things you Should Watch Read or Listen to"/>
   <meta property="og:url" content="https://swrl-list.com/"/>
@@ -29,10 +29,11 @@
 </head>
 
 <body>
+  <a id="skipLink" class="skipLink" href="#centre">Skip to content</a>
   <div id="header" class="header">
     <div class="title">
       <div class="title-details">
-        <h1 id="titleText">Swrl List 2</h1>
+        <h1 id="titleText">Swrl List</h1>
       </div>
     </div>
     <div class="hidden" id="inboxDisplay">
@@ -652,76 +653,35 @@
       </div>
     </div>
   </template>
-  <template id="recommendation">
-    <div class="recommendation unread">
-      <div class="recommendationSwrl">
-        <div class="swrlInfo">
-          <img class="swrlImage" src="" />
-          <div class="swrlDetails">
-            <p class="swrlTitle"></p>
-            <p class="swrlProgress hidden"></p>
-            <p class="swrlStats">
-            <span class="swrlType"></span>
-            <span class="swrlStat swrlStatList" title="People with this on a list"><img class="swrlMiniIcon" src="img/list.svg" alt="On lists:" /><img class="swrlSpinnerListCount swrlMiniIcon hidden" src="img/spinner.gif" alt="" /><span class="swrlListCount"></span></span>
-            <span class="swrlStat swrlStatRecommended" title="Times recommended"><img class="swrlMiniIcon" src="img/logo_transparent.svg" alt="Recommended:" /><img class="swrlSpinnerRecommendedCount swrlMiniIcon hidden" src="img/spinner.gif" alt="" /><span class="swrlRecommendedCount"></span></span>
-            <span class="swrlStat swrlStatLoved" title="People who love this"><img class="swrlMiniIcon" src="img/loved.svg" alt="Loved by:" /><img class="swrlSpinnerLoveCount swrlMiniIcon hidden" src="img/spinner.gif" alt="" /><span class="swrlLoveCount"></span></span>
-          </p>
-          </div>
-        </div>
-        <div class="swrlButtons">
-        </div>
-      </div>
-    </div>
-  </template>
   <template id="swrlButtons">
     <img class="swrlButtonSpinner swrlButton hidden" src="img/spinner.gif" alt="Loading" />
     <button type="button" class="swrlDelete swrlButton hidden" aria-label="Dismiss" title="Dismiss"><img src="img/delete.svg" alt="" /><span class="swrlCardLabel">Dismiss</span></button>
-    <button type="button" class="swrlLoved swrlButton hidden" aria-label="Loved. Tap to undo" title="Loved. Tap to undo"><img src="img/loved.svg" alt="" /><span class="swrlCardLabel">Loved</span></button>
+    <button type="button" class="swrlLoved swrlButton hidden" aria-label="Loved. Select to undo" title="Loved. Select to undo"><img src="img/loved.svg" alt="" /><span class="swrlCardLabel">Loved</span></button>
     <button type="button" class="swrlNotLoved swrlButton hidden" aria-label="Love" title="Love"><img src="img/notLoved.svg" alt="" /><span class="swrlCardLabel">Love</span></button>
     <button type="button" class="swrlRecommend swrlButton hidden" aria-label="Swrl to a friend" title="Swrl to a friend"><img src="img/logo_transparent.svg" alt="" /><span class="swrlCardLabel">Swrl to a friend</span></button>
-    <button type="button" class="swrlInProgress swrlButton hidden" aria-label="In progress. Tap to undo" title="In progress. Tap to undo"><img src="img/in_progress-24px.svg" alt="" /><span class="swrlCardLabel">In progress</span></button>
+    <button type="button" class="swrlInProgress swrlButton hidden" aria-label="In progress. Select to undo" title="In progress. Select to undo"><img src="img/in_progress-24px.svg" alt="" /><span class="swrlCardLabel">In progress</span></button>
     <button type="button" class="swrlNotInProgress swrlButton hidden" aria-label="Start" title="Start"><img src="img/start_progress-24px.svg" alt="" /><span class="swrlCardLabel">Start</span></button>
-    <button type="button" class="swrlDone swrlButton hidden" aria-label="Done. Tap to undo" title="Done. Tap to undo"><img src="img/check_circle-24px.svg" alt="" /><span class="swrlCardLabel">Done</span></button>
+    <button type="button" class="swrlDone swrlButton hidden" aria-label="Done. Select to undo" title="Done. Select to undo"><img src="img/check_circle-24px.svg" alt="" /><span class="swrlCardLabel">Done</span></button>
     <button type="button" class="swrlNotDone swrlButton hidden" aria-label="Mark as done" title="Mark as done"><img src="img/check_circle_outline-24px.svg" alt="" /><span class="swrlCardLabel">Mark as done</span></button>
-    <button type="button" class="swrlAdded swrlButton hidden" aria-label="On your list. Tap to remove" title="On your list. Tap to remove"><img src="img/playlist_add_check-24px.svg" alt="" /><span class="swrlCardLabel">On your list</span></button>
+    <button type="button" class="swrlAdded swrlButton hidden" aria-label="On your list. Select to remove" title="On your list. Select to remove"><img src="img/playlist_add_check-24px.svg" alt="" /><span class="swrlCardLabel">On your list</span></button>
     <button type="button" class="swrlNotAdded swrlButton hidden" aria-label="Add to your list" title="Add to your list"><img src="img/playlist_add-24px.svg" alt="" /><span class="swrlCardLabel">Add to list</span></button>
   </template>
   <template id="swrlPageButtons">
     <div class="pageActions">
       <button type="button" class="swrlNotAdded swrlButton pageAction pageActionPrimary hidden"><img src="img/playlist_add-24px-white.svg" alt="" /><span class="swrlButtonLabel">Add to your list</span></button>
-      <button type="button" class="swrlAdded swrlButton pageAction pageActionOn hidden" title="Tap to remove from your list"><img src="img/playlist_add_check-24px.svg" alt="" /><span class="swrlButtonLabel">On your list</span></button>
+      <button type="button" class="swrlAdded swrlButton pageAction pageActionOn hidden" title="Remove from your list"><img src="img/playlist_add_check-24px.svg" alt="" /><span class="swrlButtonLabel">On your list</span></button>
       <button type="button" class="swrlRecommend swrlButton pageAction hidden"><img src="img/logo_transparent.svg" alt="" /><span class="swrlButtonLabel">Swrl to a friend</span></button>
     </div>
     <div class="pageToggles">
       <img class="swrlButtonSpinner swrlButton hidden" src="img/spinner.gif" alt="Loading" />
       <button type="button" class="swrlNotLoved swrlButton pageToggle hidden"><img src="img/notLoved.svg" alt="" /><span class="swrlButtonLabel">Love</span></button>
-      <button type="button" class="swrlLoved swrlButton pageToggle pageToggleOn hidden" title="Tap to undo"><img src="img/loved.svg" alt="" /><span class="swrlButtonLabel">Loved</span></button>
+      <button type="button" class="swrlLoved swrlButton pageToggle pageToggleOn hidden" title="Undo"><img src="img/loved.svg" alt="" /><span class="swrlButtonLabel">Loved</span></button>
       <button type="button" class="swrlNotInProgress swrlButton pageToggle hidden"><img src="img/start_progress-24px.svg" alt="" /><span class="swrlButtonLabel">Start</span></button>
-      <button type="button" class="swrlInProgress swrlButton pageToggle pageToggleOn hidden" title="Tap to undo"><img src="img/in_progress-24px.svg" alt="" /><span class="swrlButtonLabel">In progress</span></button>
+      <button type="button" class="swrlInProgress swrlButton pageToggle pageToggleOn hidden" title="Undo"><img src="img/in_progress-24px.svg" alt="" /><span class="swrlButtonLabel">In progress</span></button>
       <button type="button" class="swrlNotDone swrlButton pageToggle hidden"><img src="img/check_circle_outline-24px.svg" alt="" /><span class="swrlButtonLabel">Mark as done</span></button>
-      <button type="button" class="swrlDone swrlButton pageToggle pageToggleOn hidden" title="Tap to undo"><img src="img/check_circle-24px.svg" alt="" /><span class="swrlButtonLabel">Done</span></button>
+      <button type="button" class="swrlDone swrlButton pageToggle pageToggleOn hidden" title="Undo"><img src="img/check_circle-24px.svg" alt="" /><span class="swrlButtonLabel">Done</span></button>
       <button type="button" class="swrlDelete swrlButton pageToggle hidden"><img src="img/delete.svg" alt="" /><span class="swrlButtonLabel">Dismiss</span></button>
       <button type="button" class="swrlShare swrlButton pageToggle"><img src="img/share-24px.svg" alt="" /><span class="swrlButtonLabel">Share</span></button>
-    </div>
-  </template>
-  <template id="recommender">
-    <div class="recommender">
-      <img class="swrlerSmallImage" src="" />
-      <span class="recommenderName"></span>
-    </div>
-  </template>
-  <template id="recommendationMessage">
-    <div class="recommendationMessage">
-      <span class="recommenderMessage"></span>
-    </div>
-  </template>
-  <template id="recommendationActions">
-    <div>
-      <div class="recommendationActions">
-        <span class="actionText markRead hidden">Mark as read</span>
-        <span class="actionText markUnRead hidden">Mark as unread</span>
-        <span class="actionText dismiss">Dismiss</span>
-      </div>
     </div>
   </template>
   <template id="swrlerSmall">

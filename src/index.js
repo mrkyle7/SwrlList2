@@ -36,6 +36,8 @@ import { showToasterMessage } from './components/toaster';
 import { inboxReady } from './listeners/recommendations';
 import { getSwrler } from './firebase/swrler';
 import { initSearchClearButtons } from './components/searchClear';
+import { setUpKeyboardAccess } from './components/keyboard';
+import { startUpdateCheck } from './components/updateCheck';
 
 /** @type {StateController} */
 let stateController;
@@ -63,6 +65,8 @@ const app = {
             stateController = new StateController(firestore);
             stateController.initialiseAllViews();
             initSearchClearButtons();
+            setUpKeyboardAccess();
+            startUpdateCheck();
             document.getElementById('appVersion').textContent = APP_VERSION;
 
             window.onpopstate =
@@ -89,7 +93,7 @@ const app = {
             stateController.currentState = startState;
 
             registerServiceWorker();
-            window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/')
+            window.history.replaceState({ stateId: startState.id }, 'Swrl List', '/')
             while (!initialisedLogin) {
                 console.log('waiting for login...')
                 await new Promise(resolve => setTimeout(resolve, 300))
@@ -316,7 +320,7 @@ function swrlRoute(match, firestore, startState, shareID) {
                     document.getElementById('loadingView').classList.add('hidden');
                     const startState = new State(stateController.homeView);
                     stateController.changeState(startState);
-                    window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/');
+                    window.history.replaceState({ stateId: startState.id }, 'Swrl List', '/');
 
                 }
             })
@@ -352,7 +356,7 @@ function swrlerRoute(match, firestore, startState) {
                     document.getElementById('loadingView').classList.add('hidden');
                     const startState = new State(stateController.homeView);
                     stateController.changeState(startState);
-                    window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/');
+                    window.history.replaceState({ stateId: startState.id }, 'Swrl List', '/');
 
                 }
             })
@@ -388,7 +392,7 @@ function recommendRoute(match, firestore) {
                     document.getElementById('loadingView').classList.add('hidden');
                     const startState = new State(stateController.homeView);
                     stateController.changeState(startState);
-                    window.history.replaceState({ stateId: startState.id }, 'Swrl List 2', '/');
+                    window.history.replaceState({ stateId: startState.id }, 'Swrl List', '/');
                 }
             })
             .catch(err => {

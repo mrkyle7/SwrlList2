@@ -31,6 +31,8 @@ invent a pattern when one exists.
 
 Produce a short plan with these sections before writing code:
 
+- **UX:** load the `swrl-ux` skill; reuse its patterns and run its `audit.js`
+  checks on every screen the feature touches.
 - **Journeys:** every row of `docs/user-journeys.md`, marked "changes" or
   "not affected, because ...". Everything marked "changes" is built and
   checked in this PR.

@@ -32,8 +32,8 @@ env:
   # account; see terraform/github.tf. Editing this file can't change that.
   SERVICE_ACCOUNT: github-terraform@swrl-1118.iam.gserviceaccount.com
   PLAN_SERVICE_ACCOUNT: github-terraform-plan@swrl-1118.iam.gserviceaccount.com
-  # Text the smoke tests look for in the served page.
-  PAGE_MARKER: "<title>Swrl List 2</title>"
+  # Text the smoke tests look for in the served page (the <title> in www/index.html).
+  PAGE_MARKER: "<title>Swrl List</title>"
 
 jobs:
   test:
@@ -67,7 +67,8 @@ jobs:
               && curl -fsS http://localhost:8080/watch | grep -qF "$PAGE_MARKER" \
               && curl -fsS -o /dev/null http://localhost:8080/bundle.js \
               && curl -fsS -o /dev/null http://localhost:8080/sw.js \
-              && curl -fsS -o /dev/null http://localhost:8080/manifest.webmanifest; then
+              && curl -fsS -o /dev/null http://localhost:8080/manifest.webmanifest \
+              && curl -fsS http://localhost:8080/version.json | grep -q '"version"'; then
               exit 0
             fi
             sleep 1

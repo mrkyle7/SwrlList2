@@ -290,8 +290,8 @@ function showInProgress(div, swrl, inProgress) {
     if (on && off) {
         on.querySelector('.swrlButtonLabel, .swrlCardLabel').textContent = words.now;
         off.querySelector('.swrlButtonLabel, .swrlCardLabel').textContent = words.start;
-        on.setAttribute('aria-label', words.now + '. Tap to undo');
-        on.title = words.now + '. Tap to undo';
+        on.setAttribute('aria-label', words.now + '. Select to undo');
+        on.title = words.now + '. Select to undo';
         off.setAttribute('aria-label', words.start);
         off.title = words.start;
         on.classList.toggle('hidden', !inProgress);

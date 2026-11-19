@@ -19,8 +19,10 @@ const staticOptions = {
   redirect: false,
   setHeaders: function (res, filePath) {
     const name = path.basename(filePath);
-    if (name === 'sw.js' || name === 'firebase-messaging-sw.js') {
-      // Service workers must always be revalidated or updates never ship.
+    if (name === 'sw.js' || name === 'firebase-messaging-sw.js' || name === 'version.json'
+      || name === 'bundle.js' || name === 'index.css') {
+      // Service workers, the app itself and the version it is must always be
+      // revalidated, or updates never ship (and the app could not tell).
       res.setHeader('Cache-Control', 'no-cache');
     } else if (name === 'manifest.webmanifest') {
       res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');

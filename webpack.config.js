@@ -19,6 +19,18 @@ module.exports = (env = {}) => {
     APP_VERSION: JSON.stringify(version)
   });
 
+  // dist/version.json holds the same string the bundle was built with, so a
+  // running app can tell when a newer build is live (src/components/updateCheck.js).
+  const writeVersion = {
+    apply(compiler) {
+      compiler.hooks.thisCompilation.tap('SwrlVersion', compilation => {
+        compilation.hooks.processAssets.tap({ name: 'SwrlVersion', stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL }, () => {
+          compilation.emitAsset('version.json', new webpack.sources.RawSource(JSON.stringify({ version })));
+        });
+      });
+    }
+  };
+
   return [
     {
       name: 'app',
@@ -43,6 +55,7 @@ module.exports = (env = {}) => {
       },
       plugins: [
         define,
+        writeVersion,
         new CopyPlugin({ patterns: [{ from: 'www' }] })
       ],
       performance: {

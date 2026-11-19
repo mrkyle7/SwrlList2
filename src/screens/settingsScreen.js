@@ -1,5 +1,6 @@
 import { StateController } from "../views/stateController";
 import { Screen } from "./Screen";
+import { setHeaderColour } from "../components/headerColour";
 import { showLoginButtons } from "../firebase/login";
 
 export class SettingsScreen extends Screen {
@@ -17,8 +18,7 @@ export class SettingsScreen extends Screen {
         backButton.classList.remove('hidden');
         const titleText = document.getElementById('titleText');
         titleText.innerText = 'Settings';
-        const header = document.getElementById('header');
-        header.style.backgroundColor = '#4990E2';
+        setHeaderColour('#4990E2');
         const recommendSendContainer = document.getElementById('recommendSendContainer');
         recommendSendContainer.classList.add('hidden');
         const filterContainer = document.getElementById('filterContainer');

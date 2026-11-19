@@ -6,6 +6,8 @@ A change to any of them is not finished until every journey below that shows
 it has been updated and checked. **Before coding, go down this list, mark each
 row "changes" or "not affected, because ...", and put that list in the PR.**
 
+How to design and check each one: the `swrl-ux` skill.
+
 Phone widths to check: 360, 390, 430. Desktop: 1280 (from 1025px the sidebar
 layout applies). Check signed in, signed out (anonymous) and as a friend.
 
@@ -22,10 +24,12 @@ layout applies). Check signed in, signed out (anonymous) and as a friend.
 | Swrl page: header buttons and toggles (phone and desktop) | `views/swrlFullPage.js`, `#swrlPageButtons` | toggles must line up at 360px with the longest label |
 | Search results cards | `views/searchResults.js` → `components/swrl.js` | |
 | Discover: list (leaves out what is on my list or done) | `views/swrlList.js` | |
-| Swrls inbox (For you) and Sent cards | `views/recommendations.js`, `components/recommendation.js`, `#recommendation` template | |
+| Swrls inbox (For you) and Sent cards | `views/recommendations.js`, `components/recommendation.js` (list cards from the `#swrl` template) | same card as the lists: a change to list cards reaches the inbox too |
 | Swrl to a friend (recommend screen) | `views/recommend.js` | |
 | Labels and private comments on the swrl page | `components/labels.js`, `views/swrlFullPage.js` | |
 | Settings (defaults: visibility, list view, page layout) | `views/settings.js` | |
+| Keyboard on desktop (Tab order, Enter on cards and tabs, Esc, skip link) | `components/keyboard.js`, `views/stateController.js` | |
+| An open or installed app getting the new build | `components/updateCheck.js`, `dist/version.json` | |
 
 ## Friends and other people
 
