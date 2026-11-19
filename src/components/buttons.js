@@ -17,6 +17,9 @@ import { State } from '../model/state';
 import markASwrlAsDone from '../actions/markASwrlAsDone';
 import removeSwrlFromList from '../actions/removeSwrlFromList';
 import unmarkASwrlAsDone from '../actions/unmarkASwrlAsDone';
+import markASwrlAsInProgress from '../actions/markASwrlAsInProgress';
+import unmarkASwrlAsInProgress from '../actions/unmarkASwrlAsInProgress';
+import { progressWords } from '../model/progress';
 
 /**
  * @param {Constant} view
@@ -141,6 +144,7 @@ export function addAddButton(view, div, swrl, firestore, swrlsContainer, recomme
 
                     div.querySelector('.swrlNotAdded').classList.remove('hidden');
                     div.querySelector('.swrlAdded').classList.add('hidden');
+                    showInProgress(div, swrl, false);
 
                     showToasterMessage('Removed ' + swrl.details.title + ' from your list');
                 }
@@ -246,6 +250,7 @@ export function addDoneButton(swrlDiv, swrl, firestore, swrlsContainer, view) {
                 swrlDiv.querySelector('.swrlDone').classList.remove('hidden');
                 swrlDiv.querySelector('.swrlAdded').classList.add('hidden');
                 swrlDiv.querySelector('.swrlNotAdded').classList.remove('hidden');
+                showInProgress(swrlDiv, swrl, false);
             }
         });
         if (isDone(swrl)) {
@@ -254,4 +259,91 @@ export function addDoneButton(swrlDiv, swrl, firestore, swrlsContainer, view) {
             swrlDiv.querySelector('.swrlNotDone').classList.remove('hidden');
         }
     }
+}
+/**
+ * @param {Swrl} swrl
+ */
+function isInProgress(swrl) {
+    const entry = getListEntry(swrl.swrlID);
+    return entry !== undefined && entry.later && entry.inProgress;
+}
+
+/**
+ * Shows whether I have started a swrl, wherever the card or page has a place
+ * for it: the badge by the type ("Watching") and the page's toggle.
+ *
+ * @param {HTMLElement} div
+ * @param {Swrl} swrl
+ * @param {boolean} inProgress
+ */
+function showInProgress(div, swrl, inProgress) {
+    const words = progressWords(swrl.category.id);
+    const badge = div.querySelector('.swrlProgress');
+    if (badge) {
+        badge.textContent = words.now;
+        badge.classList.toggle('hidden', !inProgress);
+    }
+    const on = div.querySelector('.swrlInProgress');
+    const off = div.querySelector('.swrlNotInProgress');
+    if (on && off) {
+        on.querySelector('.swrlButtonLabel').textContent = words.now;
+        off.querySelector('.swrlButtonLabel').textContent = words.start;
+        on.classList.toggle('hidden', !inProgress);
+        off.classList.toggle('hidden', inProgress);
+    }
+}
+
+/**
+ * The "Watching" badge on a card, for a swrl I have started.
+ *
+ * @param {HTMLElement} swrlDiv
+ * @param {Swrl} swrl
+ */
+export function addProgressBadge(swrlDiv, swrl) {
+    if (swrlDiv) showInProgress(swrlDiv, swrl, isInProgress(swrl));
+}
+
+/**
+ * The swrl page's "Start watching" / "Watching" toggle. Starting puts the
+ * swrl on my list and clears done; stopping leaves it on my list.
+ *
+ * @param {HTMLElement} pageDiv
+ * @param {Swrl} swrl
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+export function addProgressButton(pageDiv, swrl, firestore) {
+    if (!pageDiv) return;
+    const words = progressWords(swrl.category.id);
+    const button = (/** @type {string} */ selector) => /** @type {HTMLElement} */ (pageDiv.querySelector(selector));
+    button('.swrlNotInProgress').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!swrlUser || swrlUser.isAnonymous) {
+            showRequireLoginScreen('to keep track of what you are ' + words.caption);
+            return;
+        }
+        markASwrlAsInProgress(swrl, firestore).catch(error => {
+            console.error('Could not mark as in progress');
+            console.error(error);
+        });
+        showInProgress(pageDiv, swrl, true);
+        // it is on my list now, and not done
+        button('.swrlAdded').classList.remove('hidden');
+        button('.swrlNotAdded').classList.add('hidden');
+        button('.swrlDone').classList.add('hidden');
+        button('.swrlNotDone').classList.remove('hidden');
+        showToasterMessage(words.now + ' ' + swrl.details.title);
+    });
+    button('.swrlInProgress').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!swrlUser || swrlUser.isAnonymous) return;
+        unmarkASwrlAsInProgress(swrl, firestore).catch(error => {
+            console.error('Could not unmark as in progress');
+            console.error(error);
+        });
+        showInProgress(pageDiv, swrl, false);
+        showToasterMessage('No longer ' + words.caption + ' ' + swrl.details.title);
+    });
+    showInProgress(pageDiv, swrl, isInProgress(swrl));
 }

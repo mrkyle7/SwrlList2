@@ -1,3 +1,5 @@
+import { progressWords } from './progress';
+
 /**
  * Pure helpers for the rows at the top of a category's Discover tab
  * ("Swrled to you", "Friends' recent activity"). Tested in test/activity.test.js.
@@ -47,14 +49,14 @@ export function newForYou(recommendations, uid) {
  * per swrl with every friend who has it. Leaves out what is already on my
  * list or done, and what I dismissed.
  *
- * @template {{swrlID: string, later: boolean, done: boolean, loved: boolean, deleted: boolean, updated?: Date}} E
+ * @template {{swrlID: string, later: boolean, done: boolean, loved: boolean, deleted: boolean, inProgress?: boolean, updated?: Date}} E
  * @param {{uid: string, entries: E[]}[]} friendsEntries
  * @param {(swrlID: string) => ({later: boolean, done: boolean, deleted: boolean} | undefined)} mine my entry for a swrl
  * @param {number} limit
- * @return {{swrlID: string, entry: E, friends: {uid: string, loved: boolean, done: boolean}[], updated: number}[]}
+ * @return {{swrlID: string, entry: E, friends: {uid: string, loved: boolean, done: boolean, inProgress: boolean}[], updated: number}[]}
  */
 export function friendsActivity(friendsEntries, mine, limit) {
-    /** @type {Map<string, {swrlID: string, entry: E, friends: {uid: string, loved: boolean, done: boolean}[], updated: number}>} */
+    /** @type {Map<string, {swrlID: string, entry: E, friends: {uid: string, loved: boolean, done: boolean, inProgress: boolean}[], updated: number}>} */
     const bySwrl = new Map();
     friendsEntries.forEach(({ uid, entries }) => entries.forEach(entry => {
         if (entry.deleted || !(entry.later || entry.done || entry.loved)) return;
@@ -63,13 +65,13 @@ export function friendsActivity(friendsEntries, mine, limit) {
         const found = bySwrl.get(entry.swrlID);
         const updated = time(entry.updated);
         if (found) {
-            found.friends.push({ uid, loved: entry.loved, done: entry.done });
+            found.friends.push({ uid, loved: entry.loved, done: entry.done, inProgress: entry.inProgress === true });
             if (updated > found.updated) {
                 found.updated = updated;
                 found.entry = entry;
             }
         } else {
-            bySwrl.set(entry.swrlID, { swrlID: entry.swrlID, entry, friends: [{ uid, loved: entry.loved, done: entry.done }], updated });
+            bySwrl.set(entry.swrlID, { swrlID: entry.swrlID, entry, friends: [{ uid, loved: entry.loved, done: entry.done, inProgress: entry.inProgress === true }], updated });
         }
     }));
     return [...bySwrl.values()].sort((a, b) => b.updated - a.updated).slice(0, limit);
@@ -80,9 +82,10 @@ const VERBS = { 1: ['watch', 'watched'], 2: ['read', 'read'], 3: ['listen to', '
 
 /**
  * The line under a tile in "Friends' recent activity", leading with love:
- * "Alice loved it", "Alice watched it", "Alice and Bob want to watch it".
+ * "Alice loved it", "Alice watched it", "Alice is watching it",
+ * "Alice and Bob want to watch it".
  *
- * @param {{name: string, loved: boolean, done?: boolean}[]} friends
+ * @param {{name: string, loved: boolean, done?: boolean, inProgress?: boolean}[]} friends
  * @param {number} categoryID
  * @return {string}
  */
@@ -92,6 +95,8 @@ export function activityCaption(friends, categoryID) {
     if (loved.length > 0) return `${nameList(loved)} loved it`;
     const done = friends.filter(f => f.done).map(f => f.name);
     if (done.length > 0) return `${nameList(done)} ${past} it`;
+    const started = friends.filter(f => f.inProgress).map(f => f.name);
+    if (started.length > 0) return `${nameList(started)} ${started.length === 1 ? 'is' : 'are'} ${progressWords(categoryID).caption} it`;
     const names = friends.map(f => f.name);
     return `${nameList(names)} ${names.length === 1 ? 'wants' : 'want'} to ${verb} it`;
 }

@@ -41,7 +41,7 @@ describe("what friends are into", function () {
             : id === 'dismissed' ? { later: false, done: false, deleted: true } : undefined;
         const result = friendsActivity(friends, mine, 10);
         expect(result.map(r => r.swrlID)).to.deep.equal(['a', 'b', 'c']);
-        expect(result[0].friends).to.deep.equal([{ uid: 'bob', loved: true, done: false }, { uid: 'cara', loved: false, done: false }]);
+        expect(result[0].friends).to.deep.equal([{ uid: 'bob', loved: true, done: false, inProgress: false }, { uid: 'cara', loved: false, done: false, inProgress: false }]);
         expect(friendsActivity(friends, mine, 2).map(r => r.swrlID)).to.deep.equal(['a', 'b']);
     });
     it('shows a swrl I only loved but did not keep', function () {

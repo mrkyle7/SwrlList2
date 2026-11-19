@@ -16,7 +16,8 @@ import { getEntriesForSwrl } from '../firebase/swrlEntries';
 import { Recommendation } from '../model/recommendation';
 import { Swrl } from '../model/swrl';
 import { TABS, activeTab, artShape, capitalise, metaLine, splitGenres, tabsToShow } from '../model/swrlPage';
-import { addAddButton, addLoveButton, addRecommendButton, addDoneButton } from '../components/buttons';
+import { addAddButton, addLoveButton, addRecommendButton, addDoneButton, addProgressButton } from '../components/buttons';
+import { progressWords } from '../model/progress';
 import { drawTabs, markActiveTab } from '../components/pageTabs';
 import {
     avatar, buildCast, buildLinks, buildRatings, buildStory, element, pageBlock
@@ -161,6 +162,7 @@ async function showSwrlFullPage(stateController) {
             addLoveButton(FULL_PAGE, currentSwrl, swrlFullPageView, firestore, null);
             addRecommendButton(swrlFullPageView, currentSwrl, stateController);
             addDoneButton(swrlFullPageView, currentSwrl, firestore, null, FULL_PAGE);
+            addProgressButton(swrlFullPageView, currentSwrl, firestore);
 
             // my layout is read with my entries, so it may only be known now
             applyLayout();
@@ -179,6 +181,7 @@ async function showSwrlFullPage(stateController) {
             addLoveButton(FULL_PAGE, swrl, swrlFullPageView, firestore, null);
             addRecommendButton(swrlFullPageView, swrl, stateController);
             addDoneButton(swrlFullPageView, swrl, firestore, null, FULL_PAGE);
+            addProgressButton(swrlFullPageView, swrl, firestore);
             renderFriends(swrl, firestore, stateController);
             updateDetails(swrl, swrlExists, firestore, stateController);
         })
@@ -401,8 +404,18 @@ async function recommendationsFromMe(swrl, firestore) {
     return cards.filter(card => card !== undefined);
 }
 
-/** The groups of people on the card of who has a swrl: title and the entry flag that puts someone in it. */
-const swrlersCardSections = [['Later', 'later'], ['Done', 'done'], ['Loved', 'loved']];
+/**
+ * The groups of people on the card of who has a swrl: title and who is in it.
+ * Someone who has started it shows under "Watching" (or reading, ...), not "Later".
+ *
+ * @param {number} categoryID
+ * @return {[string, (entry: import('../model/listEntry').ListEntry) => boolean][]}
+ */
+const swrlersCardSections = (categoryID) => [
+    [progressWords(categoryID).now, entry => entry.later && entry.inProgress],
+    ['Later', entry => entry.later && !entry.inProgress],
+    ['Done', entry => entry.done],
+    ['Loved', entry => entry.loved]];
 
 /**
  * The card of who has the swrl on later, done or loved, as far as I may
@@ -442,8 +455,8 @@ async function swrlersCard(swrl, firestore, stateController) {
         heading.appendChild(element('span', 'whoText',
             swrlers.size === 1 ? '1 person has this on a list' : `${swrlers.size} people have this on a list`));
         card.appendChild(heading);
-        swrlersCardSections.forEach(([title, flag]) => {
-            const people = entries.filter(entry => entry[flag]).map(entry => swrlers.get(entry.uid)).filter(s => s);
+        swrlersCardSections(swrl.category.id).forEach(([title, inGroup]) => {
+            const people = entries.filter(inGroup).map(entry => swrlers.get(entry.uid)).filter(s => s);
             if (people.length === 0) return;
             const group = element('div', 'swrlerGroup');
             group.appendChild(element('span', 'swrlerGroupTitle', title));

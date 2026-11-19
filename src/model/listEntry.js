@@ -24,14 +24,16 @@ export class ListEntry {
      * @param {Date} [updated]
      * @param {Visibility} [visibility] the effective visibility; defaults to DEFAULT_VISIBILITY
      * @param {boolean} [visibilityOverride] true when the user chose it for this swrl
+     * @param {boolean} [inProgress] started (watching, reading, ...); only while on the list
      */
-    constructor(uid, swrlID, type, category, details, later, done, loved, deleted, added, updated, visibility, visibilityOverride) {
+    constructor(uid, swrlID, type, category, details, later, done, loved, deleted, added, updated, visibility, visibilityOverride, inProgress) {
         this.uid = uid;
         this.swrlID = swrlID;
         this.type = type;
         this.category = category;
         this.details = details;
         this.later = later === true;
+        this.inProgress = inProgress === true;
         this.done = done === true;
         this.loved = loved === true;
         this.deleted = deleted === true;
@@ -59,6 +61,7 @@ export class ListEntry {
             category: this.category.id,
             details: this.details.toJSON(),
             later: this.later,
+            inProgress: this.inProgress,
             done: this.done,
             loved: this.loved,
             deleted: this.deleted,
@@ -108,7 +111,7 @@ export class ListEntry {
         const updated = json.updated !== undefined && json.updated != null ? json.updated.toDate() : undefined;
         return new ListEntry(json.uid, json.swrlID, type, category, details,
             json.later === true, json.done === true, json.loved === true, json.deleted === true,
-            added, updated, visibilityFromId(json.visibility), json.visibilityOverride === true);
+            added, updated, visibilityFromId(json.visibility), json.visibilityOverride === true, json.inProgress === true);
     }
 }
 

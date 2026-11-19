@@ -95,6 +95,7 @@ field. The client never reads or writes the arrays and the rules refuse them
 swrlers/{uid}/listEntries/{swrlID}:
 { swrlID, uid, type, category, details,   // denormalised copy: a list renders from entries alone
   later, done, loved, deleted: boolean,
+  inProgress: boolean,                    // started (watching/reading/...): only with later; done or off the list clears it. Absent = false. Not counted.
   added, updated,                         // serverTimestamp()
   visibility: 'private' | 'friends' | 'public',   // the EFFECTIVE value
   visibilityOverride: boolean }           // true when set for this swrl, false = follows the default

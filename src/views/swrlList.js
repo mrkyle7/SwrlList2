@@ -1,5 +1,6 @@
 import { appendAttribution } from '../components/attribution';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { inProgressFirst } from '../model/progress';
 export default { showList, destroyList };
 
 import { YOUR_LIST, DISCOVER } from '../constants/View';
@@ -185,8 +186,9 @@ async function loadSwrls(category, view, sort, typeFilter, firestore) {
             return { total: 0, swrls: [] };
         }
         await whenListEntriesReady();
-        const entries = sortListEntries(getAllListEntries().filter(entry =>
-            entry.later && entry.category.id === category.id && (!typeFilter || entry.type.id === typeFilter.value)), sort);
+        // what I have started comes first, in the chosen order
+        const entries = inProgressFirst(sortListEntries(getAllListEntries().filter(entry =>
+            entry.later && entry.category.id === category.id && (!typeFilter || entry.type.id === typeFilter.value)), sort));
         return { total: entries.length, swrls: entries.map(entry => entry.toSwrl()) };
     }
 

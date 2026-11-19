@@ -5,7 +5,7 @@ import { Visibility } from '../constants/Visibility';
  * Which of the four flags an action sets. Anything left out is not written on
  * an existing entry (merge) and is false on a new one.
  *
- * @typedef {{later?: boolean, done?: boolean, loved?: boolean, deleted?: boolean}} EntryFlags
+ * @typedef {{later?: boolean, inProgress?: boolean, done?: boolean, loved?: boolean, deleted?: boolean}} EntryFlags
  */
 
 /**
@@ -14,7 +14,7 @@ import { Visibility } from '../constants/Visibility';
  * whether the entry exists already (from the own-entries cache).
  *
  * - Always: swrlID, uid, type, category, details, the given flags, `updated`.
- * - Only for a new entry: `added`, all four flags (false unless given),
+ * - Only for a new entry: `added`, all the flags (false unless given),
  *   `visibility` = the user's default and `visibilityOverride: false`.
  * - An existing entry keeps its `added`, `visibility` and `visibilityOverride`.
  *
@@ -37,7 +37,7 @@ export function buildEntryWrite(swrl, uid, flags, entryExists, defaultVisibility
     };
     if (!entryExists) {
         Object.assign(data, {
-            later: false, done: false, loved: false, deleted: false,
+            later: false, inProgress: false, done: false, loved: false, deleted: false,
             added: serverTime,
             visibility: defaultVisibility.id,
             visibilityOverride: false

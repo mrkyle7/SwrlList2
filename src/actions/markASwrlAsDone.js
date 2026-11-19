@@ -9,5 +9,5 @@ import { Swrl } from '../model/swrl';
  * @return {Promise<void>}
  */
 export default function markASwrlAsDone(swrl, firestore) {
-   return writeListEntry(swrl, { later: false, done: true, deleted: false }, firestore, { updated: true });
+   return writeListEntry(swrl, { later: false, inProgress: false, done: true, deleted: false }, firestore, { updated: true });
 }
