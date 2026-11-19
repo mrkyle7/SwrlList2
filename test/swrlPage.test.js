@@ -186,6 +186,12 @@ describe('tabs', () => {
         expect(ids).toEqual(['overview', 'cast', 'links', 'friends']);
         expect(tabsToShow({ overview: true, cast: false, links: false }).map(t => t.id)).toEqual(['overview', 'friends']);
     });
+    it('has Notes before Friends for someone signed in, and none otherwise', () => {
+        expect(tabsToShow({ overview: true, cast: true, links: true, notes: true }).map(t => t.id))
+            .toEqual(['overview', 'cast', 'links', 'notes', 'friends']);
+        expect(tabsToShow({ overview: true, cast: false, links: false, notes: false }).map(t => t.id)).toEqual(['overview', 'friends']);
+        expect(tabsToShow({ overview: true, cast: false, links: false, notes: true }).find(t => t.id === 'notes').label).toBe('Notes');
+    });
     it('leaves out a tab with nothing in it', () => {
         expect(tabsToShow({ overview: true, cast: false, links: true }).map(t => t.id)).toEqual(['overview', 'links', 'friends']);
     });

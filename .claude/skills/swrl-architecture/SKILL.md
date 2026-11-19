@@ -110,6 +110,9 @@ containers that views attach into.
   stays readable), `components/keyboard.js` (`makeKeyboardClickable`, the tabs'
   roles and the "Skip to content" link), `components/updateCheck.js` (see
   `swrl-build-deploy`, "New builds reach open apps").
+- **Swrl page tabs** (phone, Tabs layout): Overview, Cast, Links, Notes (signed
+  in only; the private comments card, `pageSection-notes`), Friends, from
+  `tabsToShow` in `model/swrlPage.js`. Poster and desktop show every section.
 - **Swrls inbox cards** (`components/recommendation.js`) are list cards: built
   from the `#swrl` template with `addDetailedParts` and the same buttons, plus
   the sender line, a "New" pill and a footer (date, Reply, Mark as read,
