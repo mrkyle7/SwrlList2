@@ -73,6 +73,8 @@ let socialCardsToken = undefined;
 let openTab = 'overview';
 /** People who have swrled this to me, shown on the Friends tab. */
 let friendsBadge = 0;
+/** How many notes I have on this swrl: the Notes tab gets a dot when there are any. */
+let notesCount = 0;
 /** Whether the header shows every genre, after "+N more". */
 let allGenresShown = false;
 
@@ -115,12 +117,17 @@ async function showSwrlFullPage(stateController) {
     socialCardsToken = Math.random();
     openTab = 'overview';
     friendsBadge = 0;
+    notesCount = 0;
     allGenresShown = false;
     const swrl = stateController.currentState.swrl;
     const firestore = stateController.firestore;
     showAttribution('swrlAttribution', swrl.type.attribution);
     showLabels(swrl, firestore);
-    showPrivateComments(swrl, firestore);
+    showPrivateComments(swrl, firestore, count => {
+        const changed = (count > 0) !== (notesCount > 0);
+        notesCount = count;
+        if (changed) applyLayout();
+    });
     showSwrlVisibility(swrl, firestore);
     showShareBanner(stateController);
 
@@ -269,7 +276,7 @@ function applyLayout() {
         openTab = id;
         showOpenSection();
         markActiveTab(tabBar, openTab);
-    });
+    }, notesCount > 0 ? ['notes'] : []);
     showOpenSection();
 }
 

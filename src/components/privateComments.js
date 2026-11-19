@@ -1,7 +1,7 @@
 import { swrlUser } from '../firebase/login';
 import { Swrl } from '../model/swrl';
 import { MAX_PRIVATE_COMMENT_LENGTH, PrivateComment } from '../model/privateComment';
-import { listenToPrivateComments } from '../listeners/privateComments';
+import { listenToPrivateComments, rememberNotes } from '../listeners/privateComments';
 import addPrivateComment from '../actions/addPrivateComment';
 import deletePrivateComment from '../actions/deletePrivateComment';
 import editPrivateComment from '../actions/editPrivateComment';
@@ -27,8 +27,9 @@ let editing;
  *
  * @param {Swrl} swrl
  * @param {import('firebase/firestore').Firestore} firestore
+ * @param {(count: number) => void} [onCount] how many notes there are, whenever that changes
  */
-export function showPrivateComments(swrl, firestore) {
+export function showPrivateComments(swrl, firestore, onCount) {
     hidePrivateComments();
     if (!swrlUser || swrlUser.isAnonymous) {
         return;
@@ -72,6 +73,9 @@ export function showPrivateComments(swrl, firestore) {
                 list.removeChild(list.firstChild);
             }
             comments.forEach(comment => list.appendChild(renderComment(swrl, comment, firestore)));
+            // the cards on my lists show the latest note: keep them current
+            rememberNotes(swrl.swrlID, comments);
+            if (onCount) onCount(comments.length);
         },
         err => {
             console.error('Could not load private comments');

@@ -189,6 +189,13 @@ People see them as **Notes** (their own tab on the swrl page's tab layout, a car
 in the side column on desktop, with a quiet "Only you" beside the title). The
 code and the data keep the name private comments.
 
+Cards show my latest note (`getLatestNote` in `src/listeners/privateComments.js`):
+one `limit(1)` read per swrl, because the rules only allow reading one swrl's
+notes at a time. It is cached per tab, kept current by the swrl page
+(`rememberNotes`), and only asked for swrls I have a list entry for, which
+keeps Discover and search from costing a read per card. A note on a swrl I
+never added shows on its page but not on cards.
+
 `swrlers/{uid}/privateComments/{swrlID}/comments/{commentID}` holds
 `{ text, created }`: one user's private notes about one Swrl
 (`privateCommentsPath()` in `src/constants/Collection.js`). They live under

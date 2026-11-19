@@ -2,7 +2,8 @@ import { doc, getDoc } from 'firebase/firestore';
 export default { renderSwrl };
 
 import { DISCOVER, YOUR_LIST, RECOMMEND, SEARCH, SWRLER_LATER, SWRLER_LOVED, SWRLER_DONE } from '../constants/View';
-import { whenListEntriesReady } from '../listeners/listEntries';
+import { getListEntry, whenListEntriesReady } from '../listeners/listEntries';
+import { getLatestNote } from '../listeners/privateComments';
 import { swrlUser } from '../firebase/login';
 import showRequireLoginScreen from '../components/requireLoginScreen';
 import deleteSwrl from '../actions/deleteSwrl';
@@ -58,6 +59,7 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
     $swrl('.swrlType').textContent = typeLabel(swrl.type);
     addDetailedParts(swrlDiv, swrl);
     showReason(swrlDiv, swrl, firestore);
+    showNote(swrlDiv, swrl, firestore);
 
     $swrl('.swrlListCount').classList.add('hidden');
     $swrl('.swrlSpinnerListCount').classList.remove('hidden');
@@ -210,6 +212,31 @@ function showReason(swrlDiv, swrl, firestore) {
             reason.querySelector('.swrlReasonText').textContent = text;
             reason.title = text;
             reason.classList.remove('hidden');
+        })
+        .catch(error => console.error(error));
+}
+
+/**
+ * My latest note on the swrl, on its card, the way a friend's message is
+ * shown. Notes are read one swrl at a time, so only swrls I have had on a
+ * list (where notes are written) are looked up. Only I ever see them.
+ *
+ * @param {HTMLElement} swrlDiv
+ * @param {Swrl} swrl
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+export function showNote(swrlDiv, swrl, firestore) {
+    if (!swrlUser || swrlUser.isAnonymous) return;
+    whenListEntriesReady()
+        .then(() => getListEntry(swrl.swrlID) ? getLatestNote(swrl.swrlID, firestore) : undefined)
+        .then(text => {
+            if (!text) return;
+            /** @type {HTMLElement} */
+            const note = swrlDiv.querySelector('.swrlNote');
+            // textContent, never innerHTML: it is whatever I typed
+            note.querySelector('.swrlNoteText').textContent = text;
+            note.title = 'Your note: ' + text;
+            note.classList.remove('hidden');
         })
         .catch(error => console.error(error));
 }

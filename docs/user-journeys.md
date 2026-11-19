@@ -18,7 +18,7 @@ layout applies). Check signed in, signed out (anonymous) and as a friend.
 | Home tiles (counts per category) | `views/homePage.js`, `model/listView.js` (`countsByCategory`, `inProgressByCategory`) | desktop shows the counts; phones show the tiles only |
 | Home "Swrled to you" strip (desktop) | `views/homePage.js` | |
 | Your list: card order and sort | `views/swrlList.js` (`loadSwrls`, `sortListEntries`, `inProgressFirst`) | |
-| Your list: card badges and quick buttons, compact and detailed | `components/swrl.js`, `components/buttons.js`, `#swrlButtons` in `www/index.html` | quick Start/Watching button is Your list only |
+| Your list: card badges, my latest note, and quick buttons, compact and detailed | `components/swrl.js`, `components/buttons.js`, `#swrlButtons` in `www/index.html` | quick Start/Watching button is Your list only; the note line shows on every card of a swrl I have on a list (also inbox, search, a friend's page) |
 | Filter sheet and the count on the Filter button | `views/stateController.js` (`showFilters`, `applyFilters`, `_show*Filter`), `constants/Filter.js`, `model/listView.js` (`activeFilterCount`) | Your-list-only filters must not be carried to Discover, Search or a swrler (`withoutYourListOnlyFilters`) |
 | "Can't decide? Pick for me" | `components/tonightPicker.js` | tile captions |
 | Swrl page: header buttons and toggles (phone and desktop) | `views/swrlFullPage.js`, `#swrlPageButtons` | toggles must line up at 360px with the longest label |
