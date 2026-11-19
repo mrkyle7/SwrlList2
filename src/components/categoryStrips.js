@@ -106,7 +106,7 @@ async function friendsInto(category, firestore) {
     return Promise.all(activity.map(async item => {
         const people = await Promise.all(item.friends.map(async f => {
             const swrler = await getSwrlerCached(f.uid, firestore);
-            return { name: swrler ? swrler.displayName : '', loved: f.loved, done: f.done };
+            return { name: swrler ? swrler.displayName : '', loved: f.loved, done: f.done, inProgress: f.inProgress };
         }));
         return { swrl: item.entry.toSwrl(), caption: activityCaption(people.filter(p => p.name), category.id) };
     }));

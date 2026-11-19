@@ -9,5 +9,5 @@ import { Swrl } from '../model/swrl';
  * @return {Promise<void>}
  */
 export default function removeSwrlFromList(swrl, firestore) {
-   return writeListEntry(swrl, { later: false }, firestore, { updated: true });
+   return writeListEntry(swrl, { later: false, inProgress: false }, firestore, { updated: true });
 }

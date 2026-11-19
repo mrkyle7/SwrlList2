@@ -7,7 +7,7 @@ import { swrlUser } from '../firebase/login';
 import showRequireLoginScreen from '../components/requireLoginScreen';
 import deleteSwrl from '../actions/deleteSwrl';
 import { addStats } from './stats';
-import { addLoveButton, addAddButton, addRecommendButton, addDoneButton } from './buttons';
+import { addLoveButton, addAddButton, addRecommendButton, addDoneButton, addProgressBadge } from './buttons';
 import { showToasterMessage } from './toaster';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
@@ -82,6 +82,7 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
             addStats(swrlDiv, latestSwrl);
             addLoveButton(view, latestSwrl, swrlDiv, firestore, null);
             addDoneButton(swrlDiv, latestSwrl, firestore, swrlsContainer, view);
+            addProgressBadge(swrlDiv, latestSwrl);
             addAddButton(view, swrlDiv, latestSwrl, firestore, swrlsContainer, null);
             //Already on the recommend screen, so would be weird to recommend again!
             if (view !== RECOMMEND) {
@@ -120,6 +121,7 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
         addStats(swrlDiv, swrl);
         addLoveButton(view, swrl, swrlDiv, firestore, null);
         addDoneButton(swrlDiv, swrl, firestore, swrlsContainer, view);
+        addProgressBadge(swrlDiv, swrl);
         addAddButton(view, swrlDiv, swrl, firestore, swrlsContainer, null);
         //Already on the recommend screen, so would be weird to recommend again!
         if (view !== RECOMMEND) {
