@@ -3853,8 +3853,8 @@ button.pageActionPrimary:hover {
 .swrl.swrlCard {
     display: grid;
     grid-template-columns: 56px minmax(0, 1fr);
-    grid-template-areas: "img details" "img reason" "img buttons";
-    grid-template-rows: auto auto 1fr;
+    grid-template-areas: "img details" "img reason" "img note" "img buttons";
+    grid-template-rows: auto auto auto 1fr;
     column-gap: 12px;
     margin: 0;
     padding: 12px;
@@ -3985,7 +3985,7 @@ button.pageActionPrimary:hover {
 
 .main[data-list-view="detailed"] :is(#swrlList, #resultList) .swrl.swrlCard {
     grid-template-columns: 92px minmax(0, 1fr);
-    grid-template-areas: "img details" "reason reason" "overview overview" "stats stats" "buttons buttons";
+    grid-template-areas: "img details" "reason reason" "note note" "overview overview" "stats stats" "buttons buttons";
     grid-template-rows: auto;
     row-gap: 12px;
     margin: 0 12px 12px;
@@ -5117,8 +5117,8 @@ button.pageActionPrimary:hover {
 
 /* --- Swrls inbox cards: the list card, plus who sent it and a footer -------- */
 .swrl.swrlCard.recommendationCard {
-    grid-template-areas: "img details" "img reason" "img buttons" "footer footer" "replies replies";
-    grid-template-rows: auto auto 1fr auto auto;
+    grid-template-areas: "img details" "img reason" "img note" "img buttons" "footer footer" "replies replies";
+    grid-template-rows: auto auto auto 1fr auto auto;
 }
 .recommendationCard .swrlReason.recommendationFrom {
     cursor: pointer;
@@ -5216,4 +5216,63 @@ button.pageActionPrimary:hover {
     justify-content: center;
     min-width: 44px;
     padding: 0 6px;
+}
+
+/* --- My latest note on a card: like a friend's message, in grey, with a note icon */
+.swrl.swrlCard .swrlNote {
+    grid-area: note;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    margin: 4px 0 0;
+    color: #444;
+    font-size: 14px;
+    line-height: 1.35;
+    white-space: nowrap;
+}
+.swrl.swrlCard .swrlNote.hidden {
+    display: none;
+}
+.swrlNoteIcon {
+    /* the same 16px as the swrled-by icon above, so the two lines' text lines up */
+    flex: none;
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+.swrlNoteText {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* detailed: the whole note (a few lines), in a quiet box like the notes on the swrl page */
+.main[data-list-view="detailed"] :is(#swrlList, #resultList) .swrl.swrlCard .swrlNote {
+    align-items: flex-start;
+    margin: 0;
+    padding: 10px 12px 10px 10px;
+    border-left: 3px solid var(--swrl-pink-strong);
+    border-radius: 0 12px 12px 0;
+    background: #f6f7f9;
+    font-size: 15px;
+    white-space: normal;
+}
+.main[data-list-view="detailed"] :is(#swrlList, #resultList) .swrl.swrlCard .swrlNoteIcon {
+    margin-top: 3px;
+}
+.main[data-list-view="detailed"] :is(#swrlList, #resultList) .swrl.swrlCard .swrlNoteText {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+/* the Notes tab's dot: there are notes in it */
+.pageTabDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--swrl-pink-strong);
 }

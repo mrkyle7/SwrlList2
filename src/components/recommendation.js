@@ -16,7 +16,7 @@ import { typeLabel } from '../constants/Type';
 import { whenListEntriesReady } from '../listeners/listEntries';
 import { addReplies } from './recommendationReplies';
 import { hasUnreadReply } from '../listeners/recommendations';
-import { addDetailedParts } from './swrl';
+import { addDetailedParts, showNote } from './swrl';
 import { makeKeyboardClickable } from './keyboard';
 import { cardMeta } from '../model/listView';
 import { recommendationReason } from '../model/recommendation';
@@ -60,6 +60,7 @@ export const renderRecommendation = async (stateController, view, recommendation
     $('.swrlMeta').textContent = cardMeta(typeLabel(swrl.type), swrl.details);
     $('.swrlType').textContent = typeLabel(swrl.type);
     addDetailedParts(card, swrl);
+    showNote(card, swrl, firestore);
 
     // "New" while unread, in the same pill as "Watching"
     const unreadPill = document.createElement('p');

@@ -11,8 +11,9 @@
  * @param {string} active the id of the open tab
  * @param {Object<string, number>} badges a count to show on a tab, by id; zero or missing shows none
  * @param {(id: string) => void} onSelect
+ * @param {string[]} [dots] tabs that get a small dot: something is there (Notes, when I have notes)
  */
-export function drawTabs(bar, tabs, active, badges, onSelect) {
+export function drawTabs(bar, tabs, active, badges, onSelect, dots = []) {
     bar.replaceChildren();
     tabs.forEach(tab => {
         const button = document.createElement('button');
@@ -30,6 +31,12 @@ export function drawTabs(bar, tabs, active, badges, onSelect) {
             badge.textContent = String(count);
             badge.setAttribute('aria-label', `${count} to see`);
             button.appendChild(badge);
+        }
+        if (dots.includes(tab.id)) {
+            const dot = document.createElement('span');
+            dot.className = 'pageTabDot';
+            button.appendChild(dot);
+            button.setAttribute('aria-label', `${tab.label}, has something in it`);
         }
         button.addEventListener('click', () => onSelect(tab.id));
         button.addEventListener('keydown', event => {

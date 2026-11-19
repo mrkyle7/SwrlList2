@@ -41,6 +41,8 @@ the change:
 | Need | Pattern | Where |
 | --- | --- | --- |
 | A thing in a list (lists, search, Swrls inbox) | One card, built from the `#swrl` template everywhere (the inbox adds who sent it, a "New" pill and a footer of date, Reply, Mark as read, Dismiss): compact (56px poster, icon buttons bottom right) or detailed (92px poster, labelled buttons in an equal grid). The Filter / Compact / Detailed toolbar switches them. On desktop the cards sit in a grid of columns, never one card stretched across the page | `#swrl` template, `components/swrl.js` |
+| My note on a card | My latest note under the swrled-by line, same 16px icon column: one grey line in compact, a quiet box with a pink edge (up to 3 lines) in detailed (`.swrlNote`, `showNote`) | `components/swrl.js` |
+| Something is in a tab | A small pink dot after the tab's name (Notes); a count badge only when the number matters (Friends) | `components/pageTabs.js` |
 | My state on a card | A small pink pill under the title (`.swrlProgress`: "Watching") | `components/buttons.js` |
 | An on/off action | A pair of buttons, one shown: off is an outline icon, on is filled or pink (`.swrlLoved`/`.swrlNotLoved`, ...) with "Tap to undo" in its label | `#swrlButtons`, `#swrlPageButtons` |
 | Actions on the swrl page | Two big actions (On your list, Swrl to a friend), then an equal grid of toggles that stacks icon over label on phones; pills in the header on desktop | `.pageActions`, `.pageToggles` |
