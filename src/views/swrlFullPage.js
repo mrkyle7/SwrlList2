@@ -46,6 +46,7 @@ const friendsContainer = document.getElementById('pageSection-friends');
 const ratingsContainer = document.getElementById('swrlFullPageRatings');
 const notesContainer = document.getElementById('swrlFullPagePrivateComments');
 const overviewSection = document.getElementById('pageSection-overview');
+const notesSection = document.getElementById('pageSection-notes');
 const sectionsContainer = document.getElementById('swrlFullPageSections');
 const desktopMain = document.getElementById('swrlDesktopMain');
 const desktopAside = document.getElementById('swrlDesktopAside');
@@ -61,7 +62,7 @@ desktopQuery.addEventListener('change', () => {
 });
 
 /** The page's sections, by the id of the tab that shows each. */
-const sectionIds = ['friends', 'overview', 'cast', 'links'];
+const sectionIds = ['friends', 'overview', 'cast', 'links', 'notes'];
 
 /** @type {AbortController} */
 let detailController = undefined;
@@ -259,7 +260,9 @@ function applyLayout() {
     const tabs = tabsToShow({
         overview: true,
         cast: castContainer.childElementCount > 0,
-        links: linksContainer.childElementCount > 0
+        links: linksContainer.childElementCount > 0,
+        // only someone signed in keeps notes
+        notes: Boolean(swrlUser && !swrlUser.isAnonymous)
     });
     openTab = activeTab(tabs, openTab);
     drawTabs(tabBar, tabs, openTab, { friends: friendsBadge }, id => {
@@ -288,8 +291,9 @@ function placeForDesktop(desktop) {
         heroRow.after(heroGenres, heroTagline);
         hero.after(buttonsContainer);
         buttonsContainer.after(labelsContainer);
-        overviewSection.append(ratingsContainer, detailsContainer, notesContainer);
-        sectionsContainer.append(friendsContainer, overviewSection, castContainer, linksContainer);
+        overviewSection.append(ratingsContainer, detailsContainer);
+        notesSection.append(notesContainer);
+        sectionsContainer.append(friendsContainer, overviewSection, castContainer, linksContainer, notesSection);
     }
 }
 

@@ -21,7 +21,7 @@ export class PageLayout {
     }
 }
 
-export const TABS = new PageLayout('tabs', 'Tabs', 'Overview, cast, links and friends each get a tab');
+export const TABS = new PageLayout('tabs', 'Tabs', 'Overview, cast, links, notes and friends each get a tab');
 export const POSTER = new PageLayout('poster', 'Poster', 'Everything on one page you scroll');
 
 export const pageLayouts = Object.freeze([TABS, POSTER]);
@@ -268,13 +268,15 @@ export function groupLinks(links) {
 /**
  * The tabs of the tab layout, in order. A tab with nothing to show is left out.
  *
- * @param {{overview: boolean, cast: boolean, links: boolean}} has what the swrl has to show; Friends always shows
+ * @param {{overview: boolean, cast: boolean, links: boolean, notes?: boolean}} has what the swrl has to show
+ *        (notes: whether I can keep notes, i.e. I am signed in); Friends always shows
  * @return {{id: string, label: string}[]}
  */
 export function tabsToShow(has) {
     const tabs = [{ id: 'overview', label: 'Overview' }];
     if (has.cast) tabs.push({ id: 'cast', label: 'Cast' });
     if (has.links) tabs.push({ id: 'links', label: 'Links' });
+    if (has.notes) tabs.push({ id: 'notes', label: 'Notes' });
     tabs.push({ id: 'friends', label: 'Friends' });
     return tabs;
 }

@@ -26,7 +26,7 @@ layout applies). Check signed in, signed out (anonymous) and as a friend.
 | Discover: list (leaves out what is on my list or done) | `views/swrlList.js` | |
 | Swrls inbox (For you) and Sent cards | `views/recommendations.js`, `components/recommendation.js` (list cards from the `#swrl` template) | same card as the lists: a change to list cards reaches the inbox too |
 | Swrl to a friend (recommend screen) | `views/recommend.js` | |
-| Labels and private comments on the swrl page | `components/labels.js`, `views/swrlFullPage.js` | |
+| Labels, and notes (the Notes tab; stored as private comments) on the swrl page | `components/labels.js`, `components/privateComments.js`, `views/swrlFullPage.js` | |
 | Settings (defaults: visibility, list view, page layout) | `views/settings.js` | |
 | Keyboard on desktop (Tab order, Enter on cards and tabs, Esc, skip link) | `components/keyboard.js`, `views/stateController.js` | |
 | An open or installed app getting the new build | `components/updateCheck.js`, `dist/version.json` | |

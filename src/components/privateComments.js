@@ -22,7 +22,7 @@ let stopListening;
 let editing;
 
 /**
- * Shows the signed-in user's private comments about a Swrl, which they can
+ * Shows the signed-in user's notes (stored as private comments) about a Swrl, which they can
  * add to, edit and delete. Nothing is shown to anonymous users.
  *
  * @param {Swrl} swrl
@@ -59,7 +59,7 @@ export function showPrivateComments(swrl, firestore) {
                 if (!input.value) {
                     input.value = text;
                 }
-                showToasterMessage('Could not save your comment');
+                showToasterMessage('Could not save your note');
             });
     });
 
@@ -76,7 +76,7 @@ export function showPrivateComments(swrl, firestore) {
         err => {
             console.error('Could not load private comments');
             console.error(err);
-            status.textContent = 'Could not load your comments.';
+            status.textContent = 'Could not load your notes.';
             status.classList.remove('hidden');
         });
 }
@@ -167,7 +167,7 @@ function renderComment(swrl, comment, firestore) {
                 console.error('Could not save private comment');
                 console.error(err);
                 text.textContent = comment.text;
-                showToasterMessage('Could not save your comment');
+                showToasterMessage('Could not save your note');
             });
     });
 
@@ -176,7 +176,7 @@ function renderComment(swrl, comment, firestore) {
             .catch(err => {
                 console.error('Could not delete private comment');
                 console.error(err);
-                showToasterMessage('Could not delete your comment');
+                showToasterMessage('Could not delete your note');
             });
     });
     return fragment;

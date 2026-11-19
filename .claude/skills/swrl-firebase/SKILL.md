@@ -185,6 +185,10 @@ them all). Account deletion removes them with the rest of `swrlers/{uid}`.
 
 ### Private comments
 
+People see them as **Notes** (their own tab on the swrl page's tab layout, a card
+in the side column on desktop, with a quiet "Only you" beside the title). The
+code and the data keep the name private comments.
+
 `swrlers/{uid}/privateComments/{swrlID}/comments/{commentID}` holds
 `{ text, created }`: one user's private notes about one Swrl
 (`privateCommentsPath()` in `src/constants/Collection.js`). They live under

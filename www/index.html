@@ -338,7 +338,7 @@
             <div class="settingsOptions" role="radiogroup" aria-label="How a swrl page looks">
               <label class="settingsOption">
                 <input type="radio" name="swrlPageLayout" value="tabs">
-                <span class="settingsOptionText"><span class="settingsOptionTitle">Tabs</span><span class="settingsOptionHint">Overview, cast, links and friends each get a tab</span></span>
+                <span class="settingsOptionText"><span class="settingsOptionTitle">Tabs</span><span class="settingsOptionHint">Overview, cast, links, notes and friends each get a tab</span></span>
               </label>
               <label class="settingsOption">
                 <input type="radio" name="swrlPageLayout" value="poster">
@@ -440,10 +440,12 @@
         <div id="pageSection-overview" class="pageSection" role="tabpanel" aria-labelledby="pageTab-overview">
           <div id="swrlFullPageRatings"></div>
           <div id="swrlFullPageCards"></div>
-          <div id="swrlFullPagePrivateComments"></div>
         </div>
         <div id="pageSection-cast" class="pageSection" role="tabpanel" aria-labelledby="pageTab-cast"></div>
         <div id="pageSection-links" class="pageSection" role="tabpanel" aria-labelledby="pageTab-links"></div>
+        <div id="pageSection-notes" class="pageSection" role="tabpanel" aria-labelledby="pageTab-notes">
+          <div id="swrlFullPagePrivateComments"></div>
+        </div>
       </div>
       <div id="swrlDesktopColumns" class="pageColumns">
         <div id="swrlDesktopMain" class="pageMain"></div>
@@ -623,13 +625,19 @@
   </template>
   <template id="privateCommentsCard">
     <div class="card">
-      <p class="cardTitle">Private comments</p>
+      <div class="notesTitle">
+        <p class="cardTitle">Notes</p>
+        <span class="notesPrivate" title="Your notes are private: only you can see them">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          Only you
+        </span>
+      </div>
       <div class="cardContent">
         <p class="privateCommentStatus hidden"></p>
         <div class="privateCommentList"></div>
         <form class="privateCommentForm" autocomplete="off">
-          <textarea class="commentInput privateCommentInput" rows="3" placeholder="Add a private comment" aria-label="Add a private comment"></textarea>
-          <input type="submit" class="commentSend privateCommentAdd" value="Add comment">
+          <textarea class="commentInput privateCommentInput" rows="3" placeholder="Add a note" aria-label="Add a note, only you can see it"></textarea>
+          <input type="submit" class="commentSend privateCommentAdd" value="Add note">
         </form>
       </div>
     </div>
@@ -638,7 +646,7 @@
     <div class="privateComment">
       <p class="privateCommentText"></p>
       <form class="privateCommentEditForm hidden" autocomplete="off">
-        <textarea class="commentInput privateCommentInput privateCommentEditInput" rows="3" aria-label="Edit private comment"></textarea>
+        <textarea class="commentInput privateCommentInput privateCommentEditInput" rows="3" aria-label="Edit note"></textarea>
         <div class="privateCommentEditButtons">
           <span class="actionText privateCommentCancel" role="button" tabindex="0">Cancel</span>
           <input type="submit" class="commentSend privateCommentSave" value="Save">
