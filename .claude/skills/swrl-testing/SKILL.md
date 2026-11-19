@@ -76,5 +76,11 @@ hand or with Playwright (the recipe the friends-and-visibility work used):
    intercepts clicks (click the card title, not the poster); radio inputs on the
    Settings screen are styled, click their `label`; `window.confirm` dialogs
    need a `page.on('dialog')` handler.
-7. Do **not** run tests against the live `swrl-1118` project, and stub
+7. Layout checks: screenshot at 360, 390 and 430px (and 1280 for desktop),
+   and for rows of buttons assert in Playwright that every visible item has
+   the same `getBoundingClientRect()` top and height and its icon the same
+   top. Use the longest labels in every category ("Start reading",
+   "Start listening", "Mark as done"). A screenshot alone has let ragged rows
+   ship.
+8. Do **not** run tests against the live `swrl-1118` project, and stub
    `/api/v1/*` rather than calling the real third-party APIs.
