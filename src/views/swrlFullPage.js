@@ -49,6 +49,7 @@ const overviewSection = document.getElementById('pageSection-overview');
 const sectionsContainer = document.getElementById('swrlFullPageSections');
 const desktopMain = document.getElementById('swrlDesktopMain');
 const desktopAside = document.getElementById('swrlDesktopAside');
+const labelsContainer = document.getElementById('swrlFullPageLabels');
 const heroRow = hero.querySelector('.pageHeroRow');
 const heroText = hero.querySelector('.pageHeroText');
 const buttonsContainer = swrlFullPageView.querySelector('.pageButtonsContainer');
@@ -272,7 +273,7 @@ function applyLayout() {
 /**
  * Moves the page's blocks between the phone order and the desktop one. On a
  * desktop the genres, tagline and buttons join the title in the header, the
- * story and cast fill the main column, and friends, ratings, links and my
+ * story and cast fill the main column under my labels, and friends, ratings, links and my
  * notes sit in the side column. Safe to call again either way.
  *
  * @param {boolean} desktop
@@ -280,11 +281,13 @@ function applyLayout() {
 function placeForDesktop(desktop) {
     if (desktop) {
         heroText.append(heroGenres, heroTagline, buttonsContainer);
-        desktopMain.append(detailsContainer, castContainer);
+        // my labels head the main column, not a band of their own under the header
+        desktopMain.append(labelsContainer, detailsContainer, castContainer);
         desktopAside.append(friendsContainer, ratingsContainer, linksContainer, notesContainer);
     } else if (buttonsContainer.parentElement === heroText) {
         heroRow.after(heroGenres, heroTagline);
         hero.after(buttonsContainer);
+        buttonsContainer.after(labelsContainer);
         overviewSection.append(ratingsContainer, detailsContainer, notesContainer);
         sectionsContainer.append(friendsContainer, overviewSection, castContainer, linksContainer);
     }

@@ -313,6 +313,11 @@ export class StateController {
         filterApplyButton.addEventListener('click', this.applyFilters());
         const fade = document.getElementById('fade');
         fade.addEventListener('click', this.applyFilters());
+        // Esc closes the filter sheet, as a click outside it does
+        const closeOnEscape = this.applyFilters();
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !document.getElementById('filters').classList.contains('hidden')) closeOnEscape(e);
+        });
         // Clear all: every filter off (sort stays), and show the list at once
         document.getElementById('clearFilters').addEventListener('click', (e) => {
             document.querySelectorAll('#filters input[type="checkbox"]').forEach(input => {

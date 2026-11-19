@@ -10,7 +10,7 @@
  * Push notifications are handled separately by firebase-messaging-sw.js, which
  * Firebase registers under its own scope.
  */
-const CACHE = 'swrl-shell-v2';
+const CACHE = 'swrl-shell-v3';
 const SHELL = [
   '/',
   '/css/index.css',
@@ -60,7 +60,9 @@ self.addEventListener('fetch', (event) => {
     || url.pathname.startsWith('/api/')
     || url.pathname.startsWith('/__/')
     || url.pathname === '/sw.js'
-    || url.pathname === '/firebase-messaging-sw.js') {
+    || url.pathname === '/firebase-messaging-sw.js'
+    // which build is live: always the network, never a cached answer
+    || url.pathname === '/version.json') {
     return;
   }
 

@@ -40,12 +40,14 @@ the change:
 
 | Need | Pattern | Where |
 | --- | --- | --- |
-| A thing in a list | One card: compact (56px poster, icon buttons bottom right) or detailed (92px poster, labelled buttons in an equal grid). The Filter / Compact / Detailed toolbar switches them. On desktop the cards sit in a grid of columns, never one card stretched across the page | `#swrl` template, `components/swrl.js` |
+| A thing in a list (lists, search, Swrls inbox) | One card, built from the `#swrl` template everywhere (the inbox adds who sent it, a "New" pill and a footer of date, Reply, Mark as read, Dismiss): compact (56px poster, icon buttons bottom right) or detailed (92px poster, labelled buttons in an equal grid). The Filter / Compact / Detailed toolbar switches them. On desktop the cards sit in a grid of columns, never one card stretched across the page | `#swrl` template, `components/swrl.js` |
 | My state on a card | A small pink pill under the title (`.swrlProgress`: "Watching") | `components/buttons.js` |
 | An on/off action | A pair of buttons, one shown: off is an outline icon, on is filled or pink (`.swrlLoved`/`.swrlNotLoved`, ...) with "Tap to undo" in its label | `#swrlButtons`, `#swrlPageButtons` |
 | Actions on the swrl page | Two big actions (On your list, Swrl to a friend), then an equal grid of toggles that stacks icon over label on phones; pills in the header on desktop | `.pageActions`, `.pageToggles` |
 | Choosing filters or options | A bottom sheet on phones, a centred dialog on desktop, with chips, "Clear all" and one filled "Show results"; Esc and a click outside close it | `#filters`, `#pickSheet` |
 | Getting around | Phones: header with back arrow, menu on home, tabs. Desktop: the sidebar (always there, marks where you are), tabs and the toolbar on one line under the title | `components/desktopSidebar.js` |
+| A coloured bar with text | `setHeaderColour(colour)` picks white or dark text and icons by contrast (`model/contrast.js`); never set the header's colour directly | `components/headerColour.js` |
+| Something clickable that is not a button | `makeKeyboardClickable(element, role)`: Tab reaches it, Enter and Space use it (cards, tabs) | `components/keyboard.js` |
 | Telling people something happened | A toast at the bottom, a few words, the swrl's title in it ("Watching Past Lives") | `components/toaster.js` |
 | Switching views of one thing | Tabs under the header (Your list / Discover / Search; Later / In progress / Loved / Done) | `.tabs` |
 | Nothing to show | A sentence saying what to do next, never just "No results" | `#message`, `noSwrlsMessage` |
@@ -64,8 +66,10 @@ the change:
 
 **Colour** (keep the palette: hot pink, the four category colours, the blue)
 - Text and icons that carry meaning reach 4.5:1 (3:1 at 24px, or 19px bold).
-- Pink **text** on white is `#b3123f` or `#d81b4f`, never `#FF2E63` (3.6:1).
-  `#FF2E63` is for fills with large text, the logo and accents.
+- Pink **text** on white, and pink behind white text, is `var(--swrl-pink-strong)`
+  (`#d81b4f`, 5:1) or `#b3123f`, never `#FF2E63` (3.6:1). `#FF2E63` is for fills
+  with large text (the header), the logo and accents. Muted text is
+  `var(--text-muted)`; blue behind small white text is `var(--swrl-blue-strong)`.
 - On green, orange and light blue, text is dark (`#222222`, 6-8:1), as on the
   home tiles; white text on them fails (2.0-2.7:1). On Listen's purple
   `#b042f4` neither passes at small sizes (white 4.3:1, dark 3.7:1): only large
@@ -129,52 +133,53 @@ the change:
    width like a website, or look like a phone screen made wide.
 5. Say in the PR which journeys and widths you checked.
 
-## 5. Known gaps (audit of 3.13.0, November 2026)
+## 5. Known gaps (audit of 3.13.0, November 2026; fixed in 3.14.0 where ticked)
 
 What `AUDIT`, a keyboard pass and a look found on 13 screens at 390 and 1280. Fix them when you
 work nearby, or as their own change; tick them off here when fixed.
 
-- [ ] Category header bars: white title on green/light blue/orange, 2.5-2.7:1.
-- [ ] Desktop home: the Listen tile's count ("1 on your list", 15px dark on
+- [x] Category header bars: white title on green/light blue/orange, 2.5-2.7:1.
+- [x] Desktop home: the Listen tile's count ("1 on your list", 15px dark on
       purple) is 3.7:1.
-- [ ] Inbox card actions "Reply", "Dismiss", "Mark as read" are `#FF2E63` text
+- [x] Inbox card actions "Reply", "Dismiss", "Mark as read" are `#FF2E63` text
       (3.6:1), three links of equal weight, and "Reply" is 39px tall. Inbox
       card buttons are 40px wide.
-- [ ] "Show results", "Pick three for me" / "Shuffle" and other `.sheetApply`
+- [x] "Show results", "Pick three for me" / "Shuffle" and other `.sheetApply`
       buttons: white on `#FF2E63`, 3.6:1 at 16px.
-- [ ] Count badges (inbox, sidebar): white on `#4990e2`, 3.3:1; the sidebar's
+- [x] Count badges (inbox, sidebar): white on `#4990e2`, 3.3:1; the sidebar's
       is 12px.
-- [ ] Grey hints `#808080` (settings option hints, inbox dates, friend search
+- [x] Grey hints `#808080` (settings option hints, inbox dates, friend search
       hint): 3.95:1.
-- [ ] "Friends" label on a swrler's page: green text on white, 2.7:1; "Remove"
+- [x] "Friends" label on a swrler's page: green text on white, 2.7:1; "Remove"
       friend: blue on white 3.3:1 and 32px tall.
-- [ ] About page: the pink letters and "verb"/"noun" are `#FF2E63` text.
-- [ ] Tap targets under 44px: filter and picker chips (40px), the list
+- [x] About page: the pink letters and "verb"/"noun" are `#FF2E63` text.
+- [x] Tap targets under 44px: filter and picker chips (40px), the list
       toolbar's Filter / Compact / Detailed (40px), "Add label" (28px),
       the visibility lock (40px), "Delete my account…" (32px), sidebar
       "Privacy" / "Support" (15px) and "See all" on desktop home (19px),
       the phone menu button (24px), search fields (36-39px).
-- [ ] Two card styles: list cards are flat rows, inbox cards are bordered
+- [x] Two card styles: list cards are flat rows, inbox cards are bordered
       with a pink shadow and a different layout.
 - [ ] Phone home shows only the four category tiles: no counts, nothing in
       progress and no "Swrled to you", which desktop has.
-- [ ] Phone header says "Swrl List 2"; the sidebar and everything else say
+- [x] Phone header says "Swrl List 2"; the sidebar and everything else say
       "Swrl List".
-- [ ] Desktop: the Swrls inbox is one card stretched across the page (icons
+- [x] Desktop: the Swrls inbox is one card stretched across the page (icons
       and actions at the far edges, the "Everyone" picker about 900px wide);
       it should use the list's grid of cards.
-- [ ] Desktop: detailed cards in a three-column grid squeeze five labelled
+- [x] Desktop: detailed cards in a three-column grid squeeze five labelled
       buttons ("Swrl to a friend" wraps onto three lines); fewer columns or
       header-style pills for detailed view.
-- [ ] Desktop: Settings options stretch to about 1100px; keep them to the
-      reading width.
-- [ ] Desktop: on the swrl page "Add label" sits alone in a wide empty band
+- [x] Desktop: Settings options stretch to about 1100px; keep them to the
+      reading width. (Measured in 3.14.0: they are about 720px; the screenshot's
+      scale misled. Measure, do not judge sizes from a 2x screenshot.)
+- [x] Desktop: on the swrl page "Add label" sits alone in a wide empty band
       between the header and the two columns.
-- [ ] Keyboard: the Your list / Discover / Search tabs (and the swrler and
+- [x] Keyboard: the Your list / Discover / Search tabs (and the swrler and
       inbox tabs) are `<a>` with no href, so Tab skips them; cards cannot be
       opened with the keyboard (only their buttons); Esc does not close the
       filter sheet; no "Skip to content" link (13 sidebar stops first).
-- [ ] Wording: on/off button labels say "Tap to undo" / "Tap to remove",
+- [x] Wording: on/off button labels say "Tap to undo" / "Tap to remove",
       which reads oddly with a mouse or a screen reader on desktop.
 - [ ] The category verbs are written out in four places
       (`model/share.js`, `model/activity.js`, `components/tonightPicker.js`,

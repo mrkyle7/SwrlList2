@@ -1,6 +1,10 @@
 :root {
     --swrl-blue: #4990e2;
     --swrl-hot-pink: #FF2E63;
+    /* text-safe shades (4.5:1 or more on white, and behind white text) */
+    --swrl-pink-strong: #d81b4f;
+    --swrl-blue-strong: #1769d6;
+    --text-muted: #5f6368;
     --watch-green: #3EB283;
     --read-orange: #F6A900;
     --listen-purple: #b042f4;
@@ -101,7 +105,7 @@ body {
     top: -8px;
     right: -8px;
     border-radius: 50%;
-    background: #4990E2;
+    background: var(--swrl-blue-strong);
     color: white;
     font-size: 13px;
     width: 24px;
@@ -376,9 +380,9 @@ body {
 #swrlSearch {
     display: block;
     width: 100%;
-    height: 36px;
+    height: 44px;
     margin: 0;
-    line-height: 36px;
+    line-height: 44px;
     box-sizing: border-box;
     border: 2px solid #222222;
     border-radius: 16px;
@@ -644,7 +648,7 @@ body {
 
 .recommenderMessage.date {
     font-size: 13px;
-    color: gray;
+    color: var(--text-muted);
 }
 
 .recommenderName {
@@ -664,7 +668,7 @@ body {
 }
 
 .actionText {
-    color: #FF2E63;
+    color: var(--swrl-pink-strong);
     cursor: pointer;
     margin: 0 8px;
 }
@@ -888,7 +892,7 @@ body {
     margin-top: 56px;
     transform: translateX(-256px);
     transition: transform 250ms ease-in-out;
-    background: #FF2E63;
+    background: var(--swrl-pink-strong);
     z-index: 10;
 }
 
@@ -993,8 +997,11 @@ body {
     z-index: 99;
     height: 100%;
     width: 100%;
-    top: 16px;
-    left: 12px;
+    /* a 44px target around the 24px icon */
+    box-sizing: content-box;
+    padding: 10px;
+    top: 6px;
+    left: 2px;
     height: 24px;
     width: 24px;
 }
@@ -1150,7 +1157,7 @@ body {
     box-sizing: border-box;
     border-radius: 10px;
     background: #fff;
-    color: var(--swrl-hot-pink);
+    color: var(--swrl-pink-strong);
     font-size: 13px;
     line-height: 20px;
     text-align: center;
@@ -1184,7 +1191,7 @@ body {
 
 .friendsEmpty {
     margin: 8px 4px;
-    color: grey;
+    color: var(--text-muted);
 }
 
 .friendRow {
@@ -1236,16 +1243,16 @@ body {
     font-size: 14px;
     font-weight: bold;
     color: #fff;
-    background: var(--swrl-blue);
-    border: 2px solid var(--swrl-blue);
-    border-radius: 16px;
-    padding: 4px 14px;
-    min-height: 32px;
+    background: var(--swrl-blue-strong);
+    border: 2px solid var(--swrl-blue-strong);
+    border-radius: 22px;
+    padding: 4px 16px;
+    min-height: 44px;
     cursor: pointer;
 }
 
 .friendButtonQuiet {
-    color: var(--swrl-blue);
+    color: var(--swrl-blue-strong);
     background: #fff;
 }
 
@@ -1256,11 +1263,11 @@ body {
 
 .friendLabel {
     font-size: 14px;
-    color: grey;
+    color: var(--text-muted);
 }
 
 .friendLabelDone {
-    color: var(--watch-green);
+    color: #1e7a55;
     font-weight: bold;
 }
 
@@ -1272,7 +1279,8 @@ body {
     box-sizing: border-box;
     width: 100%;
     margin: 0;
-    padding: 8px;
+    padding: 8px 12px;
+    min-height: 44px;
     font-family: inherit;
     border: 2px solid #222222;
     border-radius: 0;
@@ -1326,7 +1334,7 @@ body {
 
 .settingsOptionHint {
     font-size: 14px;
-    color: grey;
+    color: var(--text-muted);
 }
 
 .settingsNote {
@@ -1357,7 +1365,7 @@ body {
     border: 2px solid #c62828;
     border-radius: 16px;
     padding: 4px 14px;
-    min-height: 32px;
+    min-height: 44px;
     margin: 4px;
     cursor: pointer;
 }
@@ -1415,8 +1423,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     margin: 0;
     padding: 0;
     border: 1px solid #dfe3e8;
@@ -1619,6 +1627,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    min-height: 44px;
     color: #555;
     text-decoration: none;
     font-weight: bold;
@@ -1761,7 +1770,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    height: 28px;
+    height: 44px;
     box-sizing: border-box;
     margin: 0;
     padding: 0 12px 0 8px;
@@ -2125,8 +2134,8 @@ button.pageAction:hover {
 }
 
 .pageActionPrimary, button.pageActionPrimary:hover {
-    border-color: #FF2E63;
-    background: #FF2E63;
+    border-color: var(--swrl-pink-strong);
+    background: var(--swrl-pink-strong);
     color: #fff;
 }
 
@@ -2218,7 +2227,7 @@ button.pageActionPrimary:hover {
 .chips label {
     display: inline-flex;
     align-items: center;
-    min-height: 40px;
+    min-height: 44px;
     box-sizing: border-box;
     padding: 0 16px;
     border: 1.5px solid #c9ced4;
@@ -2248,7 +2257,7 @@ button.pageActionPrimary:hover {
     margin-top: 16px;
     border: 0;
     border-radius: 24px;
-    background: #FF2E63;
+    background: var(--swrl-pink-strong);
     color: #fff;
     font-family: inherit;
     font-size: 16px;
@@ -2309,7 +2318,7 @@ button.pageActionPrimary:hover {
 }
 
 .dictionaryOrigin strong {
-    color: #FF2E63;
+    color: var(--swrl-pink-strong);
 }
 
 .dictionaryEntry {
@@ -2320,7 +2329,7 @@ button.pageActionPrimary:hover {
 .dictionaryPart {
     display: inline;
     margin: 0;
-    color: #FF2E63;
+    color: var(--swrl-pink-strong);
     font-size: 16px;
     font-style: italic;
     font-weight: 600;
@@ -2674,7 +2683,7 @@ button.pageActionPrimary:hover {
     padding: 0 18px;
     border: 0;
     border-radius: 22px;
-    background: #FF2E63;
+    background: var(--swrl-pink-strong);
     color: #fff;
     font-family: inherit;
     font-size: 15px;
@@ -3712,7 +3721,7 @@ button.pageActionPrimary:hover {
     padding: 0 24px;
     border: 0;
     border-radius: 22px;
-    background: #FF2E63;
+    background: var(--swrl-pink-strong);
     color: #fff;
     font-family: inherit;
     font-size: 16px;
@@ -4339,9 +4348,9 @@ button.pageActionPrimary:hover {
         padding: 0 7px;
         box-sizing: border-box;
         border-radius: 11px;
-        background: #4990e2;
+        background: var(--swrl-blue-strong);
         color: #fff;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 700;
     }
 
@@ -4389,6 +4398,7 @@ button.pageActionPrimary:hover {
     .sideFooter {
         display: flex;
         flex-wrap: wrap;
+        align-items: center;
         gap: 4px 12px;
         padding: 4px 10px 0;
         color: #5a5f66;
@@ -4396,6 +4406,9 @@ button.pageActionPrimary:hover {
     }
 
     .sideFooter a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
         color: inherit;
     }
 
@@ -4508,8 +4521,31 @@ button.pageActionPrimary:hover {
         max-width: 800px;
     }
 
-    #recommendationList, #recommendationFilters, #recommendationTabs {
-        max-width: 880px;
+    /* the inbox is a list like any other: the same width and grid of cards */
+    #recommendationList {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-content: start;
+        gap: 12px;
+        padding-top: 16px;
+        padding-bottom: 24px;
+    }
+
+    #recommendationList > :not(.swrlCard) {
+        grid-column: 1 / -1;
+    }
+
+    #recommendationList .swrl.swrlCard {
+        border: 1px solid #e6e8ec;
+        border-radius: 14px;
+    }
+
+    #recommendationFilters, #recommendationTabs {
+        max-width: 1120px;
+    }
+
+    #recommendationFilters .senderSelect {
+        flex: 0 1 320px;
     }
 
     #recommendationFilters {
@@ -4534,10 +4570,10 @@ button.pageActionPrimary:hover {
     }
 
     .listToolbarFilter, .listViewOption {
-        min-height: 40px;
+        min-height: 44px;
     }
 
-    /* --- lists: two columns of rows, or three of detailed cards --- */
+    /* --- lists: two columns, of rows or of detailed cards --- */
     #swrlList, #resultList {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4559,8 +4595,9 @@ button.pageActionPrimary:hover {
         border-radius: 14px;
     }
 
+    /* two, not three: a detailed card's five labelled buttons need about 90px each */
     .main[data-list-view="detailed"] #swrlList, .main[data-list-view="detailed"] #resultList {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
     }
 
@@ -4645,9 +4682,10 @@ button.pageActionPrimary:hover {
     }
 
     .sectionCount {
+        /* 19px bold counts as large text: readable on every tile, purple included */
         margin: 4px 0 0;
-        font-size: 15px;
-        font-weight: 600;
+        font-size: 19px;
+        font-weight: 700;
     }
 
     .homeSwrledHead {
@@ -5033,4 +5071,110 @@ button.pageActionPrimary:hover {
     button.pageToggleOn:hover {
         background: #fff0f4;
     }
+}
+
+/* --- Header on the light category colours (green, orange, light blue) ------
+   setHeaderColour() sets data-header-tone; white text fails there. Phones only:
+   desktop has its own white top bar. */
+@media (max-width: 1024px) {
+    body[data-header-tone="dark"] #titleText,
+    body[data-header-tone="dark"] #login {
+        color: #222222;
+    }
+    body[data-header-tone="dark"] :is(#backButton, #inboxIcon, #recommendSendButton, #filterButton) {
+        filter: brightness(0) opacity(0.87);
+    }
+}
+
+/* "See all" beside "Swrled to you" on desktop home: a 44px target */
+#homeSwrledAll {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 4px;
+}
+
+/* "Skip to content": hidden until Tab reaches it, then a pill top left */
+.skipLink {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 1000;
+    padding: 12px 18px;
+    border-radius: 22px;
+    background: #222222;
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+    transform: translateY(-200%);
+}
+.skipLink:focus {
+    transform: none;
+}
+#centre:focus {
+    outline: none;
+}
+
+/* --- Swrls inbox cards: the list card, plus who sent it and a footer -------- */
+.swrl.swrlCard.recommendationCard {
+    grid-template-areas: "img details" "img reason" "img buttons" "footer footer" "replies replies";
+    grid-template-rows: auto auto 1fr auto auto;
+}
+.recommendationCard .swrlReason.recommendationFrom {
+    cursor: pointer;
+}
+.recommendationCard .swrlReason .recommendationFace {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.recommendationCard .recommendationActions {
+    grid-area: footer;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    direction: ltr;
+    margin: 6px 0 0;
+    padding: 0;
+}
+.recommendationDate {
+    margin-right: auto;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+.recommendationAction, .recommendationCard .repliesToggle {
+    min-height: 44px;
+    margin: 0;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 22px;
+    background: none;
+    color: #333;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.recommendationAction.hidden {
+    display: none;
+}
+/* the date on the left; then Reply (the main thing to do with a friend's
+   swrl, in pink), Mark as read and Dismiss on the right, in that DOM order */
+.recommendationCard .repliesToggle {
+    display: inline-flex;
+    align-items: center;
+    color: var(--swrl-pink-strong);
+}
+.recommendationAction:hover, .recommendationCard .repliesToggle:hover {
+    background: #f3f5f7;
+}
+.recommendationCard .recommendationReplies {
+    grid-area: replies;
+    margin: 4px 0 0;
+}
+#recommendationFilters .senderSelect {
+    height: 44px;
+    border-radius: 22px;
 }

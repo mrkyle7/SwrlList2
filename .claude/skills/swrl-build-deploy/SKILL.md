@@ -66,6 +66,20 @@ is in `docs/friends-and-visibility-plan.md` ("Rollout").
 
 Project `swrl-1118`, region `us-east1`, service `swrl-list`.
 
+## New builds reach open apps
+
+- `webpack.config.js` writes `dist/version.json` (`{"version": APP_VERSION}`),
+  the same string the bundle shows in the menu. `server.js` serves it, and
+  `bundle.js`, `index.css` and the service workers, with `no-cache`; `www/sw.js`
+  never answers `/version.json` from its cache.
+- `src/components/updateCheck.js` asks for it 10 s after start, whenever the
+  app comes back into view, and every 15 minutes while open. A different
+  version means a newer build is live: it shows "Updating Swrl List to vX" and
+  reloads, but waits while someone has typed into a field or has a sheet open,
+  and never reloads twice in a tab for the same version (`sessionStorage`).
+- Testing it: Playwright's `page.route('**/version.json', ...)` works because
+  the service worker leaves that path alone.
+
 ## Dependency updates
 
 `.github/dependabot.yml` raises weekly pull requests: grouped minor/patch

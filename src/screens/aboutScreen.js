@@ -1,5 +1,6 @@
 import { StateController } from "../views/stateController";
 import { Screen } from "./Screen";
+import { setHeaderColour } from "../components/headerColour";
 import { showLoginButtons } from "../firebase/login";
 
 export class AboutScreen extends Screen {
@@ -17,8 +18,7 @@ export class AboutScreen extends Screen {
         backButton.classList.remove('hidden');
         const titleText = document.getElementById('titleText');
         titleText.innerText = "What's a Swrl?";
-        const header = document.getElementById('header');
-        header.style.backgroundColor = '#FF2E63';
+        setHeaderColour('#FF2E63');
         const recommendSendContainer = document.getElementById('recommendSendContainer');
         recommendSendContainer.classList.add('hidden');
         const filterContainer = document.getElementById('filterContainer');

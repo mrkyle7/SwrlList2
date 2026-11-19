@@ -20,6 +20,7 @@ import { Collection } from '../constants/Collection';
 import { State } from '../model/state';
 import { getLabelsFor } from '../listeners/labels';
 import { cardMeta } from '../model/listView';
+import { makeKeyboardClickable } from './keyboard';
 
 /**
  * 
@@ -91,7 +92,9 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
                 addRecommendButton(swrlDiv, swrl, stateController);
             }
 
-            swrlDiv.addEventListener('click', (e) => {
+            makeKeyboardClickable(swrlDiv, 'link');
+        swrlDiv.setAttribute('aria-label', swrl.details.title);
+        swrlDiv.addEventListener('click', (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 const swrlFullPage = new State(stateController.swrlView);
@@ -130,6 +133,8 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
             addRecommendButton(swrlDiv, swrl, stateController);
         }
 
+        makeKeyboardClickable(swrlDiv, 'link');
+        swrlDiv.setAttribute('aria-label', swrl.details.title);
         swrlDiv.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -220,7 +225,7 @@ const GENRES_ON_CARD = 3;
  * @param {HTMLElement} swrlDiv
  * @param {Swrl} swrl
  */
-function addDetailedParts(swrlDiv, swrl) {
+export function addDetailedParts(swrlDiv, swrl) {
     const chips = swrlDiv.querySelector('.swrlChips');
     swrl.details.genres.slice(0, GENRES_ON_CARD).forEach(genre => {
         const chip = document.createElement('span');

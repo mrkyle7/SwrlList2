@@ -1,5 +1,6 @@
 import { StateController } from "../views/stateController";
 import { Screen } from "./Screen";
+import { setHeaderColour } from "../components/headerColour";
 import { showLoginButtons } from "../firebase/login";
 
 export class HomeScreen extends Screen {
@@ -16,9 +17,8 @@ export class HomeScreen extends Screen {
         const backButton = document.getElementById('backButtonDiv');
         backButton.classList.add('hidden');
         const titleText = document.getElementById('titleText');
-        titleText.innerText = 'Swrl List 2';
-        const header = document.getElementById('header');
-        header.style.backgroundColor = '#FF2E63';
+        titleText.innerText = 'Swrl List';
+        setHeaderColour('#FF2E63');
         const recommendSendContainer = document.getElementById('recommendSendContainer');
         recommendSendContainer.classList.add('hidden');
         const filterContainer = document.getElementById('filterContainer');
@@ -30,7 +30,7 @@ export class HomeScreen extends Screen {
      * @param {boolean} newScreen
      */
     updateLocationHistory(newScreen) {
-        const title =  'Swrl List 2';
+        const title =  'Swrl List';
         const state = { pageTitle: title, stateId: this.stateController.currentState.id };
         const url = `/`;
         if (newScreen) {
