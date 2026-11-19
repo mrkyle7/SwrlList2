@@ -82,6 +82,22 @@ containers that views attach into.
 - `src/index.js` — on DOM ready → init Firebase → create the
   singleton `StateController` → set up login → show initial screen.
 
+- **In progress** ("Watching", "Reading", "Listening", "Playing"): wording and
+  ordering in `model/progress.js` (`progressWords(categoryID)`,
+  `inProgressFirst`). Set from the swrl page toggle (`addProgressButton` in
+  `components/buttons.js`, actions `markASwrlAsInProgress` /
+  `unmarkASwrlAsInProgress`); shown as the `.swrlProgress` badge on cards
+  (`addProgressBadge`), first on Your List, as its own group on the swrl
+  page's friends card and in Friends' recent activity (`activityCaption`).
+  Marking done or removing from the list clears it (those actions write
+  `inProgress: false`, and the buttons call `showInProgress`).
+- **Swrl page toggles** (`.pageToggles`: Love, Watching, Mark as done, Dismiss,
+  Share): a grid of equal columns. On phones each stacks its icon over its
+  label and must `align-self: stretch` (the shared `.swrlButton` rule centres
+  itself), or a two-line label makes its cell taller than the rest. On
+  desktop they become pills in the header. A new toggle must be checked at
+  360px with the longest label.
+
 ## Conventions
 
 - **One action per file** in `src/actions/`. Each default-exports a function
@@ -153,5 +169,7 @@ containers that views attach into.
 - Screen identity in `changeState` is compared with
   `currentState.view.screen !== newState.view.screen`. If two views share a
   screen object, the back-stack won't push — that's intentional.
+- `.swrlButton` sets `align-self: center`. Inside a grid or flex row that
+  should line up (the page toggles), override it with `align-self: stretch`.
 - The app only runs in a browser; there is no platform switch. Routing uses
   the History API (`screen.updateLocationHistory`, `window.onpopstate`).

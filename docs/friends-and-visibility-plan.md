@@ -378,7 +378,8 @@ Notes:
 - Counts are not adjusted locally after an action: the old UI never bumped the
   number either, it only toggled the buttons.
 - Your List is built from the cache (`category`, `later`, optional type), sorted
-  on the client (`sortListEntries`; titles compare case-insensitively, unlike
+  on the client (`sortListEntries`, then `inProgressFirst`: entries with
+  `inProgress: true`, added in 3.12.0, come first; titles compare case-insensitively, unlike
   the old Firestore order). `renderSwrl` fetches `swrls/{id}` per card for the
   counts (also for the swrler list and search/recommend) and falls back to the
   entry's own details if the doc is missing or unreadable, so cards appear
