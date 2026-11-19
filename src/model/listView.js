@@ -87,10 +87,30 @@ export function activeFilterCount(state) {
  * @return {Object<string, number>} by category name
  */
 export function countsByCategory(entries) {
+    return countBy(entries, entry => entry.later);
+}
+
+/**
+ * How many I have started in each category ("2 watching" on the home tiles).
+ *
+ * @param {{later: boolean, inProgress?: boolean, deleted: boolean, category: {name: string}}[]} entries
+ * @return {Object<string, number>} by category name
+ */
+export function inProgressByCategory(entries) {
+    return countBy(entries, entry => entry.later && entry.inProgress === true);
+}
+
+/**
+ * @template {{deleted: boolean, category: {name: string}}} E
+ * @param {E[]} entries
+ * @param {(entry: E) => boolean} include
+ * @return {Object<string, number>}
+ */
+function countBy(entries, include) {
     /** @type {Object<string, number>} */
     const counts = {};
     entries.forEach(entry => {
-        if (!entry.later || entry.deleted || !entry.category) return;
+        if (!include(entry) || entry.deleted || !entry.category) return;
         counts[entry.category.name] = (counts[entry.category.name] || 0) + 1;
     });
     return counts;

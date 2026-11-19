@@ -7,7 +7,7 @@ import { swrlUser } from '../firebase/login';
 import showRequireLoginScreen from '../components/requireLoginScreen';
 import deleteSwrl from '../actions/deleteSwrl';
 import { addStats } from './stats';
-import { addLoveButton, addAddButton, addRecommendButton, addDoneButton, addProgressBadge } from './buttons';
+import { addLoveButton, addAddButton, addRecommendButton, addDoneButton, addProgressBadge, addProgressButton } from './buttons';
 import { showToasterMessage } from './toaster';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
@@ -83,6 +83,8 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
             addLoveButton(view, latestSwrl, swrlDiv, firestore, null);
             addDoneButton(swrlDiv, latestSwrl, firestore, swrlsContainer, view);
             addProgressBadge(swrlDiv, latestSwrl);
+            // the quick Start / Watching button: on my own list only, where it is one tap from "what now"
+            if (view === YOUR_LIST) addProgressButton(swrlDiv, latestSwrl, firestore);
             addAddButton(view, swrlDiv, latestSwrl, firestore, swrlsContainer, null);
             //Already on the recommend screen, so would be weird to recommend again!
             if (view !== RECOMMEND) {

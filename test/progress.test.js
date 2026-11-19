@@ -45,3 +45,19 @@ describe('in progress', function () {
         expect(buildEntryWrite(swrl, 'u', { later: true }, true, FRIENDS, 'now')).not.to.have.property('inProgress');
     });
 });
+
+import { inProgressByCategory, countsByCategory } from '../src/model/listView';
+
+describe('in progress on the home tiles', function () {
+    it('counts what I have started, on my list and not dismissed', function () {
+        const watch = { name: 'watch' };
+        const entries = [
+            { later: true, inProgress: true, deleted: false, category: watch },
+            { later: true, deleted: false, category: watch },
+            { later: false, inProgress: true, deleted: false, category: watch },
+            { later: true, inProgress: true, deleted: true, category: watch },
+        ];
+        expect(inProgressByCategory(entries)).to.deep.equal({ watch: 1 });
+        expect(countsByCategory(entries)).to.deep.equal({ watch: 2 });
+    });
+});

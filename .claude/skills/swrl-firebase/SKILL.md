@@ -96,6 +96,7 @@ swrlers/{uid}/listEntries/{swrlID}:
 { swrlID, uid, type, category, details,   // denormalised copy: a list renders from entries alone
   later, done, loved, deleted: boolean,
   inProgress: boolean,                    // started (watching/reading/...): only with later; done or off the list clears it. Absent = false. Not counted.
+                                          // a swrler's "In progress" tab queries inProgress == true plus the visibility constraint
   added, updated,                         // serverTimestamp()
   visibility: 'private' | 'friends' | 'public',   // the EFFECTIVE value
   visibilityOverride: boolean }           // true when set for this swrl, false = follows the default

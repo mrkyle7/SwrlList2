@@ -31,6 +31,10 @@ invent a pattern when one exists.
 
 Produce a short plan with these sections before writing code:
 
+- **Journeys:** every row of `docs/user-journeys.md`, marked "changes" or
+  "not affected, because ...". Everything marked "changes" is built and
+  checked in this PR.
+
 - **Data model change** — what Firestore field(s) are added, and where: a
   per-user flag goes on the user's list entry (a boolean like `loved`, plus the
   visibility fields that already exist), shared anonymous data on `swrls` as a

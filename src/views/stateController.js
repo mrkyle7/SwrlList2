@@ -35,10 +35,11 @@ import { initDesktopSidebar, setActiveSidebarItem } from "../components/desktopS
 /** How many genres show before "Show all", and from how many the search box appears. */
 const FEW_GENRES = 8;
 const SEARCHABLE_GENRES = 12;
-import { filterFromId } from "../constants/Filter";
+import { filterFromId, withoutYourListOnlyFilters } from "../constants/Filter";
+import { progressWords } from "../model/progress";
 import { whereFilterFromId } from "../constants/WhereFilter";
 import { SwrlerListScreen } from "../screens/swrlerListScreen";
-import { SwrlerLater as SwrlerLaterView, SwrlerLoved as SwrlerLovedView, SwrlerDone as SwrlerDoneView } from "./swrlerList";
+import { SwrlerLater as SwrlerLaterView, SwrlerLoved as SwrlerLovedView, SwrlerDone as SwrlerDoneView, SwrlerInProgress as SwrlerInProgressView } from "./swrlerList";
 import { UIView } from "./UIView";
 
 export class StateController {
@@ -67,6 +68,7 @@ export class StateController {
         this.swrlerLaterView = new SwrlerLaterView(this);
         this.swrlerLovedView = new SwrlerLovedView(this);
         this.swrlerDoneView = new SwrlerDoneView(this);
+        this.swrlerInProgressView = new SwrlerInProgressView(this);
         this.searchView = new SearchView(this);
         this.recommendView = new Recommend(this);
         this.swrlView = new SwrlFullPage(this);
@@ -298,6 +300,7 @@ export class StateController {
 
         this._showLabelFilters();
         this._showGenreFilters();
+        this._showInProgressFilter();
 
         const filters = document.getElementById('filters')
         filters.classList.remove('hidden');
@@ -371,6 +374,7 @@ export class StateController {
         this.bindSwrlerTab(swrlerLaterTab, this.swrlerLaterView);
         this.bindSwrlerTab(swrlerLovedTab, this.swrlerLovedView);
         this.bindSwrlerTab(swrlerDoneTab, this.swrlerDoneView);
+        this.bindSwrlerTab(/** @type {HTMLElement} */ (document.getElementById('swrlerInProgressTab')), this.swrlerInProgressView);
 
         //bind the section category clicks
         Categories.forEach(
@@ -441,6 +445,18 @@ export class StateController {
      * Lists my labels as checkboxes in the filter popup. Only on my own
      * lists: labels are mine, so they mean nothing on someone else's.
      */
+    /** "Watching" (or reading, ...) in the filter sheet: only on Your list, where my started swrls are. */
+    _showInProgressFilter() {
+        const input = /** @type {HTMLInputElement} */ (document.getElementById('inProgressFilter'));
+        const label = document.querySelector('label[for="inProgressFilter"]');
+        const show = this.currentState.view === this.yourListView;
+        input.classList.toggle('hidden', !show);
+        label.classList.toggle('hidden', !show);
+        if (!show) input.checked = false;
+        const category = this.currentState.selectedCategory;
+        label.textContent = category ? progressWords(category.id).now : 'In progress';
+    }
+
     _showLabelFilters() {
         const section = document.getElementById('labelFilters');
         const list = document.getElementById('labelFilterList');
@@ -637,7 +653,7 @@ export class StateController {
             discoverState.searchTerms = this.currentState.searchTerms;
             discoverState.sort = this.currentState.sort;
             discoverState.typeFilter = this.currentState.typeFilter;
-            discoverState.filters = this.currentState.filters
+            discoverState.filters = withoutYourListOnlyFilters(this.currentState.filters)
             discoverState.labelFilters = this.currentState.labelFilters;
             discoverState.genreFilters = this.currentState.genreFilters;
             this.changeState(discoverState);
@@ -655,7 +671,7 @@ export class StateController {
             searchState.searchTerms = this.currentState.searchTerms;
             searchState.sort = this.currentState.sort;
             searchState.typeFilter = this.currentState.typeFilter;
-            searchState.filters = this.currentState.filters
+            searchState.filters = withoutYourListOnlyFilters(this.currentState.filters)
             searchState.labelFilters = this.currentState.labelFilters;
             searchState.genreFilters = this.currentState.genreFilters;
             this.changeState(searchState);
@@ -674,7 +690,7 @@ export class StateController {
             state.swrler = this.currentState.swrler;
             state.sort = this.currentState.sort;
             state.typeFilter = this.currentState.typeFilter;
-            state.filters = this.currentState.filters
+            state.filters = withoutYourListOnlyFilters(this.currentState.filters)
             state.labelFilters = this.currentState.labelFilters;
             state.genreFilters = this.currentState.genreFilters;
             this.changeState(state);

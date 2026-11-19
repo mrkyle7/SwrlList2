@@ -50,7 +50,8 @@ test/             Vitest unit tests (model classes, pure helpers)
 test-rules/       Vitest tests of firestore.rules against the Firestore emulator
 functions/        Firebase Cloud Functions + their tests
 scripts/          one-off helpers (migrate-list-entries.js, Auth authorised domains, ...)
-docs/             design notes; friends-and-visibility-plan.md is the spec and the owner's rollout checklist
+docs/             design notes; friends-and-visibility-plan.md is the spec and the owner's rollout checklist;
+                  user-journeys.md lists every screen a change may have to reach
 firestore.rules   security rules (applied by hand in the console, not by CI)
 firestore.indexes.json  the few indexes the new queries need (added by hand in the console)
 firebase.emulators.json emulator config (auth, firestore with the rules, functions)
@@ -79,7 +80,7 @@ counts are written by Cloud Functions. Details in the `swrl-firebase` skill.
 | Building, running or deploying (webpack, Docker, CI, Cloud Run) | `swrl-build-deploy` |
 | Writing or running tests, or fixing type errors | `swrl-testing` |
 | Designing, restyling or polishing the UI, or writing interface copy | `design-taste-frontend` (third-party, guidance only; read its "In this repository" section) |
-| Building a user-visible feature end-to-end | launch the `swrl-feature-builder` agent |
+| Building a user-visible feature end-to-end | launch the `swrl-feature-builder` agent, and walk `docs/user-journeys.md` first |
 
 ## Versioning and shipping
 
@@ -94,7 +95,15 @@ counts are written by Cloud Functions. Details in the `swrl-firebase` skill.
   merge with red or unfinished CI. Say in the PR and to the owner which version
   it ships.
 
-## Every change: plan the docs and check the layout
+## Every change: cover every journey, plan the docs, check the layout
+
+- **Cover every user journey.** Before coding a feature or a change to what a
+  swrl shows (a state, a field, a button), go down `docs/user-journeys.md`
+  and mark each journey "changes" or "not affected, because ...". Build all
+  the ones that change in the same PR, test each in the browser, and put the
+  list in the PR. A feature that works on one screen only is not done.
+- **Consult the UX skill** (`design-taste-frontend`, its "In this repository"
+  section) for any UI: tap sizes, wording, one card style, contrast.
 
 - **Plan the .md updates at the start, ship them in the same PR.** Before
   coding, list which of `CLAUDE.md`, `.claude/skills/*/SKILL.md`,
