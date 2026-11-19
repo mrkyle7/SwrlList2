@@ -7,6 +7,7 @@ import { inboxRecommendationsFor, isRecommendedToMe } from '../listeners/recomme
 import { hasLabel, matchesLabels } from '../model/labels';
 import { pickWeighted } from '../model/taste';
 import { State } from '../model/state';
+import { progressWords } from '../model/progress';
 
 const VERBS = { 1: 'watch', 2: 'read', 3: 'listen to', 4: 'play' };
 const PICKS = 3;
@@ -143,8 +144,9 @@ function tile(entry, stateController) {
     why.textContent = entry.added
         ? 'On your list since ' + entry.added.toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
         : 'On your list';
-    // a friend's swrl says who sent it
-    const swrled = inboxRecommendationsFor(entry.swrlID)[0];
+    // something already started is the obvious answer: say so, ahead of who sent it
+    const swrled = entry.inProgress ? undefined : inboxRecommendationsFor(entry.swrlID)[0];
+    if (entry.inProgress) why.textContent = 'Carry on ' + progressWords(swrl.category.id).caption;
     if (swrled) {
         getSwrlerCached(swrled.from, stateController.firestore).then(swrler => {
             if (swrler) why.textContent = 'Swrled by ' + swrler.displayName;

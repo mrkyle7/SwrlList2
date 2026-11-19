@@ -4089,7 +4089,7 @@ button.pageActionPrimary:hover {
     background: #f3f5f7;
 }
 
-.main[data-list-view="detailed"] :is(#swrlList, #resultList) .swrl.swrlCard :is(.swrlLoved, .swrlDone, .swrlAdded) {
+.main[data-list-view="detailed"] :is(#swrlList, #resultList) .swrl.swrlCard :is(.swrlLoved, .swrlDone, .swrlAdded, .swrlInProgress) {
     background: #fff0f4;
 }
 
@@ -4990,7 +4990,7 @@ button.pageActionPrimary:hover {
 }
 
 /* --- In progress ("Watching", "Reading", ...) -------------------------------- */
-.swrl .swrlProgress {
+.swrlProgress {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -5004,14 +5004,14 @@ button.pageActionPrimary:hover {
     font-weight: 700;
     line-height: 18px;
 }
-.swrl .swrlProgress::before {
+.swrlProgress::before {
     content: '';
     width: 7px;
     height: 7px;
     border-radius: 50%;
     background: currentColor;
 }
-.swrl .swrlProgress.hidden {
+.swrlProgress.hidden {
     display: none;
 }
 

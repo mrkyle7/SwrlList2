@@ -2,7 +2,7 @@ import { mountListToolbar, unmountListToolbar } from '../components/listToolbar'
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 export default { showList, destroyList };
 
-import { SWRLER_LATER, SWRLER_LOVED, SWRLER_DONE } from '../constants/View';
+import { SWRLER_LATER, SWRLER_LOVED, SWRLER_DONE, SWRLER_IN_PROGRESS } from '../constants/View';
 import { listEntriesPath } from '../constants/Collection';
 import { Category } from '../constants/Category';
 import { swrlUser } from '../firebase/login';
@@ -29,6 +29,23 @@ export class SwrlerLater extends UIView {
 
     show() {
         showList(this.stateController.currentState.swrler, SWRLER_LATER, this.firestore, this.stateController);
+    }
+
+    destroy() {
+        destroyList();
+    }
+}
+
+export class SwrlerInProgress extends UIView {
+    /**
+     * @param {StateController} stateController
+     */
+    constructor(stateController) {
+        super(stateController, stateController.swrlerListScreen)
+    }
+
+    show() {
+        showList(this.stateController.currentState.swrler, SWRLER_IN_PROGRESS, this.firestore, this.stateController);
     }
 
     destroy() {
@@ -82,6 +99,10 @@ const swrlerLovedTab = document.getElementById('swrlerLovedTab');
 // @ts-ignore
 const swrlerDoneTab = document.getElementById('swrlerDoneTab');
 
+/** @type {HTMLDivElement} */
+// @ts-ignore
+const swrlerInProgressTab = document.getElementById('swrlerInProgressTab');
+
 const swrlsContainer = document.getElementById('swrlList');
 let currentID;
 let currentSwrler;
@@ -112,6 +133,8 @@ export function showList(swrler, view, firestore, stateController) {
         swrlerLovedTab.classList.add('selected');
     } else if (view === SWRLER_DONE) {
         swrlerDoneTab.classList.add('selected');
+    } else if (view === SWRLER_IN_PROGRESS) {
+        swrlerInProgressTab.classList.add('selected');
     }
     swrlsContainer.classList.remove('hidden');
     document.getElementById('swrlListView').classList.remove('hidden');
@@ -179,7 +202,7 @@ export function showList(swrler, view, firestore, stateController) {
  * @return {Promise<ListEntry[]>}
  */
 async function loadEntries(swrler, view, sort, typeFilter, firestore) {
-    const listFields = new Map([[SWRLER_LATER, "later"], [SWRLER_LOVED, "loved"], [SWRLER_DONE, "done"]]);
+    const listFields = new Map([[SWRLER_LATER, "later"], [SWRLER_IN_PROGRESS, "inProgress"], [SWRLER_LOVED, "loved"], [SWRLER_DONE, "done"]]);
     /** @type {import('firebase/firestore').QueryConstraint[]} */
     const constraints = [];
     if (listFields.has(view)) {
@@ -294,6 +317,7 @@ export function destroyList() {
     swrlerLaterTab.classList.remove('selected');
     swrlerLovedTab.classList.remove('selected');
     swrlerDoneTab.classList.remove('selected');
+    swrlerInProgressTab.classList.remove('selected');
     currentID = undefined;
 }
 

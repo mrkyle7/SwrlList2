@@ -6,7 +6,9 @@ import { Swrl } from '../model/swrl';
 import { swrlUser } from '../firebase/login';
 import { getAllListEntries, whenListEntriesReady } from '../listeners/listEntries';
 import { recommendationsInboxCache, inboxReady } from '../listeners/recommendations';
-import { countsByCategory, latestRecommendedSwrls } from '../model/listView';
+import { countsByCategory, inProgressByCategory, latestRecommendedSwrls } from '../model/listView';
+import { progressWords } from '../model/progress';
+import { Categories } from '../constants/Category';
 import { renderSwrl } from '../components/swrl';
 import { Collection } from '../constants/Collection';
 import { SEARCH } from '../constants/View';
@@ -65,9 +67,14 @@ async function showDesktopExtras(stateController) {
     await whenListEntriesReady();
     if (visit !== thisVisit) return;
     const byCategory = countsByCategory(getAllListEntries());
+    const started = inProgressByCategory(getAllListEntries());
     counts.forEach(count => {
-        const n = byCategory[/** @type {HTMLElement} */ (count).dataset.category] || 0;
-        count.textContent = n === 0 ? 'Nothing on your list yet' : `${n} on your list`;
+        const name = /** @type {HTMLElement} */ (count).dataset.category;
+        const n = byCategory[name] || 0;
+        const going = started[name] || 0;
+        const category = Categories.find(c => c.name === name);
+        count.textContent = n === 0 ? 'Nothing on your list yet'
+            : `${n} on your list` + (going > 0 && category ? ` · ${going} ${progressWords(category.id).caption.split(' ')[0]}` : '');
     });
     if (desktop.matches) showSwrledToMe(stateController, thisVisit);
 }

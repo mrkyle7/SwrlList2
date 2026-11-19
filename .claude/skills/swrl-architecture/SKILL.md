@@ -84,11 +84,18 @@ containers that views attach into.
 
 - **In progress** ("Watching", "Reading", "Listening", "Playing"): wording and
   ordering in `model/progress.js` (`progressWords(categoryID)`,
-  `inProgressFirst`). Set from the swrl page toggle (`addProgressButton` in
-  `components/buttons.js`, actions `markASwrlAsInProgress` /
-  `unmarkASwrlAsInProgress`); shown as the `.swrlProgress` badge on cards
-  (`addProgressBadge`), first on Your List, as its own group on the swrl
-  page's friends card and in Friends' recent activity (`activityCaption`).
+  `inProgressFirst`). Set from the swrl page toggle and the quick button on Your list cards
+  (`addProgressButton` in `components/buttons.js`, which marks its container
+  `data-progress-buttons="on"`; actions `markASwrlAsInProgress` /
+  `unmarkASwrlAsInProgress`). Shown as the `.swrlProgress` badge on list and
+  inbox cards (`addProgressBadge`), first on Your List, in the Your-list-only
+  filter (`IN_PROGRESS_FILTER`, dropped by `withoutYourListOnlyFilters` when
+  moving to Discover, Search or a swrler), on a swrler's "In progress" tab
+  (`SWRLER_IN_PROGRESS`, query `inProgress == true`), on the home tiles
+  ("3 on your list · 1 watching"), as "Carry on watching" in Pick for me, as
+  its own group on the swrl page's friends card and in Friends' recent
+  activity (`activityCaption`). Every place it appears is listed in
+  `docs/user-journeys.md`.
   Marking done or removing from the list clears it (those actions write
   `inProgress: false`, and the buttons call `showInProgress`).
 - **Swrl page toggles** (`.pageToggles`: Love, Watching, Mark as done, Dismiss,

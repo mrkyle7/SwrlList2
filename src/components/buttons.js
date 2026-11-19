@@ -283,11 +283,17 @@ function showInProgress(div, swrl, inProgress) {
         badge.textContent = words.now;
         badge.classList.toggle('hidden', !inProgress);
     }
-    const on = div.querySelector('.swrlInProgress');
-    const off = div.querySelector('.swrlNotInProgress');
+    // the toggle only where addProgressButton put one (the swrl page, Your list cards)
+    if (!(div instanceof HTMLElement) || div.dataset.progressButtons !== 'on') return;
+    const on = /** @type {HTMLElement} */ (div.querySelector('.swrlInProgress'));
+    const off = /** @type {HTMLElement} */ (div.querySelector('.swrlNotInProgress'));
     if (on && off) {
-        on.querySelector('.swrlButtonLabel').textContent = words.now;
-        off.querySelector('.swrlButtonLabel').textContent = words.start;
+        on.querySelector('.swrlButtonLabel, .swrlCardLabel').textContent = words.now;
+        off.querySelector('.swrlButtonLabel, .swrlCardLabel').textContent = words.start;
+        on.setAttribute('aria-label', words.now + '. Tap to undo');
+        on.title = words.now + '. Tap to undo';
+        off.setAttribute('aria-label', words.start);
+        off.title = words.start;
         on.classList.toggle('hidden', !inProgress);
         off.classList.toggle('hidden', inProgress);
     }
@@ -304,7 +310,7 @@ export function addProgressBadge(swrlDiv, swrl) {
 }
 
 /**
- * The swrl page's "Start watching" / "Watching" toggle. Starting puts the
+ * The "Start watching" / "Watching" toggle, on the swrl page and on Your list cards. Starting puts the
  * swrl on my list and clears done; stopping leaves it on my list.
  *
  * @param {HTMLElement} pageDiv
@@ -313,6 +319,7 @@ export function addProgressBadge(swrlDiv, swrl) {
  */
 export function addProgressButton(pageDiv, swrl, firestore) {
     if (!pageDiv) return;
+    pageDiv.dataset.progressButtons = 'on';
     const words = progressWords(swrl.category.id);
     const button = (/** @type {string} */ selector) => /** @type {HTMLElement} */ (pageDiv.querySelector(selector));
     button('.swrlNotInProgress').addEventListener('click', (e) => {

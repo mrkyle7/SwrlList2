@@ -2,7 +2,7 @@ import { doc, getDoc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore
 import { INBOX, SENT } from '../constants/View';
 import { swrlUser } from '../firebase/login';
 import { addStats } from './stats';
-import { addLoveButton, addAddButton, addRecommendButton, addDoneButton } from './buttons';
+import { addLoveButton, addAddButton, addRecommendButton, addDoneButton, addProgressBadge } from './buttons';
 import { Collection } from '../constants/Collection';
 import { markRecommendationAsRead } from '../actions/markRecommendationAsRead';
 import { showToasterMessage } from './toaster';
@@ -77,6 +77,7 @@ export const renderRecommendation = async (stateController, view, recommendation
         addAddButton(view, recommendationDiv, recommendation.swrl, firestore, null, recommendation);
         addRecommendButton(recommendationDiv, recommendation.swrl, stateController);
         addDoneButton(recommendationDiv, recommendation.swrl, firestore, null, view);
+        addProgressBadge(recommendationDiv, recommendation.swrl);
 
         $recommendation('.recommendationSwrl').addEventListener('click', (e) => {
             e.stopPropagation();

@@ -168,6 +168,9 @@
       <div id="swrlerLaterTab">
         <a>Later</a>
       </div>
+      <div id="swrlerInProgressTab">
+        <a>In progress</a>
+      </div>
       <div id="swrlerLovedTab">
         <a>Loved</a>
       </div>
@@ -490,6 +493,8 @@
       <div class="chips">
         <input type="checkbox" id="recommended" name="filter" value="1">
         <label for="recommended">Swrled to you</label>
+        <input type="checkbox" id="inProgressFilter" name="filter" value="2">
+        <label for="inProgressFilter">In progress</label>
       </div>
       <div id="labelFilters" class="hidden">
         <h3>Your labels</h3>
@@ -654,6 +659,7 @@
           <img class="swrlImage" src="" />
           <div class="swrlDetails">
             <p class="swrlTitle"></p>
+            <p class="swrlProgress hidden"></p>
             <p class="swrlStats">
             <span class="swrlType"></span>
             <span class="swrlStat swrlStatList" title="People with this on a list"><img class="swrlMiniIcon" src="img/list.svg" alt="On lists:" /><img class="swrlSpinnerListCount swrlMiniIcon hidden" src="img/spinner.gif" alt="" /><span class="swrlListCount"></span></span>
@@ -673,6 +679,8 @@
     <button type="button" class="swrlLoved swrlButton hidden" aria-label="Loved. Tap to undo" title="Loved. Tap to undo"><img src="img/loved.svg" alt="" /><span class="swrlCardLabel">Loved</span></button>
     <button type="button" class="swrlNotLoved swrlButton hidden" aria-label="Love" title="Love"><img src="img/notLoved.svg" alt="" /><span class="swrlCardLabel">Love</span></button>
     <button type="button" class="swrlRecommend swrlButton hidden" aria-label="Swrl to a friend" title="Swrl to a friend"><img src="img/logo_transparent.svg" alt="" /><span class="swrlCardLabel">Swrl to a friend</span></button>
+    <button type="button" class="swrlInProgress swrlButton hidden" aria-label="In progress. Tap to undo" title="In progress. Tap to undo"><img src="img/in_progress-24px.svg" alt="" /><span class="swrlCardLabel">In progress</span></button>
+    <button type="button" class="swrlNotInProgress swrlButton hidden" aria-label="Start" title="Start"><img src="img/start_progress-24px.svg" alt="" /><span class="swrlCardLabel">Start</span></button>
     <button type="button" class="swrlDone swrlButton hidden" aria-label="Done. Tap to undo" title="Done. Tap to undo"><img src="img/check_circle-24px.svg" alt="" /><span class="swrlCardLabel">Done</span></button>
     <button type="button" class="swrlNotDone swrlButton hidden" aria-label="Mark as done" title="Mark as done"><img src="img/check_circle_outline-24px.svg" alt="" /><span class="swrlCardLabel">Mark as done</span></button>
     <button type="button" class="swrlAdded swrlButton hidden" aria-label="On your list. Tap to remove" title="On your list. Tap to remove"><img src="img/playlist_add_check-24px.svg" alt="" /><span class="swrlCardLabel">On your list</span></button>

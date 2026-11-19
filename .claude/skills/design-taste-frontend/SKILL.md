@@ -33,6 +33,16 @@ This is a **guidance-only** copy of [taste-skill](https://github.com/Leonxlnx/ta
   ("what should we watch tonight"); social, because a friend's recommendation beats the internet's
   rating; and enough detail kept to remember why something is on your list.
 
+- **What the kit does not cover: app journeys.** It checks one page at a time, so it cannot tell
+  you that a new state also belongs on the list cards, the filter sheet, a friend's page and the
+  home tiles. For that, walk `docs/user-journeys.md` before designing. For layout, measure rows of
+  buttons and tabs in the browser at 360, 390 and 430px with the longest labels (same top, same
+  height, icons on one line); a screenshot alone has let ragged rows ship.
+- **Patterns this app already uses** (reuse them before inventing): a state shown as a small
+  pink pill under the title (`.swrlProgress`, "Watching"); icon toggles on compact cards that
+  gain labels in the detailed view; a grid of equal toggles on the swrl page that stacks icon over
+  label on phones; filter chips in the bottom sheet; per-category verbs ("watch", "read",
+  "listen to", "play") from one helper rather than written out in each place.
 - **The app's own words.** "Swrl" is a coined word, like "tweet", and stays (so does "swrler").
   It stands for Should Watch, Read or Listen. Verb: to swrl something to someone is to recommend
   what you know they will love. Noun: a swrl is something recommended to you, or on your list
