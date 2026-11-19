@@ -16,8 +16,9 @@ This is a **guidance-only** copy of [taste-skill](https://github.com/Leonxlnx/ta
 - **Not installed:** the kit's `scripts/`, `assets/` and its Stop hook. Every command below that
   runs `node <skill>/...` (the dealers, the checker, the gate) does not exist here; skip those
   steps. Do not download or run them without the owner asking.
-- **It was written for marketing and company websites.** Swrl List is an app (a PWA with lists,
-  search and forms). The landing-page rules do not apply: the hero, one section per screen,
+- **It was written for marketing and company websites.** Swrl List is an app on phones (a PWA
+  with lists, search and forms) and a website on computers; both are product screens, not
+  marketing pages. The landing-page rules do not apply: the hero, one section per screen,
   photographs, dealt layouts, moments, scenes, shader effects, page kinds.
 - **What does apply here:** `references/system.md` (type sizes, colour use, buttons, forms,
   access), `references/copy.md` and `references/copy-voice.md` (plain wording, buttons as a verb

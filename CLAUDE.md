@@ -111,8 +111,11 @@ counts are written by Cloud Functions. Details in the `swrl-firebase` skill.
   `.claude/agents/*.md` and `docs/*.md` describe what you are changing (data
   shapes, files, flows, UI patterns, how to test) and update each one in the
   PR. Say in the PR which .md files changed, or why none needed to.
+- **Phone and desktop are both first-class.** Swrl List is an app on phones
+  and a website on computers: design and check both, and never ship a phone
+  layout stretched across a desktop (see `swrl-ux`, "Desktop").
 - **Check UI by measuring, not just looking.** Screenshots at 360, 390 and
-  430px wide (and 1280 on desktop); for any row of buttons or cards, compare
+  430px wide (and 1280 and 1440 on desktop, plus a Tab-through); for any row of buttons or cards, compare
   their `getBoundingClientRect()` top, height and icon positions in Playwright,
   with the longest labels (e.g. "Start reading", "Mark as done"). Misaligned
   rows have shipped more than once because a screenshot looked fine at a glance.

@@ -1,14 +1,18 @@
 ---
 name: swrl-ux
-description: Use for any change people will see in Swrl List - a new feature, state, button, screen, sheet, card, wording or restyle. The app's own UX rules - its audience, the journeys a change must reach, the patterns and components to reuse, sizes, colours, wording, feedback - and how to check them in the browser by measuring. Read before designing, and again before saying UI work is done.
+description: Use for any change people will see in Swrl List, on phones (app) and desktop (website) - a new feature, state, button, screen, sheet, card, wording or restyle. The app's own UX rules - its audience, the journeys a change must reach, the patterns and components to reuse, sizes, colours, wording, feedback - and how to check them in the browser by measuring. Read before designing, and again before saying UI work is done.
 ---
 
 # Swrl List UX
 
-Swrl List is an app, not a website: people come back to it to find something
-to watch tonight, to add a thing a friend mentioned in five seconds, and to
-swrl something they loved to a friend. Ordinary, non-technical people, mostly
-on phones, often one-handed. Every rule below serves those three moments.
+Swrl List is both an installable app on phones and a website on computers,
+and both must feel made for the device: one-handed and thumb-sized on a
+phone; a proper desktop site with a sidebar, room to see more at once, hover,
+and a keyboard on a computer. Never a phone layout stretched across a big
+screen. People come to it to find something to watch tonight, to add a thing
+a friend mentioned in five seconds, and to swrl something they loved to a
+friend. Ordinary, non-technical people. Every rule below serves those three
+moments, on both.
 
 The owner's instructions and `CLAUDE.md` win over this skill. The
 `design-taste-frontend` kit is background reading on type, buttons and copy;
@@ -21,6 +25,8 @@ screen. Walk `docs/user-journeys.md` first, mark every row "changes" or "not
 affected, because ...", and build every "changes" row in the same PR. Ask, for
 the change:
 
+- **Both layouts:** every journey on a phone (360-430px) and on desktop
+  (1025px and up), signed in and signed out.
 - **Me:** home tiles, Your list (order, card, quick buttons, filter), Pick for
   me, search results, the swrl page (phone and desktop), the Swrls inbox.
 - **My friends:** their page's tabs, the swrl page's friends card, Discover's
@@ -34,11 +40,12 @@ the change:
 
 | Need | Pattern | Where |
 | --- | --- | --- |
-| A thing in a list | One card: compact (56px poster, icon buttons bottom right) or detailed (92px poster, labelled buttons in an equal grid). The Filter / Compact / Detailed toolbar switches them | `#swrl` template, `components/swrl.js` |
+| A thing in a list | One card: compact (56px poster, icon buttons bottom right) or detailed (92px poster, labelled buttons in an equal grid). The Filter / Compact / Detailed toolbar switches them. On desktop the cards sit in a grid of columns, never one card stretched across the page | `#swrl` template, `components/swrl.js` |
 | My state on a card | A small pink pill under the title (`.swrlProgress`: "Watching") | `components/buttons.js` |
 | An on/off action | A pair of buttons, one shown: off is an outline icon, on is filled or pink (`.swrlLoved`/`.swrlNotLoved`, ...) with "Tap to undo" in its label | `#swrlButtons`, `#swrlPageButtons` |
 | Actions on the swrl page | Two big actions (On your list, Swrl to a friend), then an equal grid of toggles that stacks icon over label on phones; pills in the header on desktop | `.pageActions`, `.pageToggles` |
-| Choosing filters or options | A bottom sheet (a dialog on desktop) with chips, "Clear all" and one filled "Show results" | `#filters`, `#pickSheet` |
+| Choosing filters or options | A bottom sheet on phones, a centred dialog on desktop, with chips, "Clear all" and one filled "Show results"; Esc and a click outside close it | `#filters`, `#pickSheet` |
+| Getting around | Phones: header with back arrow, menu on home, tabs. Desktop: the sidebar (always there, marks where you are), tabs and the toolbar on one line under the title | `components/desktopSidebar.js` |
 | Telling people something happened | A toast at the bottom, a few words, the swrl's title in it ("Watching Past Lives") | `components/toaster.js` |
 | Switching views of one thing | Tabs under the header (Your list / Discover / Search; Later / In progress / Loved / Done) | `.tabs` |
 | Nothing to show | A sentence saying what to do next, never just "No results" | `#message`, `noSwrlsMessage` |
@@ -72,6 +79,8 @@ the change:
   "Swrl to a friend", never a bare "Swrl").
 - The verb fits the category: watch, read, listen to, play (from the helper).
 - Toasts say what happened in under 40 characters and name the swrl.
+- Words that work with a finger and a mouse: "Select", "Undo", "Remove", not
+  "Tap to ..." in labels people see or hear on desktop.
 - Plain words for ordinary people: no "entry", "status", "sync", "item".
 
 **Feedback and safety**
@@ -82,26 +91,47 @@ the change:
 - A signed-out visitor who taps an action gets the login sheet saying why
   ("to keep track of what you are watching").
 
-**Phone and desktop**
-- Design at 390px first; check 360 and 430. Desktop (1025px+) has the sidebar,
-  a wider grid of cards and the swrl page in two columns; check 1280.
-- One filled main action per view.
+**Phone**
+- Design at 390px; check 360 and 430. Thumb reach: the main actions low or
+  in the card, sheets from the bottom, one filled main action per view.
+
+**Desktop (1025px and up): a website, not a stretched phone**
+- Use the width: the sidebar, cards in a grid of columns, the swrl page in
+  two columns. Nothing that people read runs wider than about 75 characters
+  (about 720px); forms, settings and single cards keep a sensible width and
+  sit in the content column, not edge to edge.
+- Every row and grid still lines up, with the longest labels, at the widths
+  where columns change (1025, 1280, 1440, 1920).
+- Hover: every clickable thing changes on hover (a button steps, a card
+  lifts, a link underlines) and the pointer is a hand. Icon-only buttons have
+  a tooltip (`title`) saying what they do.
+- Keyboard: everything can be reached with Tab in reading order and used with
+  Enter or Space; a card opens with Enter; Esc closes sheets, dialogs and
+  menus; the focus ring is always visible; a "Skip to content" link comes
+  first, before the sidebar.
+- Targets: 44px is still the goal (touch laptops and tablets use this
+  layout); never under 32px for a control, and no link in a menu or footer
+  under 24px tall.
+- Dialogs instead of bottom sheets, centred, with the page dimmed behind.
 
 ## 4. Checking (measure, then look)
 
 1. Run the app against the emulators (`swrl-testing`, "What does not").
-2. On every screen the change touches, at 360, 390, 430 and 1280, run the
+2. On every screen the change touches, at 360, 390, 430, 1280 and 1440, run the
    functions in `audit.js` (in this folder) with `page.evaluate`: `AUDIT`
    reports small text, contrast, tap targets and button styles; `ROWS(selector)`
    checks a row lines up. Scroll and run again on long pages.
-3. Then look at every screenshot yourself, for what no script sees: does it
+3. On desktop, also Tab through the screen: every control reached in order
+   with a visible ring, cards open with Enter, Esc closes what is open.
+4. Then look at every screenshot yourself, for what no script sees: does it
    read clearly to someone who has never seen the app, is the state obvious,
-   is anything cut off, crowded or floating.
-4. Say in the PR which journeys and widths you checked.
+   is anything cut off, crowded or floating; on desktop, does it use the
+   width like a website, or look like a phone screen made wide.
+5. Say in the PR which journeys and widths you checked.
 
 ## 5. Known gaps (audit of 3.13.0, November 2026)
 
-What `AUDIT` and a look found on 13 screens at 390 and 1280. Fix them when you
+What `AUDIT`, a keyboard pass and a look found on 13 screens at 390 and 1280. Fix them when you
 work nearby, or as their own change; tick them off here when fixed.
 
 - [ ] Category header bars: white title on green/light blue/orange, 2.5-2.7:1.
@@ -130,6 +160,22 @@ work nearby, or as their own change; tick them off here when fixed.
       progress and no "Swrled to you", which desktop has.
 - [ ] Phone header says "Swrl List 2"; the sidebar and everything else say
       "Swrl List".
+- [ ] Desktop: the Swrls inbox is one card stretched across the page (icons
+      and actions at the far edges, the "Everyone" picker about 900px wide);
+      it should use the list's grid of cards.
+- [ ] Desktop: detailed cards in a three-column grid squeeze five labelled
+      buttons ("Swrl to a friend" wraps onto three lines); fewer columns or
+      header-style pills for detailed view.
+- [ ] Desktop: Settings options stretch to about 1100px; keep them to the
+      reading width.
+- [ ] Desktop: on the swrl page "Add label" sits alone in a wide empty band
+      between the header and the two columns.
+- [ ] Keyboard: the Your list / Discover / Search tabs (and the swrler and
+      inbox tabs) are `<a>` with no href, so Tab skips them; cards cannot be
+      opened with the keyboard (only their buttons); Esc does not close the
+      filter sheet; no "Skip to content" link (13 sidebar stops first).
+- [ ] Wording: on/off button labels say "Tap to undo" / "Tap to remove",
+      which reads oddly with a mouse or a screen reader on desktop.
 - [ ] The category verbs are written out in four places
       (`model/share.js`, `model/activity.js`, `components/tonightPicker.js`,
       `model/progress.js`); one helper should own them.
