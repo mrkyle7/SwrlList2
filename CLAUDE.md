@@ -79,7 +79,7 @@ counts are written by Cloud Functions. Details in the `swrl-firebase` skill.
 | Adding a new content source (new Type or 3rd-party API) | `swrl-detail-getters` |
 | Building, running or deploying (webpack, Docker, CI, Cloud Run) | `swrl-build-deploy` |
 | Writing or running tests, or fixing type errors | `swrl-testing` |
-| Designing, restyling or polishing the UI, or writing interface copy | `design-taste-frontend` (third-party, guidance only; read its "In this repository" section) |
+| Designing, restyling or polishing the UI, or writing interface copy | `swrl-ux` (the app's own rules, patterns and audit); `design-taste-frontend` is background only (third-party; read its "In this repository" section) |
 | Building a user-visible feature end-to-end | launch the `swrl-feature-builder` agent, and walk `docs/user-journeys.md` first |
 
 ## Versioning and shipping
@@ -102,8 +102,9 @@ counts are written by Cloud Functions. Details in the `swrl-firebase` skill.
   and mark each journey "changes" or "not affected, because ...". Build all
   the ones that change in the same PR, test each in the browser, and put the
   list in the PR. A feature that works on one screen only is not done.
-- **Consult the UX skill** (`design-taste-frontend`, its "In this repository"
-  section) for any UI: tap sizes, wording, one card style, contrast.
+- **Consult the UX skill** (`swrl-ux`) for any UI: reuse its patterns, follow
+  its rules, run its `audit.js` checks, and tick off any of its "Known gaps"
+  you fix.
 
 - **Plan the .md updates at the start, ship them in the same PR.** Before
   coding, list which of `CLAUDE.md`, `.claude/skills/*/SKILL.md`,

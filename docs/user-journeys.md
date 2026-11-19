@@ -6,6 +6,8 @@ A change to any of them is not finished until every journey below that shows
 it has been updated and checked. **Before coding, go down this list, mark each
 row "changes" or "not affected, because ...", and put that list in the PR.**
 
+How to design and check each one: the `swrl-ux` skill.
+
 Phone widths to check: 360, 390, 430. Desktop: 1280 (from 1025px the sidebar
 layout applies). Check signed in, signed out (anonymous) and as a friend.
 

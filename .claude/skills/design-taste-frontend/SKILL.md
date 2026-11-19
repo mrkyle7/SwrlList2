@@ -33,6 +33,8 @@ This is a **guidance-only** copy of [taste-skill](https://github.com/Leonxlnx/ta
   ("what should we watch tonight"); social, because a friend's recommendation beats the internet's
   rating; and enough detail kept to remember why something is on your list.
 
+- **For Swrl List's own UX rules, patterns and audit, use the `swrl-ux` skill first;** this kit is
+  background on type, buttons and copy.
 - **What the kit does not cover: app journeys.** It checks one page at a time, so it cannot tell
   you that a new state also belongs on the list cards, the filter sheet, a friend's page and the
   home tiles. For that, walk `docs/user-journeys.md` before designing. For layout, measure rows of
