@@ -30,6 +30,14 @@
 
 <body>
   <a id="skipLink" class="skipLink" href="#centre">Skip to content</a>
+  <!-- Shown from the first paint until the screen being opened is ready
+       (components/launchSplash.js): the logo on white, like the installed
+       app's own splash, so opening goes splash -> screen with one fade. -->
+  <div id="launchSplash" class="launchSplash" aria-hidden="true">
+    <img class="launchSplashLogo" src="img/icon-192.png" alt="" width="112" height="112" />
+    <p class="launchSplashName">Swrl List</p>
+    <p class="launchSplashHint">Getting your lists ready…</p>
+  </div>
   <div id="header" class="header">
     <div class="title">
       <div class="title-details">
@@ -203,17 +211,17 @@
         <option value="">Everyone</option>
       </select>
     </div>
-    <div id="loggingInView">
+    <div id="loggingInView" class="hidden">
       <img class="loggingInLogo" src="img/logo.png">
-      <p class="loggingInMessage">Logging you in...</p>
+      <p class="loggingInMessage">Logging you in…</p>
     </div>
     <div id="loadingView" class="hidden">
       <img class="loggingInLogo" src="img/logo.png">
-      <p class="loggingInMessage">Loading Swrl...</p>
+      <p class="loggingInMessage">Loading swrl…</p>
     </div>
     <div id="loggingInAnonymousView" class="hidden">
       <img class="loggingInLogo" src="img/logo.png">
-      <p class="loggingInMessage">Logging you in anonymously...</p>
+      <p class="loggingInMessage">Just a moment…</p>
     </div>
     <div id="listToolbar" class="listToolbar hidden">
       <button type="button" id="listFilterButton" class="listToolbarFilter">

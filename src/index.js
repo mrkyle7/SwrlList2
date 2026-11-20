@@ -23,7 +23,7 @@ import "@fontsource/raleway/700.css";
 import "@fontsource/raleway/800.css";
 import bindMenuSwipeAction from './utils/swipeUtils';
 import initialiseFirebase from './firebase/init';
-import { setUpLogin, initialisedLogin, swrlUser } from './firebase/login';
+import { setUpLogin, loginReady, swrlUser } from './firebase/login';
 import { StateController } from './views/stateController';
 import { State } from './model/state';
 import { initMessaging } from './firebase/messaging';
@@ -39,9 +39,13 @@ import { initSearchClearButtons } from './components/searchClear';
 import { setUpKeyboardAccess } from './components/keyboard';
 import { startUpdateCheck } from './components/updateCheck';
 import { initHomeLayout } from './components/homeLayout';
+import { hideLaunchSplash } from './components/launchSplash';
 
 /** @type {StateController} */
 let stateController;
+
+/** The longest start-up waits to know who is signed in before opening anyway. */
+const LOGIN_WAIT_MS = 8000;
 
 const app = {
     initialize: function () {
@@ -96,10 +100,9 @@ const app = {
 
             registerServiceWorker();
             window.history.replaceState({ stateId: startState.id }, 'Swrl List', '/')
-            while (!initialisedLogin) {
-                console.log('waiting for login...')
-                await new Promise(resolve => setTimeout(resolve, 300))
-            }
+            // who is using the app decides the first screen (Your list or
+            // Discover); never keep the splash up for long if sign-in stalls
+            await Promise.race([loginReady, new Promise(resolve => setTimeout(resolve, LOGIN_WAIT_MS))]);
             console.log('testing for deep link')
             const match = /\/([^\/]*)\/?([^\/]*)\/?/.exec(originalPath);
             if (match && match.length > 1) {
@@ -156,9 +159,11 @@ const app = {
                 console.log('Not a deep link URL')
                 stateController.changeState(startState);
             }
+            hideLaunchSplash();
         } catch (error) {
             console.error('Caught Error loading');
             console.error(error);
+            hideLaunchSplash();
         }
     }
 };

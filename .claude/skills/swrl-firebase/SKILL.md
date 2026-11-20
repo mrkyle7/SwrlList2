@@ -211,7 +211,13 @@ rules test.
 ## Auth (`src/firebase/login.js`)
 
 - Exposes `swrlUser` (mutable, current `firebase.User`), `setUpLogin(firebase, firestore)`,
-  and `initialisedLogin` flag.
+  and `loginReady`, a promise that resolves once we know who is using the app
+  (signed in, anonymous, or signing in failed). `src/index.js` waits for it (at
+  most 8 s) before opening the first screen, behind the launch splash
+  (`components/launchSplash.js`, `#launchSplash`): for someone already signed
+  in that is only reading the saved sign-in from the device, so nothing says
+  "Logging you in". `#loggingInView` ("Logging you in…") shows only while a
+  real Google sign-in popup is open.
 - On login success: writes/updates `swrlers/{uid}` doc (merge; deletes any
   `email`; sets `lastLoginTime`), starts the listeners
   (`setUpRecommendationsListener`, `setUpListEntriesListener`,
@@ -220,7 +226,8 @@ rules test.
 - On logout: cancels listeners, clears caches, resets `swrlUser`.
 - `deleteAccount` (Settings) deletes the Auth user only (re-authenticating when
   asked); the `userDeleted` function removes the data.
-- Supports anonymous login (`loggingInAnonymousView`) as well as full auth.
+- Supports anonymous login (`loggingInAnonymousView`, "Just a moment…", after
+  logging out) as well as full auth.
 
 When writing code that needs the current user, import `swrlUser` lazily —
 it's `undefined` until `setUpLogin` resolves.
