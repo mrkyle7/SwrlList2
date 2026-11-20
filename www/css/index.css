@@ -5519,3 +5519,59 @@ button.pageActionPrimary:hover {
         display: none !important;
     }
 }
+
+/* --- Empty Swrls inbox: what the filters are hiding, and a button to show it -- */
+.inboxEmpty {
+    grid-column: 1 / -1;
+    box-sizing: border-box;
+    max-width: 560px;
+    margin: 32px auto 16px;
+    padding: 0 16px;
+    text-align: center;
+}
+
+.inboxEmptyText {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #222222;
+}
+
+.inboxEmptyActions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.inboxEmptyButton {
+    min-height: 44px;
+    padding: 0 20px;
+    border: 2px solid var(--swrl-pink-strong);
+    border-radius: 22px;
+    background: var(--swrl-pink-strong);
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.inboxEmptyButtonQuiet {
+    background: #fff;
+    color: var(--swrl-pink-strong);
+}
+
+.inboxEmptyButton:hover {
+    filter: brightness(0.94);
+}
+
+.inboxEmptyButton:active {
+    transform: scale(0.98);
+}
+
+.inboxEmptyButton:focus-visible {
+    outline: 3px solid #1769d6;
+    outline-offset: 2px;
+}

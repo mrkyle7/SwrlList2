@@ -106,6 +106,65 @@ export function showInboxRecommendation(state, filters) {
 }
 
 /**
+ * How many inbox recommendations the "Done" and "On my list" filters are
+ * hiding: the number each box would bring back if ticked. One that is both
+ * done and on my list counts as done, as `showInboxRecommendation` decides.
+ *
+ * @param {{unread: boolean, hasUnreadReply: boolean, done: boolean, onList: boolean}[]} states
+ * @param {{showDone: boolean, showOnList: boolean}} filters
+ * @return {{done: number, onList: number}}
+ */
+export function hiddenByInboxFilters(states, filters) {
+    const hidden = { done: 0, onList: 0 };
+    states.forEach(state => {
+        if (showInboxRecommendation(state, filters)) return;
+        if (state.done) {
+            hidden.done++;
+        } else {
+            hidden.onList++;
+        }
+    });
+    return hidden;
+}
+
+/**
+ * What the empty "For you" screen says, and which filters it offers to
+ * switch on, e.g. "Show 3 on your list".
+ *
+ * @param {{done: number, onList: number}} hidden from `hiddenByInboxFilters`
+ * @param {string} [senderName] set when the "From" menu picks one person
+ * @return {{message: string, actions: {filter: 'showOnList' | 'showDone', label: string}[]}}
+ */
+export function emptyInboxMessage(hidden, senderName) {
+    /** @type {{filter: 'showOnList' | 'showDone', label: string}[]} */
+    const actions = [];
+    if (hidden.onList > 0) actions.push({ filter: 'showOnList', label: `Show ${hidden.onList} on your list` });
+    if (hidden.done > 0) actions.push({ filter: 'showDone', label: `Show ${hidden.done} you've done` });
+    const from = senderName ? ` from ${senderName}` : '';
+    if (actions.length === 0) {
+        return {
+            message: senderName
+                ? `Nothing swrled to you from ${senderName} right now.`
+                : 'Nothing swrled to you yet. When a friend swrls you something, it shows up here.',
+            actions
+        };
+    }
+    const swrls = n => `${n} ${n === 1 ? 'swrl' : 'swrls'}`;
+    let detail;
+    if (hidden.done === 0) {
+        detail = `${swrls(hidden.onList)} sent to you${from} ${hidden.onList === 1 ? 'is' : 'are'} already on your list.`;
+    } else if (hidden.onList === 0) {
+        detail = `You've done ${hidden.done === 1 ? 'the swrl' : `all ${swrls(hidden.done)}`} sent to you${from}.`;
+    } else {
+        detail = `${swrls(hidden.onList)} sent to you${from} ${hidden.onList === 1 ? 'is' : 'are'} already on your list, and you've done ${hidden.done} more.`;
+    }
+    return {
+        message: `You're all caught up. ${detail}`,
+        actions
+    };
+}
+
+/**
  * The number on the inbox badge: recommendations I haven't read plus those
  * (sent or received) with a reply I haven't read, each counted once.
  *

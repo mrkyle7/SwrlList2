@@ -53,7 +53,7 @@ the change:
 | Something clickable that is not a button | `makeKeyboardClickable(element, role)`: Tab reaches it, Enter and Space use it (cards, tabs) | `components/keyboard.js` |
 | Telling people something happened | A toast at the bottom, a few words, the swrl's title in it ("Watching Past Lives") | `components/toaster.js` |
 | Switching views of one thing | Tabs under the header (Your list / Discover / Search; Later / In progress / Loved / Done) | `.tabs` |
-| Nothing to show | A sentence saying what to do next, never just "No results" | `#message`, `noSwrlsMessage` |
+| Nothing to show | A sentence saying what to do next, never just "No results"; when a filter is hiding things, say how many and offer a button that switches it on ("Show 3 on your list") | `#message`, `noSwrlsMessage`, `.inboxEmpty` (`emptyInboxMessage`) |
 | Words that depend on the category | One helper, never written out again: `progressWords` (Watching, Start watching), the verbs in `model/activity.js` | `model/progress.js` |
 
 ## 3. Rules
