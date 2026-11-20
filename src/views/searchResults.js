@@ -283,12 +283,15 @@ function runSearch(stateController, firestore) {
             }
             const search = currentCategory.search;
             const thisSearch = currentSearchID;
-            // Search everything: what is on my own lists at once, then each
-            // source's results as they arrive (search/progressive.js)
+            // What is on my own lists shows at once, in every search (only
+            // this category's, unless it is Search everything); then the
+            // sources' results: Search everything adds each source's as it
+            // answers (search/progressive.js), a category's come all together.
+            // My own swrls show even when the sources fail.
             /** @type {Set<string> | undefined} the swrls showing, while results arrive */
             let shown;
             /** @param {Swrl[]} batch */
-            const onBatch = currentCategory === ALL ? (batch) => {
+            const show = (batch) => {
                 if (thisSearch !== currentSearchID) return;
                 const fresh = batch.filter(swrl => !(shown && shown.has(swrl.swrlID)));
                 if (fresh.length === 0) return;
@@ -300,17 +303,19 @@ function runSearch(stateController, firestore) {
                 appendResults(fresh, firestore, stateController);
                 // more may be on the way until the search finishes
                 if (resultsShowing) loadingbar.classList.remove('hidden');
-            } : undefined;
-            if (onBatch) {
-                onBatch(listMatches(getAllListEntries(), searchText).map(entry => entry.toSwrl()));
-            }
+            };
+            const searchedCategory = currentCategory;
+            const mine = getAllListEntries().filter(entry => searchedCategory === ALL || entry.category === searchedCategory);
+            show(listMatches(mine, searchText).map(entry => entry.toSwrl()));
             if (currentSearchID !== undefined) {
-                search.run(searchText, signal, currentSearchID, onBatch)
+                search.run(searchText, signal, currentSearchID, searchedCategory === ALL ? show : undefined)
                     .then((result) => {
                         if (result.id === currentSearchID) {
                             loadingbar.classList.add('hidden');
                             if (shown && shown.size > 0) {
-                                // already on screen: just say what could not be searched
+                                // below what is showing, then say what could not be searched
+                                show(result.results);
+                                loadingbar.classList.add('hidden');
                                 if ((result.failed || []).length > 0) showToasterMessage(searchFailureText(result.failed), { kind: 'warning' });
                             } else {
                                 clearResults();
@@ -323,7 +328,13 @@ function runSearch(stateController, firestore) {
                     })
                     .catch((err) => {
                         console.error(err);
-                        showMessage("Couldn't search right now. Try again in a moment.");
+                        if (thisSearch !== currentSearchID) return;
+                        loadingbar.classList.add('hidden');
+                        if (shown && shown.size > 0) {
+                            showToasterMessage("Couldn't search for more right now", { kind: 'warning' });
+                        } else {
+                            showMessage("Couldn't search right now. Try again in a moment.");
+                        }
                     });
             }
         }, 500);

@@ -18,8 +18,10 @@ A new Category's search must be added to `AllSearch` too. It hands results
 over as they arrive (`search/progressive.js`, `runProgressively`, tested): the
 sources answering within 400 ms of the first make one interleaved batch, and
 each later source is added below, so nothing on screen moves.
-`views/searchResults.js` shows matches from my own lists first
-(`model/listMatches.js`) and skips swrls already showing.
+`views/searchResults.js` shows matches from my own lists first in **every**
+search (only that category's in a category search; `model/listMatches.js`),
+skips swrls already showing, and keeps them on screen when the sources fail
+(e.g. Play while BoardGameGeek is paused).
 
 **Sharing to the app.** The manifest's `share_target` sends shares to `/share`
 (`shareRoute` in `src/index.js`). `src/model/share.js` (pure, tested in
