@@ -40,16 +40,41 @@ function busy() {
 function reloadTo(live) {
     try { sessionStorage.setItem(TRIED_KEY, live); } catch { /* reload anyway */ }
     showToasterMessage('Updating Swrl List to ' + shortVersion(live));
-    const reload = () => window.location.reload();
-    const worker = navigator.serviceWorker;
     setTimeout(() => {
-        if (worker && worker.getRegistration) {
-            worker.getRegistration().then(registration => registration ? registration.update() : undefined)
-                .catch(() => undefined).finally(reload);
-        } else {
-            reload();
-        }
+        newWorkerReady().catch(() => undefined).finally(() => window.location.reload());
     }, 1200);
+}
+
+/** How long to wait for a new service worker before reloading anyway. */
+const WORKER_WAIT_MS = 15 * 1000;
+
+/**
+ * The app opens from the service worker's cache, one cache per build
+ * (www/sw.js), so reloading before the new worker has downloaded the new
+ * build and taken over would just open the old build again. Asks for the new
+ * worker and waits until it is active (or gives up after a while).
+ *
+ * @return {Promise<void>}
+ */
+async function newWorkerReady() {
+    const worker = navigator.serviceWorker;
+    if (!worker || !worker.getRegistration) return;
+    const registration = await worker.getRegistration();
+    if (!registration) return;
+    await registration.update().catch(() => undefined);
+    const incoming = registration.installing || registration.waiting;
+    if (!incoming) return;
+    await new Promise(resolve => {
+        const timer = setTimeout(resolve, WORKER_WAIT_MS);
+        const settled = () => {
+            if (incoming.state === 'activated' || incoming.state === 'redundant') {
+                clearTimeout(timer);
+                resolve(undefined);
+            }
+        };
+        incoming.addEventListener('statechange', settled);
+        settled();
+    });
 }
 
 /** Reloads now if there is a newer build waiting and nothing would be lost. */

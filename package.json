@@ -1,6 +1,6 @@
 {
     "name": "swrllist2",
-    "version": "3.18.0",
+    "version": "3.19.0",
     "private": true,
     "description": "Remember and recommend what you should watch, read, listen to or play",
     "author": "Kyle Harrison",
@@ -20,6 +20,7 @@
         "test:rules": "npx --yes firebase-tools@15 emulators:exec --only firestore --project swrl-rules-test \"vitest run --dir test-rules\""
     },
     "dependencies": {
+        "compression": "^1.8.2",
         "express": "^5.3.0"
     },
     "devDependencies": {

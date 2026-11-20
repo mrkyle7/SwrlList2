@@ -1,33 +1,50 @@
 /*
  * Swrl List app-shell service worker.
  *
- * Strategy: network first, cache as fallback. bundle.js is not content-hashed,
- * so serving it cache-first would pin users to a stale build. Going to the
- * network first means an online user always gets the current deploy, and an
- * offline user gets the last shell they loaded. Firestore's own offline
- * persistence then supplies the data.
+ * Strategy: one cache per build, and the app opens from it. Opening from
+ * the cache means a cold start never waits on the network, which on a poor
+ * mobile signal took several seconds when this worker went to the network
+ * first.
+ *
+ * - The build (webpack.config.js, `hashedShell`) replaces '__BUILD__' with an
+ *   id of this build and '__SHELL_FILES__' with its content-hashed bundle and
+ *   stylesheet, so this file changes with every deploy. The browser notices
+ *   the change, installs the new worker, and that install downloads the whole
+ *   new build into a new cache before it takes over; the old cache is then
+ *   deleted. Until then the app keeps opening the build it has, complete.
+ * - src/components/updateCheck.js notices a newer build (version.json),
+ *   waits for the new worker to take over, and reloads at a quiet moment.
+ * - Pages (every app route is the same index.html): from this build's cache,
+ *   the network only when it is missing (the first visit).
+ * - Hashed files never change: cache first. Other files of ours (images,
+ *   fonts, the manifest): the cached copy now, refreshed in the background.
+ * - Third-party APIs, Firebase, our /api, /__/ (sign-in helpers),
+ *   /version.json and the workers themselves: always the network.
  *
  * Push notifications are handled separately by firebase-messaging-sw.js, which
  * Firebase registers under its own scope.
  */
-const CACHE = 'swrl-shell-v3';
-const SHELL = [
-  '/',
-  '/css/index.css',
-  '/bundle.js',
+const BUILD = '__BUILD__';
+const CACHE = 'swrl-shell-' + BUILD;
+/** This build's bundle and stylesheet; installing fails without them. */
+const SHELL_FILES = '__SHELL_FILES__';
+/** Nice to have offline; one missing must not stop the install. */
+const EXTRAS = [
   '/manifest.webmanifest',
   '/img/logo.png',
   '/img/icon-192.png',
-  '/img/NoPoster.jpg'
+  '/img/NoPoster.jpg',
+  '/img/spinner.gif'
 ];
 // Deep links (/swrl/<id>, /watch, ...) are all the same single page.
 const APP_ROUTE = /^\/(swrl|swrler|recommend|savedsearches|friends|settings|recommendations|watch|listen|read|play|search|share|about)(\/[^/]*)?\/?$/;
+const HASHED = /\.[0-9a-f]{8}\.(js|css)$/;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE)
-      // One missing file must not stop the worker installing.
-      .then((cache) => Promise.all(SHELL.map((url) => cache.add(url).catch(() => undefined))))
+      .then((cache) => cache.addAll(['/', ...SHELL_FILES])
+        .then(() => Promise.all(EXTRAS.map((url) => cache.add(url).catch(() => undefined)))))
       .then(() => self.skipWaiting())
   );
 });
@@ -35,17 +52,26 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(keys
+        .filter((key) => key.startsWith('swrl-shell-') && key !== CACHE)
+        .map((key) => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
 
 /**
- * Every app route is the same single page, so cache it once.
- * @param {URL} url
+ * @param {Request} request
+ * @param {string} key what to store it under
+ * @return {Promise<Response>}
  */
-function cacheKey(url) {
-  return url.pathname === '/' || APP_ROUTE.test(url.pathname) ? '/' : url.pathname;
+function fromNetwork(request, key) {
+  return fetch(request).then((response) => {
+    if (response.ok && response.type === 'basic') {
+      const copy = response.clone();
+      caches.open(CACHE).then((cache) => cache.put(key, copy));
+    }
+    return response;
+  });
 }
 
 self.addEventListener('fetch', (event) => {
@@ -54,8 +80,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   const url = new URL(request.url);
-  // Third-party APIs, Firebase, and our own /api and Firebase auth helper
-  // paths always go straight to the network.
   if (url.origin !== self.location.origin
     || url.pathname.startsWith('/api/')
     || url.pathname.startsWith('/__/')
@@ -66,18 +90,26 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  const key = cacheKey(url);
+  const page = url.pathname === '/' || APP_ROUTE.test(url.pathname);
+  const key = page ? '/' : url.pathname;
   event.respondWith(
-    fetch(request)
-      .then((response) => {
-        if (response.ok && response.type === 'basic') {
-          const copy = response.clone();
-          caches.open(CACHE).then((cache) => cache.put(key, copy));
+    caches.open(CACHE).then((cache) => cache.match(key)).then((cached) => {
+      if (cached && (page || HASHED.test(url.pathname))) {
+        return cached;
+      }
+      if (cached) {
+        // the copy we have now, a fresh one for next time
+        event.waitUntil(fromNetwork(request, key).catch(() => undefined));
+        return cached;
+      }
+      return fromNetwork(request, key).catch(() => {
+        // offline and not cached: a page still gets the app, if we have it
+        if (page) {
+          return caches.open(CACHE).then((cache) => cache.match('/'))
+            .then((shell) => shell || new Response('Offline', { status: 503, statusText: 'Offline' }));
         }
-        return response;
-      })
-      .catch(() => caches.open(CACHE)
-        .then((cache) => cache.match(key))
-        .then((cached) => cached || Response.error()))
+        return new Response('', { status: 503, statusText: 'Offline' });
+      });
+    })
   );
 });
