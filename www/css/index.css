@@ -5479,7 +5479,7 @@ button.pageActionPrimary:hover {
         stroke-linejoin: round;
     }
 
-    .phoneNavItem[data-nav="home"] .phoneNavIcon svg {
+    .phoneNavIcon:not([style]) svg {
         width: 24px;
         height: 24px;
         stroke: currentColor;
@@ -5574,4 +5574,149 @@ button.pageActionPrimary:hover {
 .inboxEmptyButton:focus-visible {
     outline: 3px solid #1769d6;
     outline-offset: 2px;
+}
+
+/* --- Quick ways in to "Search everything" ----------------------------------
+   The home screen's search box (Cards home on phones, and desktop), the
+   header's search button (Tiles home on phones), the bar's and the sidebar's
+   Search items. All open search with the cursor in the box. */
+.headerSearch {
+    display: none;
+}
+
+@media (max-width: 1024px) {
+    body[data-home-layout="tiles"][data-screen="home"] .headerSearch {
+        display: flex;
+    }
+}
+
+.headerSearch {
+    position: fixed;
+    top: 6px;
+    right: 56px;
+    z-index: 11;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 22px;
+    background: transparent;
+    cursor: pointer;
+}
+
+/* signed out, "LOG IN" sits where the inbox would */
+body:has(#login:not(.hidden)) .headerSearch {
+    right: 70px;
+}
+
+.headerSearch svg {
+    width: 26px;
+    height: 26px;
+    fill: none;
+    stroke: #fff;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+}
+
+.headerSearch:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: -3px;
+}
+
+.homeSearch {
+    display: none;
+    grid-column: 1 / -1;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 52px;
+    margin: 0;
+    padding: 0 18px;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid #d9dce1;
+    border-radius: 26px;
+    background: #f5f6f8;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 16px;
+    text-align: left;
+    cursor: text;
+}
+
+.homeSearch span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.homeSearch svg {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: #222222;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+}
+
+.homeSearch:hover {
+    border-color: #b9bec6;
+    background: #eef0f3;
+}
+
+.homeSearch:focus-visible {
+    outline: 3px solid #1769d6;
+    outline-offset: 2px;
+}
+
+/* shown wherever the other home extras are (desktop; phones with Cards) */
+@media (max-width: 1024px) {
+    body[data-home-layout="cards"] .homeSearch {
+        display: flex;
+    }
+}
+
+@media only screen and (min-width: 1025px) {
+    .homeSearch {
+        display: flex;
+        max-width: 720px;
+        margin-bottom: 8px;
+    }
+}
+
+/* six items in the bar: a little tighter */
+@media (max-width: 1024px) {
+    .phoneNav {
+        gap: 2px;
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+}
+
+/* --- A toast with an action ("Added Dune to your list  Undo") -------------- */
+.toasterAction {
+    flex: none;
+    min-height: 44px;
+    margin: -12px -10px -12px 4px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #ff8fab;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.toasterAction:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.toasterAction:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: -3px;
 }

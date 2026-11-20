@@ -17,7 +17,9 @@ layout applies). Check signed in, signed out (anonymous) and as a friend.
 | --- | --- | --- |
 | Home tiles (counts per category) | `views/homePage.js`, `model/listView.js` (`countsByCategory`, `inProgressByCategory`), `model/homeLayout.js` (`homeTileCounts`) | desktop shows the counts on the tile; phones with the Cards home layout show them as pills; phones with Tiles (the default) show the tiles only |
 | Home "Swrled to you" strip (desktop, and phones with Cards) | `views/homePage.js` | |
-| Phone bottom bar (Cards home layout) | `components/phoneNav.js`, `StateController._switchCategory` | home and the category lists only; keeps the tab when switching category |
+| Phone bottom bar (Cards home layout) | `components/phoneNav.js`, `StateController._switchCategory` | home and the category lists only; keeps the tab when switching category; its Search item goes back to Search everything |
+| Quick ways into search (home search box, Tiles header button, bar and sidebar Search) | `StateController.openSearchEverything`, `#homeSearch`, `#headerSearch` | the cursor lands in the box |
+| "Added … to your list" toast with Undo | `components/buttons.js`, `components/toaster.js` | no Undo when adding cleared done |
 | Your list: card order and sort | `views/swrlList.js` (`loadSwrls`, `sortListEntries`, `inProgressFirst`) | |
 | Your list: card badges, my latest note, and quick buttons, compact and detailed | `components/swrl.js`, `components/buttons.js`, `#swrlButtons` in `www/index.html` | quick Start/Watching button is Your list only; the note line shows on every card of a swrl I have on a list (also inbox, search, a friend's page) |
 | Filter sheet and the count on the Filter button | `views/stateController.js` (`showFilters`, `applyFilters`, `_show*Filter`), `constants/Filter.js`, `model/listView.js` (`activeFilterCount`) | Your-list-only filters must not be carried to Discover, Search or a swrler (`withoutYourListOnlyFilters`) |

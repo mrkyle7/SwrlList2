@@ -160,7 +160,8 @@ export class StateController {
         if (screen === this.homeScreen) {
             key = 'home'; name = 'home';
         } else if (screen === this.listScreen) {
-            category = state.selectedCategory; key = category ? category.name : undefined; name = 'list';
+            category = state.selectedCategory; name = 'list';
+            key = category === ALL ? 'search' : category ? category.name : undefined;
         } else if (screen === this.swrlScreen) {
             category = state.swrl ? state.swrl.category : undefined; key = category ? category.name : undefined; name = 'swrl';
         } else if (screen === this.recommendationsScreen) {
@@ -197,6 +198,25 @@ export class StateController {
         const state = new State(signedIn ? this.yourListView : this.discoverView);
         state.selectedCategory = category;
         this.changeState(state);
+    }
+
+    /**
+     * Search everything, with the cursor in the box: the quickest way to add
+     * something. Called from a tap, so focusing here also brings up the phone's
+     * keyboard. From a category's search it keeps the words typed.
+     */
+    openSearchEverything() {
+        const current = this.currentState;
+        const onSearch = current.view === this.searchView;
+        if (!(onSearch && current.selectedCategory === ALL)) {
+            const state = new State(this.searchView);
+            state.selectedCategory = ALL;
+            state.searchTerms = onSearch ? current.searchTerms : '';
+            this.changeState(state);
+        }
+        const box = /** @type {HTMLInputElement} */ (document.getElementById('swrlSearch'));
+        box.focus();
+        box.select();
     }
 
     /**
@@ -266,13 +286,21 @@ export class StateController {
         bindListToolbar(() => this.openFilters(), id => this.changeListView(id));
         initDesktopSidebar({
             home: () => { if (this.currentState.view !== this.homeView) this.changeState(new State(this.homeView)); },
+            search: () => this.openSearchEverything(),
             category: name => this._openCategory(name),
             inbox: () => { if (this.currentState.view !== this.inboxView) this.changeState(new State(this.inboxView)); }
         });
         initPhoneNav({
             home: () => { if (this.currentState.view !== this.homeView) this.changeState(new State(this.homeView)); },
+            search: () => this.openSearchEverything(),
             category: name => this._switchCategory(name)
         });
+        // the quick ways in to adding something: the home screen's search box
+        // and the header's search button (Tiles home on phones)
+        ['homeSearch', 'headerSearch'].forEach(id => document.getElementById(id).addEventListener('click', (e) => {
+            e.preventDefault();
+            this.openSearchEverything();
+        }));
         this._bindSheetAndTabs();
     }
 

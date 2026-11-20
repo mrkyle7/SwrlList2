@@ -103,6 +103,8 @@ export function addAddButton(view, div, swrl, firestore, swrlsContainer, recomme
                     showRequireLoginScreen('to add a Swrl to your list');
                 }
                 else {
+                    // adding clears done, so undoing it could not put that back: no Undo then
+                    const wasDone = !div.querySelector('.swrlDone').classList.contains('hidden');
                     addSwrlToList(swrl, firestore)
                         .catch(/**
                          * @param {any} error
@@ -119,7 +121,10 @@ export function addAddButton(view, div, swrl, firestore, swrlsContainer, recomme
                     if (view === INBOX) {
                         markRecommendationAsRead(div, recommendation, firestore);
                     }
-                    showToasterMessage('Added ' + swrl.details.title + ' to your list');
+                    showToasterMessage('Added ' + swrl.details.title + ' to your list', wasDone ? {} : {
+                        // the same as tapping the button again: it removes it and says so
+                        action: { label: 'Undo', run: () => /** @type {HTMLElement} */ (div.querySelector('.swrlAdded')).click() }
+                    });
                 }
             });
         div.querySelector('.swrlAdded').addEventListener('click',
