@@ -76,9 +76,23 @@ containers that views attach into.
   moves its blocks into the header and two columns on desktop
   (`placeForDesktop` in `views/swrlFullPage.js`, `data-layout="desktop"`) and back
   when the window narrows; the Tabs / Poster setting applies on phones. The
-  home screen's greeting, counts and "Swrled to you" strip (`views/homePage.js`)
-  show on desktop only. The desktop CSS is one `@media (min-width: 1025px)` block
+  home screen's greeting, counts and "Swrled to you" strip (`views/homePage.js`,
+  the `.homeExtra` elements) show on desktop, and on phones with the Cards home
+  layout. The desktop CSS is one `@media (min-width: 1025px)` block
   at the end of `www/css/index.css`.
+- **Phone home layout (Settings → "Home screen on your phone"):** Tiles (the
+  original four full-height buttons, the default) or Cards (the phone version
+  of the desktop home: greeting, a 2x2 grid of tiles with count pills
+  `.sectionPills`, "Swrled to you", and a bottom bar). Stored as `homeLayout` on
+  the profile (`model/homeLayout.js`, `actions/setHomeLayout.js`, read in
+  `listeners/listEntries.js` with `getHomeLayout` / `addHomeLayoutListener`);
+  `components/homeLayout.js` puts it on `<body data-home-layout>` (and keeps a
+  per-device `localStorage` hint so a reload does not flash the tiles). The
+  bottom bar `#phoneNav` (`components/phoneNav.js`: Home, Watch, Read, Listen,
+  Play) is the phone's sidebar: CSS shows it only under 1025px, with Cards, on
+  `data-screen` home and list; `StateController._switchCategory` keeps the tab
+  (Your list / Discover / Search) and search words when switching category. The
+  phone Cards CSS is a block at the very end of `www/css/index.css`.
 - `src/index.js` — on DOM ready → init Firebase → create the
   singleton `StateController` → set up login → show initial screen.
 

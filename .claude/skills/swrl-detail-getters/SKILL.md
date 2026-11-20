@@ -129,7 +129,7 @@ If you really need one:
 2. Add the `Category` in `src/constants/Category.js`.
 3. Extend `Categories` array and `categoryFromId`.
 4. Add menu entry + icon in `www/index.html` + CSS.
-5. Update `src/views/homePage.js` category buttons.
+5. Update `src/views/homePage.js` category buttons (the `.section` tiles in `www/index.html`, with their `.sectionCount` and `.sectionPills`), the desktop sidebar and the phone bottom bar `#phoneNav`.
 
 ## API-key hygiene
 

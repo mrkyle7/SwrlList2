@@ -4,10 +4,10 @@ import { StateController } from './stateController';
 import { State } from '../model/state';
 import { Swrl } from '../model/swrl';
 import { swrlUser } from '../firebase/login';
-import { getAllListEntries, whenListEntriesReady } from '../listeners/listEntries';
+import { addHomeLayoutListener, addListEntriesChangeListener, getAllListEntries, getHomeLayout, whenListEntriesReady } from '../listeners/listEntries';
 import { recommendationsInboxCache, inboxReady } from '../listeners/recommendations';
 import { countsByCategory, inProgressByCategory, latestRecommendedSwrls } from '../model/listView';
-import { progressWords } from '../model/progress';
+import { CARDS, homeTileCounts } from '../model/homeLayout';
 import { Categories } from '../constants/Category';
 import { renderSwrl } from '../components/swrl';
 import { Collection } from '../constants/Collection';
@@ -25,6 +25,16 @@ export class Home extends UIView {
     constructor(stateController) {
         super(stateController, stateController.homeScreen);
         this.sections = document.getElementById('sections');
+        this.showing = false;
+        // follow sign-in, my list changing and a new layout while home shows
+        let pending;
+        const refresh = () => {
+            if (!this.showing) return;
+            clearTimeout(pending);
+            pending = setTimeout(() => { if (this.showing) showExtras(stateController); }, 150);
+        };
+        addListEntriesChangeListener(refresh);
+        addHomeLayoutListener(refresh);
         document.getElementById('homeSwrledAll').addEventListener('click', (e) => {
             e.preventDefault();
             stateController.changeState(new State(stateController.inboxView));
@@ -32,35 +42,53 @@ export class Home extends UIView {
     }
 
     show() {
+        this.showing = true;
         this.sections.classList.remove('hidden');
-        showDesktopExtras(this.stateController);
+        showExtras(this.stateController);
     }
 
     destroy() {
         visit++;
+        shownSwrledIds = '';
+        this.showing = false;
         this.sections.classList.add('hidden');
     }
 }
 
 /** Bumped on every show and hide, so a late answer is not drawn on a later visit. */
 let visit = 0;
+/** The swrls "Swrled to you" last drew, so a refresh with the same ones keeps the cards. */
+let shownSwrledIds = '';
 
 /**
- * The parts of the home screen only the desktop layout shows (the stylesheet
- * hides them on phones): a greeting, how many swrls are on my list in each
- * category, and the newest swrls sent to me.
+ * Whether "Swrled to you" is on screen: always on desktop, and on phones
+ * with the cards layout (the stylesheet hides it on phones otherwise).
+ *
+ * @return {boolean}
+ */
+function showsSwrled() {
+    return desktop.matches || getHomeLayout() === CARDS;
+}
+
+/**
+ * The parts of the home screen beyond the four tiles, shown on desktop and
+ * on phones with the cards layout (the stylesheet hides them otherwise): a
+ * greeting, how many swrls are on my list in each category, and the newest
+ * swrls sent to me.
  *
  * @param {StateController} stateController
  */
-async function showDesktopExtras(stateController) {
+async function showExtras(stateController) {
     const thisVisit = ++visit;
     const signedIn = swrlUser && !swrlUser.isAnonymous;
     const firstName = signedIn && swrlUser.displayName ? swrlUser.displayName.split(' ')[0] : '';
     document.getElementById('homeGreetingText').textContent = firstName ? `Hi ${firstName}` : 'Welcome to Swrl List';
     const swrled = document.getElementById('homeSwrled');
     const counts = document.querySelectorAll('.sectionCount');
-    counts.forEach(count => { count.textContent = ''; });
+    const pills = document.querySelectorAll('.sectionPills');
     if (!signedIn) {
+        counts.forEach(count => { count.textContent = ''; });
+        pills.forEach(pill => { pill.replaceChildren(); });
         swrled.classList.add('hidden');
         return;
     }
@@ -68,15 +96,31 @@ async function showDesktopExtras(stateController) {
     if (visit !== thisVisit) return;
     const byCategory = countsByCategory(getAllListEntries());
     const started = inProgressByCategory(getAllListEntries());
+    /** @param {Element} element */
+    const tileCounts = element => {
+        const name = /** @type {HTMLElement} */ (element).dataset.category;
+        return homeTileCounts(byCategory[name] || 0, started[name] || 0, Categories.find(c => c.name === name));
+    };
+    // desktop: one line on the tile
     counts.forEach(count => {
-        const name = /** @type {HTMLElement} */ (count).dataset.category;
-        const n = byCategory[name] || 0;
-        const going = started[name] || 0;
-        const category = Categories.find(c => c.name === name);
-        count.textContent = n === 0 ? 'Nothing on your list yet'
-            : `${n} on your list` + (going > 0 && category ? ` · ${going} ${progressWords(category.id).caption.split(' ')[0]}` : '');
+        const words = tileCounts(count);
+        count.textContent = words.onList + (words.started ? ` · ${words.started}` : '');
     });
-    if (desktop.matches) showSwrledToMe(stateController, thisVisit);
+    // phone cards: white pills, readable on every tile colour (purple included)
+    pills.forEach(pill => {
+        const words = tileCounts(pill);
+        pill.replaceChildren(...[words.onList, words.started].filter(Boolean).map(text => {
+            const span = document.createElement('span');
+            span.className = 'sectionPill';
+            span.textContent = text;
+            return span;
+        }));
+    });
+    if (showsSwrled()) {
+        showSwrledToMe(stateController, thisVisit);
+    } else {
+        swrled.classList.add('hidden');
+    }
 }
 
 /**
@@ -94,6 +138,10 @@ async function showSwrledToMe(stateController, thisVisit) {
     }
     if (visit !== thisVisit) return;
     const ids = latestRecommendedSwrls(Object.values(recommendationsInboxCache), SWRLED_SHOWN);
+    if (ids.length > 0 && ids.join() === shownSwrledIds) {
+        swrled.classList.remove('hidden');
+        return;
+    }
     const swrls = (await Promise.all(ids.map(async id => {
         try {
             const snapshot = await getDoc(doc(stateController.firestore, Collection.SWRLS, id));
@@ -106,6 +154,7 @@ async function showSwrledToMe(stateController, thisVisit) {
     }))).filter(swrl => swrl !== undefined);
     if (visit !== thisVisit) return;
     list.replaceChildren();
+    shownSwrledIds = swrls.length === ids.length ? ids.join() : '';
     swrls.forEach(swrl => renderSwrl(stateController, SEARCH, swrl, stateController.firestore, list));
     swrled.classList.toggle('hidden', swrls.length === 0);
 }

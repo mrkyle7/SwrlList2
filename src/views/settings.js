@@ -2,11 +2,13 @@ import { UIView } from './UIView';
 import { StateController } from './stateController';
 import { State } from '../model/state';
 import { swrlUser } from '../firebase/login';
-import { getDefaultVisibility, getPageLayout, whenListEntriesReady } from '../listeners/listEntries';
+import { getDefaultVisibility, getHomeLayout, getPageLayout, whenListEntriesReady } from '../listeners/listEntries';
 import { Visibility, visibilityFromId } from '../constants/Visibility';
 import setDefaultVisibility from '../actions/setDefaultVisibility';
 import setSwrlPageLayout from '../actions/setSwrlPageLayout';
 import { PageLayout, pageLayoutFromId } from '../model/swrlPage';
+import setHomeLayout from '../actions/setHomeLayout';
+import { HomeLayout, homeLayoutFromId } from '../model/homeLayout';
 import deleteAccount from '../actions/deleteAccount';
 import { showToasterMessage } from '../components/toaster';
 
@@ -32,6 +34,8 @@ const settingsView = document.getElementById('settingsView');
 const radios = document.querySelectorAll('input[name="defaultVisibility"]');
 /** @type {NodeListOf<HTMLInputElement>} */
 const layoutRadios = document.querySelectorAll('input[name="swrlPageLayout"]');
+/** @type {NodeListOf<HTMLInputElement>} */
+const homeRadios = document.querySelectorAll('input[name="homeLayout"]');
 /** @type {HTMLButtonElement} */
 // @ts-ignore
 const deleteStart = document.getElementById('deleteAccountStart');
@@ -67,14 +71,18 @@ function showSettings(firestore, stateController) {
     // the default is read with my entries; wait so the radio is not shown wrongly
     setRadios(undefined);
     setLayoutRadios(undefined);
+    setHomeRadios(undefined);
     radios.forEach(radio => radio.disabled = true);
     layoutRadios.forEach(radio => radio.disabled = true);
+    homeRadios.forEach(radio => radio.disabled = true);
     whenListEntriesReady().then(() => {
         if (visit !== thisVisit) return;
         radios.forEach(radio => radio.disabled = false);
         layoutRadios.forEach(radio => radio.disabled = false);
+        homeRadios.forEach(radio => radio.disabled = false);
         setRadios(getDefaultVisibility());
         setLayoutRadios(getPageLayout());
+        setHomeRadios(getHomeLayout());
     });
 }
 
@@ -96,6 +104,10 @@ function bind(firestore, stateController) {
     layoutRadios.forEach(radio => radio.addEventListener('change', () => {
         if (!radio.checked) return;
         saveLayout(pageLayoutFromId(radio.value), firestore);
+    }));
+    homeRadios.forEach(radio => radio.addEventListener('change', () => {
+        if (!radio.checked) return;
+        saveHomeLayout(homeLayoutFromId(radio.value), firestore);
     }));
     deleteStart.addEventListener('click', () => {
         deleteConfirm.classList.remove('hidden');
@@ -152,6 +164,37 @@ function saveLayout(layout, firestore) {
             layoutRadios.forEach(radio => radio.disabled = false);
             setLayoutRadios(getPageLayout());
         });
+}
+
+/**
+ * Saves the phone home layout at once. On failure the radio goes back to
+ * what is stored and the user is told.
+ *
+ * @param {HomeLayout} layout
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+function saveHomeLayout(layout, firestore) {
+    const thisVisit = visit;
+    homeRadios.forEach(radio => radio.disabled = true);
+    setHomeLayout(layout, firestore)
+        .then(() => showToasterMessage(`Home screen set to ${layout.label.toLowerCase()}`))
+        .catch(error => {
+            console.error('Could not change the home layout');
+            console.error(error);
+            showToasterMessage("Couldn't change your home screen");
+        })
+        .finally(() => {
+            if (visit !== thisVisit) return;
+            homeRadios.forEach(radio => radio.disabled = false);
+            setHomeRadios(getHomeLayout());
+        });
+}
+
+/**
+ * @param {HomeLayout | undefined} layout the one to tick; undefined clears them all
+ */
+function setHomeRadios(layout) {
+    homeRadios.forEach(radio => radio.checked = layout !== undefined && radio.value === layout.id);
 }
 
 /**
