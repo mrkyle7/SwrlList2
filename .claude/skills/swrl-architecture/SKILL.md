@@ -80,14 +80,14 @@ containers that views attach into.
   the `.homeExtra` elements) show on desktop, and on phones with the Cards home
   layout. The desktop CSS is one `@media (min-width: 1025px)` block
   at the end of `www/css/index.css`.
-- **Phone home layout (Settings → "Home screen on your phone"):** Tiles (the
-  original four full-height buttons, the default) or Cards (the phone version
-  of the desktop home: greeting, a 2x2 grid of tiles with count pills
-  `.sectionPills`, "Swrled to you", and a bottom bar). Stored as `homeLayout` on
+- **Phone home layout (Settings → "Home screen on your phone"):** Cards (the
+  default since 3.23.0: the phone version of the desktop home, with a
+  greeting, a 2x2 grid of tiles with count pills `.sectionPills`, "Swrled to
+  you", and a bottom bar) or Tiles (the original four full-height buttons). Stored as `homeLayout` on
   the profile (`model/homeLayout.js`, `actions/setHomeLayout.js`, read in
   `listeners/listEntries.js` with `getHomeLayout` / `addHomeLayoutListener`);
   `components/homeLayout.js` puts it on `<body data-home-layout>` (and keeps a
-  per-device `localStorage` hint so a reload does not flash the tiles). The
+  per-device `localStorage` hint so a reload does not flash the wrong layout). The
   bottom bar `#phoneNav` (`components/phoneNav.js`: Home, Search, Watch, Read,
   Listen, Play) is the phone's sidebar: CSS shows it only under 1025px, with Cards, on
   `data-screen` home and list; `StateController._switchCategory` keeps the tab
