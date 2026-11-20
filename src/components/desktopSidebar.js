@@ -23,7 +23,7 @@ const MIRRORED = {
 /**
  * Wires the sidebar up. Call once.
  *
- * @param {{home: () => void, category: (name: string) => void, inbox: () => void}} go
+ * @param {{home: () => void, search: () => void, category: (name: string) => void, inbox: () => void}} go
  */
 export function initDesktopSidebar(go) {
     sidebar.querySelectorAll('[data-nav]').forEach(item => {
@@ -32,6 +32,8 @@ export function initDesktopSidebar(go) {
             const nav = /** @type {HTMLElement} */ (item).dataset.nav;
             if (nav === 'home') {
                 go.home();
+            } else if (nav === 'search') {
+                go.search();
             } else if (nav === 'swrls') {
                 go.inbox();
             } else if (nav === 'login') {
@@ -78,7 +80,7 @@ function syncFromMenu() {
 /**
  * Marks the item for the screen showing.
  *
- * @param {string | undefined} key home, a category's name, swrls, friends, saved or settings
+ * @param {string | undefined} key home, search, a category's name, swrls, friends, saved or settings
  */
 export function setActiveSidebarItem(key) {
     sidebar.querySelectorAll('[data-nav]').forEach(item => {

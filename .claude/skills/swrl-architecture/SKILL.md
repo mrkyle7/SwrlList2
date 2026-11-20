@@ -88,10 +88,15 @@ containers that views attach into.
   `listeners/listEntries.js` with `getHomeLayout` / `addHomeLayoutListener`);
   `components/homeLayout.js` puts it on `<body data-home-layout>` (and keeps a
   per-device `localStorage` hint so a reload does not flash the tiles). The
-  bottom bar `#phoneNav` (`components/phoneNav.js`: Home, Watch, Read, Listen,
-  Play) is the phone's sidebar: CSS shows it only under 1025px, with Cards, on
+  bottom bar `#phoneNav` (`components/phoneNav.js`: Home, Search, Watch, Read,
+  Listen, Play) is the phone's sidebar: CSS shows it only under 1025px, with Cards, on
   `data-screen` home and list; `StateController._switchCategory` keeps the tab
-  (Your list / Discover / Search) and search words when switching category. The
+  (Your list / Discover / Search) and search words when switching category.
+  `StateController.openSearchEverything()` opens Search everything (category
+  `ALL`) and focuses the box inside the tap, so the phone keyboard comes up; the
+  home search box, the Tiles header's search button and the Search items in the
+  bar and sidebar use it. On Search everything the bar and sidebar mark
+  "search". The
   phone Cards CSS is a block at the very end of `www/css/index.css`.
 - `src/index.js` — on DOM ready → init Firebase → create the
   singleton `StateController` → set up login → show initial screen.
