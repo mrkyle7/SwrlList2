@@ -18,7 +18,17 @@ let auth;
 const loggingInView = document.getElementById('loggingInView');
 const loggingInAnonymousView = document.getElementById('loggingInAnonymousView');
 
-export let initialisedLogin = false;
+/** @type {() => void} */
+let resolveLoginReady;
+/**
+ * Resolves once we know who is using the app: someone signed in, an
+ * anonymous visitor, or that signing in failed (offline on a first visit).
+ * Start-up waits for it before opening the first screen. For someone already
+ * signed in it is quick: the sign-in is read from the device.
+ *
+ * @type {Promise<void>}
+ */
+export const loginReady = new Promise(resolve => { resolveLoginReady = resolve; });
 
 /**
  * @param {import('firebase/app').FirebaseApp} firebaseApp
@@ -47,11 +57,10 @@ export function setUpLogin(firebaseApp, firestore) {
             loginAnonymously();
             handleLogout();
         }
-        initialisedLogin = true;
     }, (error) => {
         console.error('Error on auth state changed');
         console.error(error);
-        initialisedLogin = true;
+        resolveLoginReady();
     });
 }
 
@@ -73,12 +82,14 @@ function loginAnonymously() {
                     loggingInView.classList.add('hidden');
                     loggingInAnonymousView.classList.add('hidden');
                     handleLogout();
+                    resolveLoginReady();
                 });
     } catch (error) {
         console.error("anonymous log in failed: " + JSON.stringify(error));
         loggingInView.classList.add('hidden');
         loggingInAnonymousView.classList.add('hidden');
         handleLogout();
+        resolveLoginReady();
     }
 }
 
@@ -133,6 +144,7 @@ function login(firestore) {
 * @param {import('firebase/firestore').Firestore} firestore 
 */
 function handleLoginSuccess(firestore) {
+    resolveLoginReady();
     loggingInView.classList.add('hidden');
     loggingInAnonymousView.classList.add('hidden');
 
@@ -184,6 +196,7 @@ function updateSwrlerDetails(firestore) {
 }
 
 function handleAnonymous() {
+    resolveLoginReady();
     document.querySelector("#inboxDisplay").classList.add('hidden');
     document.querySelector("#logout").classList.add('hidden');
     document.querySelector("#savedSearchesMenu").classList.add('hidden');

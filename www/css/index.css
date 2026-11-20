@@ -5720,3 +5720,62 @@ body:has(#login:not(.hidden)) .headerSearch {
     outline: 3px solid #fff;
     outline-offset: -3px;
 }
+
+/* --- Launch splash (components/launchSplash.js) -----------------------------
+   Above everything, the header included, from the first paint until the
+   screen being opened is ready; then one short fade. Matches the installed
+   app's own splash (the icon on white, manifest background_color). */
+.launchSplash {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: #fff;
+    transition: opacity 200ms ease;
+}
+
+.launchSplash.leaving {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.launchSplashLogo {
+    width: 112px;
+    height: 112px;
+    transition: transform 200ms ease;
+}
+
+.launchSplash.leaving .launchSplashLogo {
+    transform: scale(1.06);
+}
+
+.launchSplashName {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: #222222;
+}
+
+/* only if start-up takes a while (a first visit): say what is happening */
+.launchSplashHint {
+    margin: 0;
+    min-height: 1.4em;
+    font-size: 15px;
+    color: var(--text-muted);
+    opacity: 0;
+    animation: launchSplashHint 200ms ease 1.5s forwards;
+}
+
+@keyframes launchSplashHint {
+    to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .launchSplash, .launchSplashLogo {
+        transition: none;
+    }
+}

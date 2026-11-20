@@ -98,6 +98,11 @@ containers that views attach into.
   bar and sidebar use it. On Search everything the bar and sidebar mark
   "search". The
   phone Cards CSS is a block at the very end of `www/css/index.css`.
+- **Start-up:** `www/index.html` paints the launch splash (`#launchSplash`,
+  the icon on white like the installed app's own splash) at once; `index.js`
+  waits for `loginReady` (`firebase/login.js`), opens the deep-linked or home
+  screen, then `hideLaunchSplash()` fades the splash away, so opening goes
+  splash → target screen with nothing in between.
 - `src/index.js` — on DOM ready → init Firebase → create the
   singleton `StateController` → set up login → show initial screen.
 
