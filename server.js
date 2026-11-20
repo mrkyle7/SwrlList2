@@ -1,3 +1,4 @@
+const compression = require('compression');
 const express = require('express');
 const fs = require('fs');
 const https = require('https');
@@ -5,13 +6,16 @@ const path = require('path');
 const querystring = require('querystring');
 
 const app = express();
-// Built by `npm run build` (webpack): www/ plus bundle.js.
+// Built by `npm run build` (webpack): www/ plus bundle.<hash>.js.
 const www = path.join(__dirname, 'dist');
 const indexHtml = path.join(www, 'index.html');
 
 // Cloud Run terminates TLS in front of us and injects PORT (8080).
 app.set('trust proxy', true);
 app.set('port', process.env.PORT || 8080);
+// gzip/brotli for everything text: the app bundle alone goes from about
+// 920 KB to about 270 KB, which is most of a first visit on a phone.
+app.use(compression());
 
 const staticOptions = {
   index: false,
@@ -19,10 +23,12 @@ const staticOptions = {
   redirect: false,
   setHeaders: function (res, filePath) {
     const name = path.basename(filePath);
-    if (name === 'sw.js' || name === 'firebase-messaging-sw.js' || name === 'version.json'
-      || name === 'bundle.js' || name === 'index.css') {
-      // Service workers, the app itself and the version it is must always be
-      // revalidated, or updates never ship (and the app could not tell).
+    if (/\.[0-9a-f]{8}\.(js|css)$/.test(name)) {
+      // bundle.<hash>.js and css/index.<hash>.css: a new build has new names
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else if (name === 'sw.js' || name === 'firebase-messaging-sw.js' || name === 'version.json') {
+      // The service workers and the version must always be revalidated, or
+      // updates never ship (and the app could not tell).
       res.setHeader('Cache-Control', 'no-cache');
     } else if (name === 'manifest.webmanifest') {
       res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
