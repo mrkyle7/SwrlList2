@@ -110,7 +110,7 @@ and counts).
 | `detailGetters/tmdbFilmDetailGetter.js` | TMDB + OMDb, via `server.js` `/api/v1/tmdb/*` and `/api/v1/omdb` | Merges ratings and plot from OMDb; works without it. |
 | `detailGetters/tmdbTVDetailGetter.js` | TMDB via `/api/v1/tmdb/*` | |
 | `detailGetters/openLibraryBookDetailGetter.js` | OpenLibrary | No key. |
-| `detailGetters/geekDetailGetter.js` | BoardGameGeek XML API, via `server.js` `/api/v1/geek/*` | Both boardgame and videogame go through this. BGG needs a bearer token, held server-side. |
+| `detailGetters/geekDetailGetter.js` | BoardGameGeek XML API, via `server.js` `/api/v1/geek/*` | Both boardgame and videogame go through this. BGG needs a bearer token, held server-side. **Paused** (`BGG_PAUSED` in `server.js`) until BGG issues our key: the geek routes answer 503 at once without calling BGG, so Play searches fail fast and Search everything shows the other sources with a "Couldn't load board games or video games" toast. Set it to `false` once the key is in `BGG_API_TOKEN`. |
 | `detailGetters/itunesAlbumGetter.js` | iTunes Search | No key. |
 | `detailGetters/itunesPodcastGetter.js` | iTunes Search | No key. |
 | `search/watchSearch.js` | TMDB search via `/api/v1/tmdb/*` | Handles both film + TV, plus `personID:` syntax. |

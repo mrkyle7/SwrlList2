@@ -272,6 +272,13 @@ app.get('/api/v1/omdb', function (req, res) {
 
 const GEEK_TYPES = ['boardgame', 'videogame'];
 
+// BoardGameGeek is paused while we wait for BGG to issue our API key: until
+// then every call is refused upstream, slowly. While paused, the geek routes
+// answer 503 at once and never call BGG; the app reports board and video games
+// as unavailable and shows the other sources' results. Set to false once the
+// key is in BGG_API_TOKEN.
+const BGG_PAUSED = true;
+
 /**
  * @param {string} resource
  * @param {Object} query
@@ -297,6 +304,10 @@ function bggPath(resource, query) {
 }
 
 app.get('/api/v1/geek/:resource', function (req, res) {
+  if (BGG_PAUSED) {
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(503).json({ error: 'BoardGameGeek is unavailable for now' });
+  }
   const upstreamPath = bggPath(req.params.resource, req.query);
   if (!upstreamPath) {
     return res.status(400).json({ error: 'Invalid BoardGameGeek request' });
