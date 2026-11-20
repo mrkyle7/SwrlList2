@@ -5,6 +5,7 @@ import { swrlUser } from '../firebase/login';
 import { ListEntry } from '../model/listEntry';
 import { DEFAULT_PAGE_LAYOUT, PageLayout, pageLayoutFromId } from '../model/swrlPage';
 import { DEFAULT_LIST_VIEW, ListView, listViewFromId } from '../model/listView';
+import { DEFAULT_HOME_LAYOUT, HomeLayout, homeLayoutFromId } from '../model/homeLayout';
 
 /**
  * My own list entries (swrlers/{uid}/listEntries), keyed by swrlID. This is
@@ -31,6 +32,11 @@ let pageLayout = DEFAULT_PAGE_LAYOUT;
 /** How I like lists of swrls shown (my profile's `listView`).
  * @type {ListView} */
 let listView = DEFAULT_LIST_VIEW;
+/** How I like the home screen on phones (my profile's `homeLayout`).
+ * @type {HomeLayout} */
+let homeLayout = DEFAULT_HOME_LAYOUT;
+/** @type {Set<(layout: HomeLayout) => void>} */
+const homeLayoutListeners = new Set();
 
 export default { setUpListEntriesListener, cancelListEntriesListener };
 
@@ -44,7 +50,9 @@ export default { setUpListEntriesListener, cancelListEntriesListener };
 export function setUpListEntriesListener(firestore) {
     if (!swrlUser) return;
     if (listeningUid === swrlUser.uid) return;
-    cancelListEntriesListener();
+    // keep the home layout meanwhile: the profile read below sets it, and
+    // resetting it first would flash the tiles before the cards
+    stopListening();
     listeningUid = swrlUser.uid;
     ready = false;
     errorCount = 0;
@@ -99,11 +107,11 @@ function subscribe(firestore, uid) {
 
 /**
  * Reads my settings from my swrlers doc: `defaultVisibility` (absent means
- * friends), `swrlPageLayout` (absent means tabs) and `listView` (absent
- * means compact). When the read fails the
+ * friends), `swrlPageLayout` (absent means tabs), `listView` (absent
+ * means compact) and `homeLayout` (absent means tiles). When the read fails the
  * default visibility is unknown, so fail closed: entries made meanwhile are
- * private rather than shared by mistake. The page layout and list view just
- * stay at their defaults then.
+ * private rather than shared by mistake. The page layout, list view and
+ * home layout just stay at their defaults then.
  *
  * @param {import('firebase/firestore').Firestore} firestore
  * @param {string} uid
@@ -116,6 +124,7 @@ async function loadProfileSettings(firestore, uid) {
         defaultVisibility = visibilityFromId(data.defaultVisibility);
         pageLayout = pageLayoutFromId(data.swrlPageLayout);
         listView = listViewFromId(data.listView);
+        setCurrentHomeLayout(homeLayoutFromId(data.homeLayout));
     } catch (error) {
         console.error("Couldn't read the default visibility, new entries will be private");
         console.error(error);
@@ -125,6 +134,12 @@ async function loadProfileSettings(firestore, uid) {
 
 /** Stops listening and forgets everything (logout, anonymous user). */
 export function cancelListEntriesListener() {
+    stopListening();
+    setCurrentHomeLayout(DEFAULT_HOME_LAYOUT);
+}
+
+/** Stops listening and forgets my entries and settings, except the home layout. */
+function stopListening() {
     if (currentListener) {
         currentListener(); // 'calling' the onSnapshot unsubscribes from it.
         currentListener = undefined;
@@ -251,4 +266,40 @@ export function getListView() {
  */
 export function setCurrentListView(view) {
     listView = view;
+}
+
+/**
+ * How I like the home screen on phones: the four big tiles or the cards.
+ * The default until I choose (and for anyone not signed in).
+ *
+ * @return {HomeLayout}
+ */
+export function getHomeLayout() {
+    return homeLayout;
+}
+
+/**
+ * Updates the in-memory home layout (read from my profile, changed on
+ * Settings, or reset at logout) and tells whoever is listening.
+ *
+ * @param {HomeLayout} layout
+ */
+export function setCurrentHomeLayout(layout) {
+    homeLayout = layout;
+    homeLayoutListeners.forEach(listener => {
+        try {
+            listener(layout);
+        } catch (error) {
+            console.error(error);
+        }
+    });
+}
+
+/**
+ * Calls `listener` whenever the home layout changes.
+ *
+ * @param {(layout: HomeLayout) => void} listener
+ */
+export function addHomeLayoutListener(listener) {
+    homeLayoutListeners.add(listener);
 }

@@ -15,8 +15,9 @@ layout applies). Check signed in, signed out (anonymous) and as a friend.
 
 | Journey | Where in the code | Notes |
 | --- | --- | --- |
-| Home tiles (counts per category) | `views/homePage.js`, `model/listView.js` (`countsByCategory`, `inProgressByCategory`) | desktop shows the counts; phones show the tiles only |
-| Home "Swrled to you" strip (desktop) | `views/homePage.js` | |
+| Home tiles (counts per category) | `views/homePage.js`, `model/listView.js` (`countsByCategory`, `inProgressByCategory`), `model/homeLayout.js` (`homeTileCounts`) | desktop shows the counts on the tile; phones with the Cards home layout show them as pills; phones with Tiles (the default) show the tiles only |
+| Home "Swrled to you" strip (desktop, and phones with Cards) | `views/homePage.js` | |
+| Phone bottom bar (Cards home layout) | `components/phoneNav.js`, `StateController._switchCategory` | home and the category lists only; keeps the tab when switching category |
 | Your list: card order and sort | `views/swrlList.js` (`loadSwrls`, `sortListEntries`, `inProgressFirst`) | |
 | Your list: card badges, my latest note, and quick buttons, compact and detailed | `components/swrl.js`, `components/buttons.js`, `#swrlButtons` in `www/index.html` | quick Start/Watching button is Your list only; the note line shows on every card of a swrl I have on a list (also inbox, search, a friend's page) |
 | Filter sheet and the count on the Filter button | `views/stateController.js` (`showFilters`, `applyFilters`, `_show*Filter`), `constants/Filter.js`, `model/listView.js` (`activeFilterCount`) | Your-list-only filters must not be carried to Discover, Search or a swrler (`withoutYourListOnlyFilters`) |
@@ -27,7 +28,7 @@ layout applies). Check signed in, signed out (anonymous) and as a friend.
 | Swrls inbox (For you) and Sent cards | `views/recommendations.js`, `components/recommendation.js` (list cards from the `#swrl` template) | same card as the lists: a change to list cards reaches the inbox too |
 | Swrl to a friend (recommend screen) | `views/recommend.js` | |
 | Labels, and notes (the Notes tab; stored as private comments) on the swrl page | `components/labels.js`, `components/privateComments.js`, `views/swrlFullPage.js` | |
-| Settings (defaults: visibility, list view, page layout) | `views/settings.js` | |
+| Settings (defaults: visibility, list view, page layout, phone home layout) | `views/settings.js` | |
 | Keyboard on desktop (Tab order, Enter on cards and tabs, Esc, skip link) | `components/keyboard.js`, `views/stateController.js` | |
 | An open or installed app getting the new build | `components/updateCheck.js`, `dist/version.json` | |
 

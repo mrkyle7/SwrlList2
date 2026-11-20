@@ -31,6 +31,7 @@ import setListView from "../actions/setListView";
 import { applyListView, bindListToolbar, setFilterCount } from "../components/listToolbar";
 import { showToasterMessage } from "../components/toaster";
 import { initDesktopSidebar, setActiveSidebarItem } from "../components/desktopSidebar";
+import { initPhoneNav, setActivePhoneNavItem } from "../components/phoneNav";
 
 /** How many genres show before "Show all", and from how many the search box appears. */
 const FEW_GENRES = 8;
@@ -176,6 +177,7 @@ export class StateController {
             name = 'swrler';
         }
         setActiveSidebarItem(key);
+        setActivePhoneNavItem(key);
         document.body.dataset.screen = name;
         const header = document.getElementById('header');
         const tile = category && category.image && category !== ALL;
@@ -194,6 +196,29 @@ export class StateController {
         const signedIn = swrlUser && !swrlUser.isAnonymous;
         const state = new State(signedIn ? this.yourListView : this.discoverView);
         state.selectedCategory = category;
+        this.changeState(state);
+    }
+
+    /**
+     * From the phone's bottom bar. On a category's list it keeps the tab
+     * (Your list, Discover or Search) and the search words, so switching from
+     * Watch to Read is like picking another category in the sidebar while
+     * staying put; anywhere else it opens the list as a home tile does.
+     *
+     * @param {string} name
+     */
+    _switchCategory(name) {
+        const category = Categories.find(c => c.name === name);
+        if (!category) return;
+        const current = this.currentState;
+        if (current.view.screen !== this.listScreen) {
+            this._openCategory(name);
+            return;
+        }
+        if (current.selectedCategory === category) return;
+        const state = new State(current.view);
+        state.selectedCategory = category;
+        state.searchTerms = current.searchTerms;
         this.changeState(state);
     }
 
@@ -243,6 +268,10 @@ export class StateController {
             home: () => { if (this.currentState.view !== this.homeView) this.changeState(new State(this.homeView)); },
             category: name => this._openCategory(name),
             inbox: () => { if (this.currentState.view !== this.inboxView) this.changeState(new State(this.inboxView)); }
+        });
+        initPhoneNav({
+            home: () => { if (this.currentState.view !== this.homeView) this.changeState(new State(this.homeView)); },
+            category: name => this._switchCategory(name)
         });
         this._bindSheetAndTabs();
     }

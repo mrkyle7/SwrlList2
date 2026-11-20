@@ -116,12 +116,13 @@
   <div id="menuSwipeable"></div>
   <div id='centre' class="main">
     <div id="sections" class="sections hidden">
-      <div class="homeGreeting homeDesktop"><h2 id="homeGreetingText">Hi</h2><p>What are you in the mood for?</p></div>
+      <div class="homeGreeting homeExtra"><h2 id="homeGreetingText">Hi</h2><p>What are you in the mood for?</p></div>
       <div class="section watch">
         <div class="section-detail">
           <img class="icon" src="img/movie-24px.svg" />
           <h2 class="defaultTitle">Watch</h2>
-          <p class="sectionCount homeDesktop" data-category="watch"></p>
+          <p class="sectionCount homeExtra" data-category="watch"></p>
+          <p class="sectionPills homeExtra" data-category="watch"></p>
         </div>
       </div>
 
@@ -129,7 +130,8 @@
         <div class="section-detail">
           <img class="icon" src="img/menu_book-24px.svg" />
           <h2 class="defaultTitle">Read</h2>
-          <p class="sectionCount homeDesktop" data-category="read"></p>
+          <p class="sectionCount homeExtra" data-category="read"></p>
+          <p class="sectionPills homeExtra" data-category="read"></p>
         </div>
       </div>
 
@@ -137,7 +139,8 @@
         <div class="section-detail">
           <img class="icon" src="img/headset-24px.svg" />
           <h2 class="defaultTitle">Listen</h2>
-          <p class="sectionCount homeDesktop" data-category="listen"></p>
+          <p class="sectionCount homeExtra" data-category="listen"></p>
+          <p class="sectionPills homeExtra" data-category="listen"></p>
         </div>
       </div>
 
@@ -145,10 +148,11 @@
         <div class="section-detail">
           <img class="icon" src="img/videogame_asset-24px.svg" />
           <h2 class="defaultTitle">Play</h2>
-          <p class="sectionCount homeDesktop" data-category="play"></p>
+          <p class="sectionCount homeExtra" data-category="play"></p>
+          <p class="sectionPills homeExtra" data-category="play"></p>
         </div>
       </div>
-      <section id="homeSwrled" class="homeSwrled homeDesktop hidden" aria-labelledby="homeSwrledTitle">
+      <section id="homeSwrled" class="homeSwrled homeExtra hidden" aria-labelledby="homeSwrledTitle">
         <div class="homeSwrledHead"><h2 id="homeSwrledTitle">Swrled to you</h2><a href="#" id="homeSwrledAll">See all</a></div>
         <div id="homeSwrledList" class="homeSwrledList"></div>
       </section>
@@ -346,6 +350,20 @@
               </label>
             </div>
           </div>
+          <div class="friendsSection">
+            <h2 class="friendsHeading">Home screen on your phone</h2>
+            <div class="settingsOptions" role="radiogroup" aria-label="Home screen on your phone">
+              <label class="settingsOption">
+                <input type="radio" name="homeLayout" value="tiles">
+                <span class="settingsOptionText"><span class="settingsOptionTitle">Tiles</span><span class="settingsOptionHint">Four big category buttons that fill the screen</span></span>
+              </label>
+              <label class="settingsOption">
+                <input type="radio" name="homeLayout" value="cards">
+                <span class="settingsOptionText"><span class="settingsOptionTitle">Cards</span><span class="settingsOptionHint">What's on your list, swrls sent to you, and a bar at the bottom to switch category</span></span>
+              </label>
+            </div>
+            <p class="settingsNote">For phones and tablets. On a computer the home screen always has the sidebar and cards.</p>
+          </div>
           <div id="deleteAccountSection" class="friendsSection settingsDanger">
             <h2 class="friendsHeading">Delete my account</h2>
             <p class="settingsNote">This permanently deletes your account and everything in it: your lists, your private notes and labels, your friends and friend requests, your saved searches and the recommendations you sent. It can't be undone.</p>
@@ -526,6 +544,13 @@
       </div>
     </form>
   </div>
+  <nav id="phoneNav" class="phoneNav" aria-label="Categories">
+    <a href="#" class="phoneNavItem" data-nav="home"><span class="phoneNavIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></span><span>Home</span></a>
+    <a href="#" class="phoneNavItem" data-nav="watch"><span class="phoneNavIcon" style="--nav-colour:#3EB283"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 6l2 4M12 6l2 4M17 6l2 4"/></svg></span><span>Watch</span></a>
+    <a href="#" class="phoneNavItem" data-nav="read"><span class="phoneNavIcon" style="--nav-colour:#F6A900"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 1zM20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 1z"/></svg></span><span>Read</span></a>
+    <a href="#" class="phoneNavItem" data-nav="listen"><span class="phoneNavIcon" style="--nav-colour:#b042f4"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="5" height="6" rx="2"/><rect x="16" y="14" width="5" height="6" rx="2"/></svg></span><span>Listen</span></a>
+    <a href="#" class="phoneNavItem" data-nav="play"><span class="phoneNavIcon" style="--nav-colour:#71A8D6"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9h12a4 4 0 0 1 4 4v1a3 3 0 0 1-5.2 2L15 14H9l-1.8 2A3 3 0 0 1 2 14v-1a4 4 0 0 1 4-4zM8 11v4M6 13h4"/></svg></span><span>Play</span></a>
+  </nav>
   <div id="loginSheetBackdrop" class="sheetBackdrop hidden"></div>
   <div id="loginSheet" class="bottomSheet hidden" role="dialog" aria-modal="true" aria-labelledby="loginSheetTitle">
     <h3 id="loginSheetTitle">Log in</h3>

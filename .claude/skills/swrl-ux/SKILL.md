@@ -47,7 +47,8 @@ the change:
 | An on/off action | A pair of buttons, one shown: off is an outline icon, on is filled or pink (`.swrlLoved`/`.swrlNotLoved`, ...) with "Tap to undo" in its label | `#swrlButtons`, `#swrlPageButtons` |
 | Actions on the swrl page | Two big actions (On your list, Swrl to a friend), then an equal grid of toggles that stacks icon over label on phones; pills in the header on desktop | `.pageActions`, `.pageToggles` |
 | Choosing filters or options | A bottom sheet on phones, a centred dialog on desktop, with chips, "Clear all" and one filled "Show results"; Esc and a click outside close it | `#filters`, `#pickSheet` |
-| Getting around | Phones: header with back arrow, menu on home, tabs. Desktop: the sidebar (always there, marks where you are), tabs and the toolbar on one line under the title | `components/desktopSidebar.js` |
+| Getting around | Phones: header with back arrow, menu on home, tabs; with the Cards home layout also a bottom bar (Home and the four categories, marks where you are) on home and the category lists. Desktop: the sidebar (always there, marks where you are), tabs and the toolbar on one line under the title | `components/desktopSidebar.js`, `components/phoneNav.js` |
+| Small facts on a coloured tile | White pills with 13px bold dark text (`.sectionPill`): readable on every category colour, purple included | phone Cards home |
 | A coloured bar with text | `setHeaderColour(colour)` picks white or dark text and icons by contrast (`model/contrast.js`); never set the header's colour directly | `components/headerColour.js` |
 | Something clickable that is not a button | `makeKeyboardClickable(element, role)`: Tab reaches it, Enter and Space use it (cards, tabs) | `components/keyboard.js` |
 | Telling people something happened | A toast at the bottom, a few words, the swrl's title in it ("Watching Past Lives") | `components/toaster.js` |
@@ -162,8 +163,9 @@ work nearby, or as their own change; tick them off here when fixed.
       the phone menu button (24px), search fields (36-39px).
 - [x] Two card styles: list cards are flat rows, inbox cards are bordered
       with a pink shadow and a different layout.
-- [ ] Phone home shows only the four category tiles: no counts, nothing in
-      progress and no "Swrled to you", which desktop has.
+- [x] Phone home shows only the four category tiles: no counts, nothing in
+      progress and no "Swrled to you", which desktop has. (3.17.0: the Cards
+      home layout, chosen on Settings, has them; Tiles stays the default.)
 - [x] Phone header says "Swrl List 2"; the sidebar and everything else say
       "Swrl List".
 - [x] Desktop: the Swrls inbox is one card stretched across the page (icons

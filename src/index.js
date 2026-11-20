@@ -38,6 +38,7 @@ import { getSwrler } from './firebase/swrler';
 import { initSearchClearButtons } from './components/searchClear';
 import { setUpKeyboardAccess } from './components/keyboard';
 import { startUpdateCheck } from './components/updateCheck';
+import { initHomeLayout } from './components/homeLayout';
 
 /** @type {StateController} */
 let stateController;
@@ -54,6 +55,7 @@ const app = {
     start: async function () {
         try {
             bindMenuSwipeAction();
+            initHomeLayout();
             const { app: firebaseApp, firestore } = initialiseFirebase();
             window.addEventListener('offline', () => disableNetwork(firestore));
             window.addEventListener('online', () => enableNetwork(firestore));

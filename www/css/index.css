@@ -4227,7 +4227,7 @@ button.pageActionPrimary:hover {
    max(40px, 50% - 520px) of the area beside the sidebar.
    ========================================================================== */
 
-.desktopSidebar, .homeDesktop, .pageColumns {
+.desktopSidebar, .homeExtra, .pageColumns {
     display: none;
 }
 
@@ -4623,7 +4623,7 @@ button.pageActionPrimary:hover {
         overflow-y: auto;
     }
 
-    .homeDesktop {
+    .homeExtra {
         display: block;
     }
 
@@ -5275,4 +5275,247 @@ button.pageActionPrimary:hover {
     height: 8px;
     border-radius: 50%;
     background: var(--swrl-pink-strong);
+}
+
+/* --- Phone home, "Cards" layout (Settings → Home screen on your phone) -------
+   body[data-home-layout] comes from components/homeLayout.js. Phones and
+   tablets only: desktop has its own home above. The phone version of the
+   desktop home: a greeting, the four categories as a 2x2 grid of tiles with
+   their counts, then "Swrled to you"; and a bar at the bottom (Home and the
+   four categories) standing in for the desktop sidebar. */
+.phoneNav, .sectionPills {
+    display: none;
+}
+
+@media (max-width: 1024px) {
+    body[data-home-layout="cards"] .homeExtra {
+        display: block;
+    }
+    /* desktop's one-line count; phones get pills instead */
+    body[data-home-layout="cards"] .sectionCount {
+        display: none;
+    }
+    body[data-home-layout="cards"] .sectionPills {
+        display: flex;
+    }
+
+    body[data-home-layout="cards"] .main .sections {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        /* rows as tall as their content: auto rows in this scrolling box stop
+           at the tiles' min-height and the count pills spill out */
+        grid-auto-rows: max-content;
+        align-content: start;
+        gap: 12px;
+        box-sizing: border-box;
+        margin: 0;
+        /* tablets: a phone-width column in the middle, not tiles stretched across */
+        padding: 20px max(16px, calc(50% - 320px)) calc(96px + env(safe-area-inset-bottom, 0px));
+        overflow-y: auto;
+    }
+
+    body[data-home-layout="cards"] .homeGreeting,
+    body[data-home-layout="cards"] .homeSwrled {
+        grid-column: 1 / -1;
+    }
+
+    body[data-home-layout="cards"] .homeGreeting h2 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 800;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+    }
+
+    body[data-home-layout="cards"] .homeGreeting p {
+        margin: 4px 0 4px;
+        color: var(--text-muted, #5a5f66);
+    }
+
+    body[data-home-layout="cards"] .main .section,
+    body[data-home-layout="cards"] .selected.section {
+        height: auto;
+        min-height: 128px;
+        margin: 0;
+        padding: 14px;
+        border-radius: 18px;
+        box-sizing: border-box;
+        transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    body[data-home-layout="cards"] .main .section:active {
+        transform: scale(0.98);
+        filter: brightness(0.97);
+    }
+
+    body[data-home-layout="cards"] .main .section-detail,
+    body[data-home-layout="cards"] .main .selected .section-detail {
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        width: 100%;
+        margin: 0;
+        font-size: inherit;
+    }
+
+    body[data-home-layout="cards"] .main .section .icon {
+        width: 28px;
+        max-height: 28px;
+        margin: 0;
+    }
+
+    /* 22px extra bold counts as large text: readable on every tile, purple included */
+    body[data-home-layout="cards"] .main .section h2 {
+        margin: 10px 0 0;
+        font-size: 22px;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    /* the counts sit on white so small text reads on every colour */
+    .sectionPills {
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 10px 0 0;
+    }
+
+    .sectionPill {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.94);
+        color: #222222;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.4;
+    }
+
+    body[data-home-layout="cards"] .homeSwrledHead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 12px 0 4px;
+    }
+
+    body[data-home-layout="cards"] .homeSwrledHead h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+
+    body[data-home-layout="cards"] .homeSwrledHead a {
+        color: #b3123f;
+        font-weight: 700;
+    }
+
+    body[data-home-layout="cards"] .homeSwrledList {
+        display: grid;
+        gap: 12px;
+    }
+
+    body[data-home-layout="cards"] .homeSwrledList .swrl.swrlCard {
+        margin: 0;
+        border: 1px solid #e6e8ec;
+        border-radius: 14px;
+    }
+
+    /* the bar: on home and the category lists only */
+    body[data-home-layout="cards"]:is([data-screen="home"], [data-screen="list"]) .phoneNav {
+        display: flex;
+    }
+
+    .phoneNav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        /* above the page, below the slide-out menu's fade (9) and the sheets (20+) */
+        z-index: 8;
+        justify-content: space-around;
+        gap: 4px;
+        box-sizing: border-box;
+        padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+        background: #fff;
+        border-top: 1px solid #e6e8ec;
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .phoneNavItem {
+        flex: 1 1 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        min-width: 44px;
+        min-height: 56px;
+        max-width: 96px;
+        border-radius: 14px;
+        color: var(--text-muted, #5a5f66);
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .phoneNavIcon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: var(--nav-colour, transparent);
+    }
+
+    .phoneNavIcon svg {
+        width: 20px;
+        height: 20px;
+        fill: none;
+        stroke: #fff;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .phoneNavItem[data-nav="home"] .phoneNavIcon svg {
+        width: 24px;
+        height: 24px;
+        stroke: currentColor;
+    }
+
+    .phoneNavItem.on {
+        background: #fff0f4;
+        color: #b3123f;
+    }
+
+    .phoneNavItem.on .phoneNavIcon {
+        box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--nav-colour, transparent);
+    }
+
+    .phoneNavItem:focus-visible {
+        outline: 3px solid #1769d6;
+        outline-offset: 2px;
+    }
+
+    /* room for the bar: the list's last card, the toast and the swipe strip */
+    body[data-home-layout="cards"][data-screen="list"] {
+        padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    }
+
+    body[data-home-layout="cards"]:is([data-screen="home"], [data-screen="list"]) #toasterMessage {
+        bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+    }
+
+    body[data-home-layout="cards"]:is([data-screen="home"], [data-screen="list"]) #menuSwipeable {
+        bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* the bar is a phone thing: the sidebar does its job on desktop */
+@media only screen and (min-width: 1025px) {
+    .phoneNav {
+        display: none !important;
+    }
 }
