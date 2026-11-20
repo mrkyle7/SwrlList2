@@ -31,7 +31,7 @@ import { Collection } from './constants/Collection';
 import { Swrl } from './model/swrl';
 import { Category, WATCH, LISTEN, READ, PLAY, ALL } from './constants/Category';
 import { parseShare } from './model/share';
-import { swrlFromLink } from './search/sharedLink';
+import { resolveSharedLink } from './search/sharedLink';
 import { showToasterMessage } from './components/toaster';
 import { inboxReady } from './listeners/recommendations';
 import { getSwrler } from './firebase/swrler';
@@ -202,6 +202,18 @@ function listRoute(category) {
  *
  * @param {string} searchText
  */
+/**
+ * @param {Category} category
+ * @param {string} searchText
+ */
+function categorySearchRoute(category, searchText) {
+    const state = new State(stateController.searchView);
+    state.selectedCategory = category;
+    state.searchTerms = searchText;
+    document.getElementById('loadingView').classList.add('hidden');
+    stateController.changeState(state);
+}
+
 function searchEverythingRoute(searchText) {
     const state = new State(stateController.searchView);
     state.selectedCategory = ALL;
@@ -212,9 +224,11 @@ function searchEverythingRoute(searchText) {
 
 /**
  * Something shared to the app from another app (the manifest's share_target).
- * A link we recognise (an IMDb or TMDB film or TV page) opens that swrl's
- * page, ready to add or recommend. Anything else becomes a search of every
- * source for the shared words.
+ * A link we recognise (model/share.js: IMDb, TMDB, Open Library, Amazon books,
+ * Apple Music and Podcasts, BoardGameGeek) opens that swrl's page, ready to add
+ * or recommend; one whose address carries a title (Goodreads, Letterboxd,
+ * Steam, Spotify via its oEmbed title) searches that category for it.
+ * Anything else becomes a search of every source for the shared words.
  *
  * @param {URLSearchParams} params title, text and url, as the sharing app gave them
  * @param {import('firebase/firestore').Firestore} firestore
@@ -224,7 +238,12 @@ async function shareRoute(params, firestore) {
     if (link) {
         document.getElementById('loadingView').classList.remove('hidden');
         try {
-            const shared = await swrlFromLink(link);
+            const target = await resolveSharedLink(link);
+            if (target && target.search) {
+                categorySearchRoute(target.search.category, target.search.query);
+                return;
+            }
+            const shared = target && target.swrl;
             if (shared) {
                 // The stored doc, when someone already has it, carries the counts.
                 const docSnapshot = await getDoc(doc(firestore, Collection.SWRLS, shared.swrlID)).catch(() => undefined);

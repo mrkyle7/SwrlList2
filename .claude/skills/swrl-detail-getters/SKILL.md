@@ -22,12 +22,26 @@ each later source is added below, so nothing on screen moves.
 (`model/listMatches.js`) and skips swrls already showing.
 
 **Sharing to the app.** The manifest's `share_target` sends shares to `/share`
-(`shareRoute` in `src/index.js`). `src/model/share.js` (pure, tested)
-recognises IMDb title links and TMDB film/TV links; `src/search/sharedLink.js`
-turns one into a Swrl (IMDb ids go through `/api/v1/tmdb/find/{ttId}`) and its
-page opens. Anything else becomes an `ALL` search for the shared words. A
-manifest can declare only one share target. To recognise another site, extend
-`recogniseLink` and `swrlFromLink`.
+(`shareRoute` in `src/index.js`). `src/model/share.js` (pure, tested in
+`test/share.test.js`) recognises a link (`recogniseLink`, the `SharedLink`
+kinds) and `src/search/sharedLink.js` (`resolveSharedLink`) says where it leads:
+
+| Link | Leads to |
+| --- | --- |
+| IMDb title, TMDB film/TV | the swrl (IMDb ids go through `/api/v1/tmdb/find/{ttId}`) |
+| Open Library `/isbn/`, Amazon `/dp/<ISBN-10>` | the book, by ISBN (`item`) |
+| Open Library `/works/`, `/books/` | the book, after looking up an ISBN |
+| Apple Music album, Apple Podcasts | the album or podcast, by iTunes id (`item`) |
+| BoardGameGeek / VideoGameGeek game | the game, by geek id (`item`) |
+| Goodreads, Letterboxd, Steam | a search of Read / Watch / Play for the title in the address (`slugWords`) |
+| Spotify album/show/episode/track | a Listen search for the title from `/api/v1/oembed/spotify` (server.js; Spotify's public oEmbed, no key, Spotify URLs only) |
+
+`item` links use each Type's `DetailGetter` and its swrl-id prefix
+(`ITEM_TYPES`). Anything else becomes an `ALL` search for the shared words,
+without the sharing app's wording ("Check out … on Goodreads"). A manifest can
+declare only one share target. To recognise another site, extend
+`recogniseLink` and `resolveSharedLink`. How people use this, and the iOS
+Shortcut stand-in: `docs/quick-add.md`.
 
 Each **Category** owns a `Search` strategy; each **Type** owns a
 `DetailGetter`. The pair drives: user searches → results list → user picks

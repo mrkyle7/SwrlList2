@@ -45,6 +45,7 @@ layout applies). Check signed in, signed out (anonymous) and as a friend.
 | Friends screen | `views/friends.js` | |
 | Push notifications | `functions/messages.js` | |
 | Shared links and their previews | `server.js`, `actions/shareSwrl.js` | |
+| Sharing from another app into Swrl List | `model/share.js`, `search/sharedLink.js`, `shareRoute` in `index.js` | which links open a swrl and which search: `swrl-detail-getters` |
 
 ## Data and back end
 

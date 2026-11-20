@@ -179,6 +179,25 @@ app.get('/api/v1/itunes/lookup', function (req, res) {
   });
 });
 
+// --- Spotify oEmbed ---------------------------------------------------------------
+// A Spotify link shared to the app carries no title. Spotify's public oEmbed
+// endpoint (no key) gives one, which the app then searches for. Only Spotify
+// album, show, episode and track pages are accepted.
+const SPOTIFY_PAGE = /^https:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(?:album|show|episode|track)\/[A-Za-z0-9]{10,40}\/?$/;
+
+app.get('/api/v1/oembed/spotify', function (req, res) {
+  const page = typeof req.query.url === 'string' ? req.query.url : '';
+  if (!SPOTIFY_PAGE.test(page)) {
+    return res.status(400).json({ error: 'Not a Spotify album, show, episode or track page' });
+  }
+  relay(res, {
+    service: 'Spotify',
+    host: 'open.spotify.com',
+    path: '/oembed?url=' + encodeURIComponent(page),
+    contentType: 'application/json'
+  });
+});
+
 // --- The Movie Database --------------------------------------------------------
 
 /**

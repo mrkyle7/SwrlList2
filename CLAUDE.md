@@ -51,7 +51,8 @@ test-rules/       Vitest tests of firestore.rules against the Firestore emulator
 functions/        Firebase Cloud Functions + their tests
 scripts/          one-off helpers (migrate-list-entries.js, Auth authorised domains, ...)
 docs/             design notes; friends-and-visibility-plan.md is the spec and the owner's rollout checklist;
-                  user-journeys.md lists every screen a change may have to reach
+                  user-journeys.md lists every screen a change may have to reach;
+                  quick-add.md: the fastest ways to add a swrl (shortcuts, sharing, the iOS Shortcut)
 firestore.rules   security rules (applied by hand in the console, not by CI)
 firestore.indexes.json  the few indexes the new queries need (added by hand in the console)
 firebase.emulators.json emulator config (auth, firestore with the rules, functions)
@@ -138,7 +139,8 @@ counts are written by Cloud Functions. Details in the `swrl-firebase` skill.
 - **Firebase is used through the modular API.** Never import
   `firebase/compat/*`.
 - **TMDB, OMDb and BoardGameGeek calls go through `server.js`**
-  (`/api/v1/tmdb/*`, `/api/v1/omdb`, `/api/v1/geek/*`), which holds
+  (`/api/v1/tmdb/*`, `/api/v1/omdb`, `/api/v1/geek/*`; also the keyless
+  `/api/v1/itunes/*` and `/api/v1/oembed/spotify`), which holds
   `TMDB_API_KEY`, `OMDB_API_KEY` and `BGG_API_TOKEN` (from Secret Manager).
   Never put an API key in `src/`; local runs need them as environment
   variables.
