@@ -14,7 +14,12 @@ A "Swrl" is any item the user might save. Items are grouped into:
 There is also `ALL` ("search everything", `/search`): not a list, left out of
 `Categories`, whose `AllSearch` (`src/search/allSearch.js`) runs every
 category's search and interleaves the results; its filter offers every type.
-A new Category's search must be added to `AllSearch` too.
+A new Category's search must be added to `AllSearch` too. It hands results
+over as they arrive (`search/progressive.js`, `runProgressively`, tested): the
+sources answering within 400 ms of the first make one interleaved batch, and
+each later source is added below, so nothing on screen moves.
+`views/searchResults.js` shows matches from my own lists first
+(`model/listMatches.js`) and skips swrls already showing.
 
 **Sharing to the app.** The manifest's `share_target` sends shares to `/share`
 (`shareRoute` in `src/index.js`). `src/model/share.js` (pure, tested)
@@ -95,7 +100,7 @@ and counts).
 | `detailGetters/itunesAlbumGetter.js` | iTunes Search | No key. |
 | `detailGetters/itunesPodcastGetter.js` | iTunes Search | No key. |
 | `search/watchSearch.js` | TMDB search via `/api/v1/tmdb/*` | Handles both film + TV, plus `personID:` syntax. |
-| `search/readSearch.js` | OpenLibrary | Must request `fields=...,isbn` — search no longer returns ISBNs by default. |
+| `search/readSearch.js` | OpenLibrary | One request: `SEARCH_FIELDS` asks for isbn, author, year, cover and subjects, and `booksFromSearch` builds the cards from them (no lookup per book; the swrl page fetches full details). Must request `isbn` explicitly — search no longer returns ISBNs by default. |
 | `search/listenSearch.js` | iTunes | Album + podcast combined. |
 | `search/playSearch.js` | BGG via `/api/v1/geek/*` | Boardgame + videogame combined; details fetched in one batched `thing` call. |
 

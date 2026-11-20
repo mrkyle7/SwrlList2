@@ -1,4 +1,4 @@
-import { zip } from '../utils/zip';
+import { runProgressively } from './progressive';
 import { Search } from './search';
 import { WatchSearch } from './watchSearch';
 import { ReadSearch } from './readSearch';
@@ -20,15 +20,17 @@ export class AllSearch extends Search {
      * @param {string} query
      * @param {AbortSignal} signal
      * @param {number} id
+     * @param {(batch: import('../model/swrl').Swrl[], first: boolean) => void} [onBatch]
+     *   results as they arrive (see runProgressively), so the fast sources show
+     *   before the slow ones have answered
      * @return {Promise<{id: number, results: import('../model/swrl').Swrl[], failed: string[]}>}
      */
-    async run(query, signal, id) {
-        const all = await Promise.all(this.searches.map(search =>
-            search.run(query, signal, id)
-                .catch(error => {
-                    console.error(error);
-                    return { id: id, results: [], failed: [] };
-                })));
-        return { id: id, results: zip(...all.map(found => found.results)), failed: all.flatMap(found => found.failed || []) };
+    async run(query, signal, id, onBatch) {
+        const { results, failed } = await runProgressively(this.searches.map(search => () =>
+            search.run(query, signal, id).catch(error => {
+                console.error(error);
+                return { id: id, results: [], failed: [] };
+            })), onBatch);
+        return { id: id, results, failed };
     }
 }
