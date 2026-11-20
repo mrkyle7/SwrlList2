@@ -29,6 +29,8 @@ see the `swrl-firebase` skill.
 `/search`, `/share`, `/about`; the
 `appRoutes` list in `server.js`, mirrored in `www/sw.js` and `src/index.js`) and proxies the third-party
 APIs that need a key (`/api/v1/tmdb/*`, `/api/v1/omdb`, `/api/v1/geek/*`).
+(`/api/v1/geek/*` is paused, answering 503 at once, while `BGG_PAUSED` is
+true in `server.js`: we are waiting for BGG to issue the key.)
 Searches need `TMDB_API_KEY`, `OMDB_API_KEY` and `BGG_API_TOKEN` in the
 environment.
 

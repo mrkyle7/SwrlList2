@@ -142,6 +142,8 @@ counts are written by Cloud Functions. Details in the `swrl-firebase` skill.
   (`/api/v1/tmdb/*`, `/api/v1/omdb`, `/api/v1/geek/*`; also the keyless
   `/api/v1/itunes/*` and `/api/v1/oembed/spotify`), which holds
   `TMDB_API_KEY`, `OMDB_API_KEY` and `BGG_API_TOKEN` (from Secret Manager).
+  BoardGameGeek is paused (`BGG_PAUSED` in `server.js`, instant 503) until
+  BGG issues the key; flip it to `false` then.
   Never put an API key in `src/`; local runs need them as environment
   variables.
 - **Infrastructure changes go through `terraform/`**, not `gcloud` by hand —
