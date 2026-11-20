@@ -25,7 +25,7 @@ layout applies). Check signed in, signed out (anonymous) and as a friend.
 | Filter sheet and the count on the Filter button | `views/stateController.js` (`showFilters`, `applyFilters`, `_show*Filter`), `constants/Filter.js`, `model/listView.js` (`activeFilterCount`) | Your-list-only filters must not be carried to Discover, Search or a swrler (`withoutYourListOnlyFilters`) |
 | "Can't decide? Pick for me" | `components/tonightPicker.js` | tile captions |
 | Swrl page: header buttons and toggles (phone and desktop) | `views/swrlFullPage.js`, `#swrlPageButtons` | toggles must line up at 360px with the longest label |
-| Search results cards | `views/searchResults.js` → `components/swrl.js` | Search everything shows my own matching swrls first, then each source as it answers |
+| Search results cards | `views/searchResults.js` → `components/swrl.js` | every search shows my own matching swrls first (that category's only), even when the sources fail; Search everything then adds each source as it answers |
 | Discover: list (leaves out what is on my list or done) | `views/swrlList.js` | |
 | Swrls inbox (For you) and Sent cards | `views/recommendations.js`, `components/recommendation.js` (list cards from the `#swrl` template) | same card as the lists: a change to list cards reaches the inbox too; an empty For you says how many the Done / On my list filters hide, with buttons that tick them (`hiddenByInboxFilters`, `emptyInboxMessage` in `model/recommendation.js`) |
 | Swrl to a friend (recommend screen) | `views/recommend.js` | |
