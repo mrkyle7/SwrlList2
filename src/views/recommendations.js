@@ -6,7 +6,7 @@ import { cancelReplyListeners } from '../components/recommendationReplies';
 import { swrlUser } from '../firebase/login';
 import { Constant } from '../constants/Constant';
 import { State } from '../model/state';
-import { Recommendation, myStateOfSwrl, showInboxRecommendation, sendersOf, fromSender } from '../model/recommendation';
+import { Recommendation, myStateOfSwrl, showInboxRecommendation, sendersOf, fromSender, hiddenByInboxFilters, emptyInboxMessage } from '../model/recommendation';
 import { getSwrlerCached } from '../firebase/swrler';
 import { getListEntry, whenListEntriesReady } from '../listeners/listEntries';
 import { UIView } from './UIView';
@@ -157,12 +157,19 @@ const showInboxFromCache = (stateController, view, firestore, renderID) => {
         if (renderID !== currentRenderID) return;
         const filters = { showDone: showDoneBox.checked, showOnList: showOnListBox.checked };
         fillSenders(recommendations, firestore);
-        const shown = fromSender(recommendations, senderSelect.value).filter(recommendation => showInboxRecommendation({
+        // dismissed ones are never drawn (unless a reply is waiting), so they are not "hidden by a filter" either
+        const candidates = fromSender(recommendations, senderSelect.value).filter(recommendation =>
+            !recommendation.dismissed.includes(swrlUser.uid) || hasUnreadReply(recommendation.id));
+        const stateOf = recommendation => ({
             unread: !recommendation.read.includes(swrlUser.uid),
             hasUnreadReply: hasUnreadReply(recommendation.id),
             ...myStateOfSwrl(getListEntry(recommendation.swrlID))
-        }, filters));
-        renderRecommendations(stateController, shown, view, firestore, renderID);
+        });
+        const shown = candidates.filter(recommendation => showInboxRecommendation(stateOf(recommendation), filters));
+        const hidden = hiddenByInboxFilters(candidates.map(stateOf), filters);
+        const senderName = senderSelect.value && senderSelect.selectedOptions[0] ? senderSelect.selectedOptions[0].text : undefined;
+        renderRecommendations(stateController, shown, view, firestore, renderID,
+            () => emptyInboxView(emptyInboxMessage(hidden, senderName)));
     });
 }
 
@@ -177,7 +184,10 @@ const showSentFromCache = (stateController, view, firestore, renderID) => {
      //Object.values wasn't supported in the old Cordova browser
      const recommendations = [];
      Object.keys(recommendationsSentCache).forEach(i => recommendations.push(recommendationsSentCache[i]));
-     renderRecommendations(stateController, recommendations, view, firestore, renderID);
+     renderRecommendations(stateController, recommendations, view, firestore, renderID, () => emptyInboxView({
+         message: "You haven't swrled anything to a friend yet. Open a swrl and choose \"Swrl to a friend\".",
+         actions: []
+     }));
  
 }
 
@@ -188,8 +198,9 @@ const showSentFromCache = (stateController, view, firestore, renderID) => {
  * @param {Constant} view  
  * @param {import('firebase/firestore').Firestore} firestore 
  * @param {number} renderID
+ * @param {() => HTMLElement} [whenEmpty] what to show when nothing is drawn
  */
-const renderRecommendations = async (stateController, recommendations, view, firestore, renderID) => {
+const renderRecommendations = async (stateController, recommendations, view, firestore, renderID, whenEmpty) => {
     const elements = [];
     recommendations
         .sort((a, b) => {
@@ -206,16 +217,50 @@ const renderRecommendations = async (stateController, recommendations, view, fir
     Promise.all(elements).then((element) => {
         if (renderID === currentRenderID) {
             loadingSpinner.classList.add('hidden');
-            element.forEach(recommendationHTML => {
-                if (recommendationHTML !== undefined) {
-                    recommendationList.appendChild(recommendationHTML);
-                }
-            })
+            const drawn = element.filter(recommendationHTML => recommendationHTML !== undefined);
+            drawn.forEach(recommendationHTML => recommendationList.appendChild(recommendationHTML));
+            if (drawn.length === 0 && whenEmpty) recommendationList.appendChild(whenEmpty());
         } else {
             console.log('Recommendation view changed when about to add elements');
         }
     });
 }
+/**
+ * The empty "For you" (or "From you") screen: a sentence, and a button per
+ * filter that is hiding something ("Show 3 on your list") which ticks that
+ * filter's box, as ticking it by hand does.
+ *
+ * @param {{message: string, actions: {filter: 'showOnList' | 'showDone', label: string}[]}} empty
+ * @return {HTMLElement}
+ */
+function emptyInboxView(empty) {
+    const box = document.createElement('div');
+    box.className = 'inboxEmpty';
+    const text = document.createElement('p');
+    text.className = 'inboxEmptyText';
+    text.textContent = empty.message;
+    box.appendChild(text);
+    if (empty.actions.length > 0) {
+        const buttons = document.createElement('div');
+        buttons.className = 'inboxEmptyActions';
+        empty.actions.forEach((action, i) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            // one filled main action, the rest quiet
+            button.className = i === 0 ? 'inboxEmptyButton' : 'inboxEmptyButton inboxEmptyButtonQuiet';
+            button.textContent = action.label;
+            button.addEventListener('click', () => {
+                const filterBox = action.filter === 'showOnList' ? showOnListBox : showDoneBox;
+                filterBox.checked = true;
+                filterBox.dispatchEvent(new Event('change'));
+            });
+            buttons.appendChild(button);
+        });
+        box.appendChild(buttons);
+    }
+    return box;
+}
+
 [showDoneBox, showOnListBox, senderSelect].forEach(box => box.addEventListener('change', () => {
     if (inboxController) inboxController.changeState(new State(inboxController.inboxView));
 }));
