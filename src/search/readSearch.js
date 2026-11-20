@@ -2,7 +2,8 @@ import { BOOK } from '../constants/Type';
 import { READ } from '../constants/Category';
 import { Search } from './search';
 import { Swrl } from '../model/swrl';
-import { OpenLibraryBookDetailGetter } from '../detailGetters/openLibraryBookDetailGetter';
+import { Details } from '../model/details';
+import { Link } from '../model/link';
 
 const MAX_RESULTS = 20;
 
@@ -29,6 +30,11 @@ export class ReadSearch extends Search {
     }
 
     /**
+     * One request: Open Library's search answers with enough for a card
+     * (title, author, year, cover, subjects), so there is no lookup per book.
+     * The swrl page fetches the full details (OpenLibraryBookDetailGetter)
+     * when it opens, as it does for every source.
+     *
      * @param {string} query
      * @param {AbortSignal} signal
      * @param {number} id
@@ -38,7 +44,7 @@ export class ReadSearch extends Search {
         const encodedQuery = encodeURIComponent(query);
         // Open Library only returns the fields that are asked for, and isbn
         // is not one of the defaults.
-        const url = `https://openlibrary.org/search.json?q=${encodedQuery}&fields=key,title,isbn&limit=${MAX_RESULTS}`;
+        const url = `https://openlibrary.org/search.json?q=${encodedQuery}&fields=${SEARCH_FIELDS}&limit=${MAX_RESULTS}`;
         let response;
         try {
             response = await fetch(url, { signal });
@@ -53,20 +59,40 @@ export class ReadSearch extends Search {
             throw new Error(`Open Library search failed with HTTP ${response.status}`);
         }
         const data = await response.json();
-        /** @type {string[]} */
-        const isbns = (data.docs || [])
-            .filter(doc => doc.isbn && doc.isbn.length > 0)
-            .slice(0, MAX_RESULTS)
-            .map(doc => doc.isbn[0]);
-
-        const detailGetter = new OpenLibraryBookDetailGetter();
-        // Look the books up in parallel; a book Open Library has no details
-        // for is dropped rather than failing the whole search.
-        const swrls = await Promise.all(isbns.map(isbn =>
-            detailGetter.get(isbn, signal, id)
-                .then(getterResponse => new Swrl(BOOK, READ, 'OPENLIBRARY-ISBN_' + isbn, getterResponse.details))
-                .catch(() => undefined)));
-
-        return { id: id, results: swrls.filter(swrl => swrl !== undefined) };
+        return { id: id, results: booksFromSearch(data.docs || []) };
     }
+}
+
+/** What the search asks Open Library for: enough to show a book's card. */
+export const SEARCH_FIELDS = 'key,title,isbn,author_name,first_publish_year,cover_i,subject';
+/** How many subjects a card keeps (the genre filter uses them). */
+const SUBJECTS_KEPT = 10;
+
+/**
+ * Books from Open Library search results, keyed by ISBN as before (the
+ * swrl id stays `OPENLIBRARY-ISBN_<isbn>`), so they match swrls already saved.
+ * Results without an ISBN are left out: the details page needs one.
+ *
+ * @param {any[]} docs
+ * @return {Swrl[]}
+ */
+export function booksFromSearch(docs) {
+    return docs
+        .filter(doc => doc && doc.isbn && doc.isbn.length > 0)
+        .slice(0, MAX_RESULTS)
+        .map(doc => {
+            const isbn = String(doc.isbn[0]);
+            const links = doc.key ? [new Link(`https://openlibrary.org${doc.key}`, 'Open Library', 'img/openlibrary-logo.svg')] : [];
+            const details = new Details(isbn,
+                (doc.title || '').replace(/\s\s+/g, ' ').trim() || 'No title',
+                doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : 'img/NoPoster.jpg',
+                undefined,
+                doc.author_name && doc.author_name.length > 0 ? doc.author_name[0] : 'Unknown',
+                doc.first_publish_year ? String(doc.first_publish_year) : undefined,
+                (doc.subject || []).slice(0, SUBJECTS_KEPT),
+                links,
+                undefined, undefined, [], [], undefined, [], [], undefined,
+                undefined, undefined, undefined, [], [], [], [], undefined, undefined, undefined);
+            return new Swrl(BOOK, READ, 'OPENLIBRARY-ISBN_' + isbn, details);
+        });
 }

@@ -13,6 +13,8 @@ import { showToasterMessage } from '../components/toaster';
 import { searchFailureText } from '../model/searchFailure';
 import { SavedSearch } from '../model/savedSearch';
 import { State } from '../model/state';
+import { getAllListEntries } from '../listeners/listEntries';
+import { listMatches } from '../model/listMatches';
 
 export class SearchView extends UIView {
     /**
@@ -280,12 +282,40 @@ function runSearch(stateController, firestore) {
                 loadingbar.classList.remove('hidden');
             }
             const search = currentCategory.search;
+            const thisSearch = currentSearchID;
+            // Search everything: what is on my own lists at once, then each
+            // source's results as they arrive (search/progressive.js)
+            /** @type {Set<string> | undefined} the swrls showing, while results arrive */
+            let shown;
+            /** @param {Swrl[]} batch */
+            const onBatch = currentCategory === ALL ? (batch) => {
+                if (thisSearch !== currentSearchID) return;
+                const fresh = batch.filter(swrl => !(shown && shown.has(swrl.swrlID)));
+                if (fresh.length === 0) return;
+                if (!shown) {
+                    clearResults();
+                    shown = new Set();
+                }
+                fresh.forEach(swrl => shown.add(swrl.swrlID));
+                appendResults(fresh, firestore, stateController);
+                // more may be on the way until the search finishes
+                if (resultsShowing) loadingbar.classList.remove('hidden');
+            } : undefined;
+            if (onBatch) {
+                onBatch(listMatches(getAllListEntries(), searchText).map(entry => entry.toSwrl()));
+            }
             if (currentSearchID !== undefined) {
-                search.run(searchText, signal, currentSearchID)
+                search.run(searchText, signal, currentSearchID, onBatch)
                     .then((result) => {
                         if (result.id === currentSearchID) {
-                            clearResults();
-                            processResults(result.results, firestore, searchText, stateController, result.failed || []);
+                            loadingbar.classList.add('hidden');
+                            if (shown && shown.size > 0) {
+                                // already on screen: just say what could not be searched
+                                if ((result.failed || []).length > 0) showToasterMessage(searchFailureText(result.failed), { kind: 'warning' });
+                            } else {
+                                clearResults();
+                                processResults(result.results, firestore, searchText, stateController, result.failed || []);
+                            }
                         }
                         else {
                             console.log('Not the current search, so ignoring the results');
@@ -356,4 +386,33 @@ function processResults(results, firestore, searchText, stateController, failed 
             appendAttribution(searchResulList, currentCategory.attribution);
         }
     }
+}
+
+/**
+ * Adds results below those showing (Search everything, as each source
+ * answers), keeping the data sources' credits at the end.
+ *
+ * @param {Swrl[]} results
+ * @param {import('firebase/firestore').Firestore} firestore
+ * @param {StateController} stateController
+ */
+function appendResults(results, firestore, stateController) {
+    const typeFilter = stateController.currentState.typeFilter;
+    results = results.filter(result => !typeFilter || result.type.id === typeFilter.value);
+    if (results.length === 0) return;
+    if (!resultsShowing) {
+        resultsShowing = true;
+        hideAllMessages();
+        mountListToolbar(searchResultsContainer);
+    }
+    const credits = [...searchResulList.querySelectorAll(':scope > .attribution')];
+    credits.forEach(credit => credit.remove());
+    results.forEach(swrl => renderSwrl(stateController, SEARCH, swrl, firestore, searchResulList));
+    appendAttributions(searchResulList, results.map(swrl => swrl.type.attribution));
+    // the credits of earlier batches too, once each
+    credits.forEach(credit => {
+        if (![...searchResulList.querySelectorAll(':scope > .attribution')].some(existing => existing.isEqualNode(credit))) {
+            searchResulList.appendChild(credit);
+        }
+    });
 }
