@@ -25,10 +25,10 @@ export const TILES = new HomeLayout('tiles', 'Tiles',
 export const CARDS = new HomeLayout('cards', 'Cards',
     "What's on your list, swrls sent to you, and a bar at the bottom to switch category");
 
-export const homeLayouts = Object.freeze([TILES, CARDS]);
+export const homeLayouts = Object.freeze([CARDS, TILES]);
 
-/** What everyone gets until they choose otherwise: the original look. */
-export const DEFAULT_HOME_LAYOUT = TILES;
+/** What everyone gets until they choose otherwise (the original tiles stay a choice on Settings). */
+export const DEFAULT_HOME_LAYOUT = CARDS;
 
 /**
  * Looks up a layout from its stored value. Unknown or missing values give the

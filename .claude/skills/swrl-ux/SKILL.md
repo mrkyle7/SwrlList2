@@ -166,7 +166,7 @@ work nearby, or as their own change; tick them off here when fixed.
       with a pink shadow and a different layout.
 - [x] Phone home shows only the four category tiles: no counts, nothing in
       progress and no "Swrled to you", which desktop has. (3.17.0: the Cards
-      home layout, chosen on Settings, has them; Tiles stays the default.)
+      home layout, the default since 3.23.0, has them; Tiles stays a choice on Settings.)
 - [x] Phone header says "Swrl List 2"; the sidebar and everything else say
       "Swrl List".
 - [x] Desktop: the Swrls inbox is one card stretched across the page (icons

@@ -15,7 +15,7 @@ layout applies). Check signed in, signed out (anonymous) and as a friend.
 
 | Journey | Where in the code | Notes |
 | --- | --- | --- |
-| Home tiles (counts per category) | `views/homePage.js`, `model/listView.js` (`countsByCategory`, `inProgressByCategory`), `model/homeLayout.js` (`homeTileCounts`) | desktop shows the counts on the tile; phones with the Cards home layout show them as pills; phones with Tiles (the default) show the tiles only |
+| Home tiles (counts per category) | `views/homePage.js`, `model/listView.js` (`countsByCategory`, `inProgressByCategory`), `model/homeLayout.js` (`homeTileCounts`) | desktop shows the counts on the tile; phones with the Cards home layout (the default) show them as pills; phones with Tiles show the tiles only |
 | Home "Swrled to you" strip (desktop, and phones with Cards) | `views/homePage.js` | |
 | Phone bottom bar (Cards home layout) | `components/phoneNav.js`, `StateController._switchCategory` | home and the category lists only; keeps the tab when switching category; its Search item goes back to Search everything |
 | Quick ways into search (home search box, Tiles header button, bar and sidebar Search) | `StateController.openSearchEverything`, `#homeSearch`, `#headerSearch` | the cursor lands in the box |

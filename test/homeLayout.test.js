@@ -3,22 +3,22 @@ import { TILES, CARDS, DEFAULT_HOME_LAYOUT, homeLayoutFromId, homeLayouts, homeT
 import { WATCH, READ, LISTEN, PLAY } from '../src/constants/Category';
 
 describe('home layout', () => {
-    it('keeps the original tiles until the user chooses', () => {
-        expect(DEFAULT_HOME_LAYOUT).toBe(TILES);
-        expect(homeLayoutFromId(undefined)).toBe(TILES);
+    it('gives the cards until the user chooses', () => {
+        expect(DEFAULT_HOME_LAYOUT).toBe(CARDS);
+        expect(homeLayoutFromId(undefined)).toBe(CARDS);
     });
     it('reads the stored values back', () => {
         expect(homeLayoutFromId('tiles')).toBe(TILES);
         expect(homeLayoutFromId('cards')).toBe(CARDS);
     });
-    it('falls back to tiles for anything unknown', () => {
-        expect(homeLayoutFromId('grid')).toBe(TILES);
-        expect(homeLayoutFromId('')).toBe(TILES);
-        expect(homeLayoutFromId(42)).toBe(TILES);
-        expect(homeLayoutFromId(null)).toBe(TILES);
+    it('falls back to the default, cards, for anything unknown', () => {
+        expect(homeLayoutFromId('grid')).toBe(CARDS);
+        expect(homeLayoutFromId('')).toBe(CARDS);
+        expect(homeLayoutFromId(42)).toBe(CARDS);
+        expect(homeLayoutFromId(null)).toBe(CARDS);
     });
-    it('offers tiles then cards on Settings, matching the radios', () => {
-        expect(homeLayouts.map(layout => layout.id)).toEqual(['tiles', 'cards']);
+    it('offers cards then tiles on Settings, matching the radios', () => {
+        expect(homeLayouts.map(layout => layout.id)).toEqual(['cards', 'tiles']);
     });
 });
 
