@@ -4,8 +4,7 @@ const fs = require('fs');
 const https = require('https');
 const path = require('path');
 const querystring = require('querystring');
-const overpass = require('./serverlib/overpass');
-const { fetchPageImage } = require('./serverlib/pageImage');
+const places = require('./serverlib/places');
 
 const app = express();
 // Built by `npm run build` (webpack): www/ plus bundle.<hash>.js.
@@ -181,128 +180,69 @@ app.get('/api/v1/itunes/lookup', function (req, res) {
   });
 });
 
-// --- Places to eat: OpenStreetMap through the Overpass API ------------------------
-// No key; Overpass asks for a real User-Agent and gentle use, which the cache
-// in relay() gives. Queries are built in serverlib/overpass.js from what was
-// typed and where (a town or city, or "near" rounded to about a kilometre);
-// neither the search words nor the location go into the logs.
-
-// The public Overpass servers (https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances),
-// tried in turn: the main one rate-limits by IP, and Cloud Run's outgoing
-// addresses are shared, so it can refuse us when it is busy.
-const OVERPASS_HOSTS = ['overpass-api.de', 'overpass.kumi.systems', 'overpass.private.coffee'];
-const OVERPASS_HOST_TIMEOUT_MS = 10000;
+// --- Places to eat: Google Places API (New) ---------------------------------------
+// serverlib/places.js builds the requests from what was typed and where (a
+// town, or "near" rounded to about a kilometre), with the cheapest fields
+// that do the job, and caps each kind of request per day so we stay inside
+// Google's free monthly allowances. Answers are cached for 6 hours. Search
+// words and locations stay out of the logs.
+const placeCaps = new places.DailyCaps(places.DAILY_CAPS);
 
 /**
- * One Overpass request, at most OVERPASS_HOST_TIMEOUT_MS.
- *
- * @param {string} host
- * @param {string} path
- * @returns {Promise<{status: number, body: string}>}
- */
-function overpassGet(host, path) {
-  return new Promise((resolve, reject) => {
-    const request = https.get({
-      host,
-      path,
-      headers: { 'Accept': 'application/json', 'User-Agent': 'SwrlList/2 (+https://swrl-list.com)' },
-      timeout: OVERPASS_HOST_TIMEOUT_MS
-    }, response => {
-      const chunks = [];
-      response.on('data', chunk => chunks.push(chunk));
-      response.on('end', () => resolve({ status: response.statusCode || 0, body: Buffer.concat(chunks).toString('utf8') }));
-      response.on('error', reject);
-    });
-    request.on('timeout', () => request.destroy(new Error('timed out')));
-    request.on('error', reject);
-  });
-}
-
-/**
- * Runs an Overpass query on the first server that answers it properly (a
- * 200 with JSON and no runtime error), caching the answer like relay() does.
- * Logs each server that fails, without the query (it holds search words or a
- * location).
+ * Sends a cached answer, or makes the call and caches a good one.
  *
  * @param {import('express').Response} res
- * @param {string} query
- * @param {string} label what to log, e.g. "eat search"
+ * @param {string} cacheKey
+ * @param {string} kind the daily cap it counts against
+ * @param {() => Promise<{status: number, json: any}>} call
+ * @param {string} label for the logs
  */
-async function relayOverpass(res, query, label) {
-  const path = '/api/interpreter?data=' + encodeURIComponent(query);
-  const cacheKey = 'overpass' + path;
+async function relayPlaces(res, cacheKey, kind, call, label) {
   const cached = proxyCache.get(cacheKey);
   if (cached && cached.expires > Date.now()) {
     res.setHeader('Cache-Control', 'public, max-age=3600');
     return res.type('application/json').send(cached.body);
   }
-  for (const host of OVERPASS_HOSTS) {
-    try {
-      const answer = await overpassGet(host, path);
-      let json;
-      try { json = JSON.parse(answer.body); } catch (error) { json = undefined; }
-      const remark = json && typeof json.remark === 'string' ? json.remark : '';
-      if (answer.status === 200 && json && Array.isArray(json.elements) && !/error|timed out/i.test(remark)) {
-        if (proxyCache.size >= PROXY_CACHE_MAX_ENTRIES) proxyCache.delete(proxyCache.keys().next().value);
-        proxyCache.set(cacheKey, { expires: Date.now() + PROXY_CACHE_TTL_MS, body: answer.body });
-        res.setHeader('Cache-Control', 'public, max-age=3600');
-        return res.type('application/json').send(answer.body);
-      }
-      console.error(`Overpass ${host} answered ${answer.status}${remark ? ' (' + remark.slice(0, 120) + ')' : ''} for ${label}`);
-    } catch (error) {
-      console.error(`Overpass ${host} failed for ${label}: ${error.message}`);
-    }
+  if (!placeCaps.take(kind)) {
+    console.error(`Places daily cap reached for ${label}`);
+    return res.status(503).json({ error: 'Places to eat are busy today. Try again tomorrow.' });
   }
-  res.status(503).json({ error: 'Places to eat are not available right now' });
+  try {
+    const answer = await call();
+    if (answer.status === 200 && answer.json) {
+      const body = JSON.stringify(answer.json);
+      if (proxyCache.size >= PROXY_CACHE_MAX_ENTRIES) proxyCache.delete(proxyCache.keys().next().value);
+      proxyCache.set(cacheKey, { expires: Date.now() + PROXY_CACHE_TTL_MS, body });
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      return res.type('application/json').send(body);
+    }
+    const reason = answer.json && answer.json.error ? `${answer.json.error.status || ''} ${answer.json.error.message || ''}`.trim() : '';
+    console.error(`Places answered ${answer.status} for ${label}${reason ? ': ' + reason : ''}`);
+    return res.status(answer.status === 404 ? 404 : 502).json({ error: 'Places answered ' + answer.status, reason: reason.slice(0, 200) });
+  } catch (error) {
+    console.error(`Places failed for ${label}: ${error.message}`);
+    return res.status(502).json({ error: 'Places request failed', reason: error.message });
+  }
 }
 
 app.get('/api/v1/eat/search', function (req, res) {
   const q = searchTerm(req.query.q);
-  const near = typeof req.query.near === 'string' ? overpass.parseNear(req.query.near) : undefined;
-  const place = !near && typeof req.query.place === 'string' ? overpass.cleanPlace(req.query.place) : undefined;
-  const query = q ? overpass.searchQuery({ q, near, place }) : undefined;
-  if (!query) {
+  const near = typeof req.query.near === 'string' ? places.parseNear(req.query.near) : undefined;
+  const place = !near && typeof req.query.place === 'string' ? places.cleanPlace(req.query.place) : undefined;
+  const search = { q, near, place };
+  if (!q || !places.searchBody(search)) {
     return res.status(400).json({ error: 'Bad search: say what to look for, and near where or in which town or city' });
   }
-  relayOverpass(res, query, 'eat search');
+  const key = 'places:search:' + JSON.stringify([q.toLowerCase(), near, place && place.toLowerCase()]);
+  relayPlaces(res, key, 'search', () => places.searchPlaces(search), 'eat search');
 });
 
 app.get('/api/v1/eat/place', function (req, res) {
-  const query = overpass.placeQuery(req.query.id);
-  if (!query) {
+  const id = places.cleanPlaceId(req.query.id);
+  if (!id) {
     return res.status(400).json({ error: 'Bad place id' });
   }
-  relayOverpass(res, query, 'eat place');
-});
-
-// The picture a restaurant's own website shares (og:image), for places
-// OpenStreetMap has no photo for. serverlib/pageImage.js guards the fetch
-// (public addresses only, checked redirects, a few seconds, 256 KB) and only
-// the image address comes back. Remembered for a day, misses included.
-const PAGE_IMAGE_TTL_MS = 24 * 60 * 60 * 1000;
-const PAGE_IMAGE_MAX_ENTRIES = 2000;
-/** @type {Map<string, {expires: number, imageUrl: string | null}>} */
-const pageImageCache = new Map();
-
-app.get('/api/v1/pageimage', async function (req, res) {
-  const page = typeof req.query.url === 'string' ? req.query.url.trim() : '';
-  if (!page || page.length > 500) {
-    return res.status(400).json({ error: 'Bad page address' });
-  }
-  let cached = pageImageCache.get(page);
-  if (!cached || cached.expires <= Date.now()) {
-    const imageUrl = await fetchPageImage(page).catch(() => null);
-    if (pageImageCache.size >= PAGE_IMAGE_MAX_ENTRIES) {
-      pageImageCache.delete(pageImageCache.keys().next().value);
-    }
-    cached = { expires: Date.now() + PAGE_IMAGE_TTL_MS, imageUrl };
-    pageImageCache.set(page, cached);
-  }
-  res.setHeader('Cache-Control', 'public, max-age=86400');
-  if (!cached.imageUrl) {
-    return res.status(404).json({ error: 'No picture on that page' });
-  }
-  res.json({ imageUrl: cached.imageUrl });
+  relayPlaces(res, 'places:details:' + id, 'details', () => places.placeDetails(id, placeCaps), 'eat place');
 });
 
 // --- Spotify oEmbed ---------------------------------------------------------------

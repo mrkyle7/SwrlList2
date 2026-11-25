@@ -2,25 +2,25 @@ import { Details } from './details';
 import { Link } from './link';
 
 /**
- * Places to eat from OpenStreetMap (the Overpass API, through server.js):
- * turning its elements into swrls, and choosing their pictures. Pure; tested
+ * Places to eat from the Google Places API (New), through server.js:
+ * turning its places into swrls, and choosing their pictures. Pure; tested
  * in test/restaurant.test.js.
  *
- * Pictures, best first: a photo the OpenStreetMap entry links to (`image`,
- * `wikimedia_commons`); then the picture the restaurant's own website shares
- * (its og:image, looked up when the swrl's page opens, see
- * detailGetters/osmPlaceGetter.js); then a stock photo for its cuisine.
+ * Search asks for as little as possible (id, name, short address, location,
+ * types), so a card's picture is a stock photo for its cuisine; opening the
+ * place asks for its description and one Google photo, which replaces it
+ * (and is saved with the swrl).
  */
 
-/** The swrl id is this plus n, w or r (node, way, relation) and the OSM id. */
-export const PLACE_ID_PREFIX = 'OSMPLACE_';
+/** The swrl id is this plus the Google place id. */
+export const PLACE_ID_PREFIX = 'GPLACE_';
 
 const UNSPLASH = (photo) => `https://images.unsplash.com/photo-${photo}?auto=format&fit=crop&w=800&q=80`;
 
 /** When nothing better is known: a restaurant dining room. */
 export const DEFAULT_PLACE_PHOTO = UNSPLASH('1517248135467-4c7edcad34c4');
 
-/** Stock photos by cuisine (OSM `cuisine` values and a few kinds of place). */
+/** Stock photos by cuisine (from Google types without "_restaurant", and a few kinds of place). */
 const CUISINE_PHOTOS = {
     greek: UNSPLASH('1544025162-d76694265947'),
     mediterranean: UNSPLASH('1540189549336-e6e99c3679fe'),
@@ -28,192 +28,145 @@ const CUISINE_PHOTOS = {
     pizza: UNSPLASH('1513104890138-7c749659a591'),
     japanese: UNSPLASH('1579871494447-9811cf80d66c'),
     sushi: UNSPLASH('1579871494447-9811cf80d66c'),
+    ramen: UNSPLASH('1579871494447-9811cf80d66c'),
     indian: UNSPLASH('1585937421612-70a008356fbe'),
     thai: UNSPLASH('1559314809-0d155014e29e'),
     mexican: UNSPLASH('1565299585323-38d6b0865b47'),
+    hamburger: UNSPLASH('1568901346375-23c9450c58cd'),
     burger: UNSPLASH('1568901346375-23c9450c58cd'),
     cafe: UNSPLASH('1509042239860-f550ce710b93'),
     coffee: UNSPLASH('1509042239860-f550ce710b93'),
     coffee_shop: UNSPLASH('1509042239860-f550ce710b93'),
     bakery: UNSPLASH('1509440159596-0249088772ff'),
     seafood: UNSPLASH('1559737558-2f5a35f4523b'),
-    fish_and_chips: UNSPLASH('1559737558-2f5a35f4523b'),
-    steak: UNSPLASH('1544025162-d76694265947'),
-    steak_house: UNSPLASH('1544025162-d76694265947')
+    steak_house: UNSPLASH('1544025162-d76694265947'),
+    steak: UNSPLASH('1544025162-d76694265947')
 };
 
-/** OSM `amenity` values, as people say them. */
-const KINDS = { restaurant: 'Restaurant', cafe: 'Café', fast_food: 'Takeaway', pub: 'Pub', bar: 'Bar' };
+/** Google types that mean a place to eat or drink. */
+const FOOD_TYPES = ['restaurant', 'food', 'cafe', 'coffee_shop', 'bar', 'pub', 'bakery', 'meal_takeaway', 'meal_delivery',
+    'fast_food_restaurant', 'ice_cream_shop', 'sandwich_shop', 'dessert_shop', 'tea_house', 'wine_bar', 'bar_and_grill'];
 
 /**
- * A stock photo for a place's cuisine(s) ("greek;mediterranean"), or failing
- * that its kind (a café), or a restaurant.
+ * What a place is, as people say it, from its Google types.
  *
- * @param {string | undefined} cuisine OSM `cuisine`
- * @param {string} [amenity] OSM `amenity`
+ * @param {string[]} types primary type first
  * @return {string}
  */
-export function stockPhoto(cuisine, amenity) {
-    const tokens = String(cuisine || '').toLowerCase().split(/[;,/|]+/).map(token => token.trim()).filter(Boolean);
+export function placeKind(types) {
+    for (const type of types) {
+        if (type === 'pub') return 'Pub';
+        if (type === 'bar' || type === 'wine_bar') return 'Bar';
+        if (type === 'cafe' || type === 'coffee_shop' || type === 'tea_house') return 'Café';
+        if (type === 'bakery') return 'Bakery';
+        if (type === 'meal_takeaway' || type === 'fast_food_restaurant') return 'Takeaway';
+        if (type === 'restaurant' || type.endsWith('_restaurant')) return 'Restaurant';
+    }
+    return 'Restaurant';
+}
+
+/**
+ * Cuisines from Google types: "italian_restaurant" -> "Italian",
+ * "fast_food_restaurant" is a kind of place, not a cuisine.
+ *
+ * @param {string[]} types
+ * @return {string[]}
+ */
+export function cuisineNames(types) {
+    const names = types
+        .filter(type => type.endsWith('_restaurant') && type !== 'fast_food_restaurant')
+        .map(type => type.replace(/_restaurant$/, '').replace(/_/g, ' '))
+        .map(name => name.charAt(0).toUpperCase() + name.slice(1));
+    return [...new Set(names)].slice(0, 3);
+}
+
+/**
+ * A stock photo for a place's cuisine, or its kind, or a restaurant.
+ *
+ * @param {string[]} types
+ * @return {string}
+ */
+export function stockPhoto(types) {
+    const tokens = types.map(type => type.replace(/_restaurant$/, ''));
     for (const token of tokens) {
         if (CUISINE_PHOTOS[token]) return CUISINE_PHOTOS[token];
     }
-    for (const token of tokens) {
-        const key = Object.keys(CUISINE_PHOTOS).find(name => token.includes(name) || name.includes(token));
-        if (key) return CUISINE_PHOTOS[key];
-    }
-    if (amenity === 'cafe') return CUISINE_PHOTOS.cafe;
     return DEFAULT_PLACE_PHOTO;
 }
 
 /**
- * A photo the OpenStreetMap entry itself points at: an `image` URL, or a
- * Wikimedia Commons file.
+ * Whether a Google place is somewhere to eat or drink.
  *
- * @param {Object<string, string>} tags
- * @return {string | undefined}
+ * @param {{types?: string[], primaryType?: string}} place
+ * @return {boolean}
  */
-export function photoFromTags(tags) {
-    const image = (tags.image || '').trim();
-    if (/^https?:\/\//i.test(image) && !/\.(svg|pdf)(\?|$)/i.test(image)) return image.replace(/^http:/i, 'https:');
-    const commons = (tags.wikimedia_commons || (/^File:/i.test(image) ? image : '')).trim();
-    const file = /^File:(.+)$/i.exec(commons);
-    if (file) return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file[1].trim().replace(/ /g, '_'))}?width=800`;
-    return undefined;
+export function isPlaceToEat(place) {
+    const types = [place.primaryType, ...(place.types || [])].filter(Boolean);
+    return types.some(type => FOOD_TYPES.includes(type) || type.endsWith('_restaurant'));
 }
 
 /**
- * Cuisines as words for people (and the genre filter): "greek;fish_and_chips"
- * -> ["Greek", "Fish and chips"].
- *
- * @param {string | undefined} cuisine
- * @return {string[]}
+ * @typedef {Object} GooglePlace
+ * @property {string} id
+ * @property {{text: string}} [displayName]
+ * @property {string} [shortFormattedAddress]
+ * @property {{latitude: number, longitude: number}} [location]
+ * @property {string} [primaryType]
+ * @property {string[]} [types]
+ * @property {{text: string}} [editorialSummary]
+ * @property {{uri: string, by?: string, byUri?: string}} [photo] added by server.js on details
  */
-export function cuisineNames(cuisine) {
-    return String(cuisine || '').split(/[;,]+/).map(token => token.trim().replace(/_/g, ' ')).filter(Boolean)
-        .map(token => token.charAt(0).toUpperCase() + token.slice(1)).slice(0, 5);
-}
 
 /**
- * @param {Object<string, string>} tags
- * @return {string | undefined} "12 Frith Street, London W1D 4RG"
- */
-function addressOf(tags) {
-    const street = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ');
-    const town = [tags['addr:city'], tags['addr:postcode']].filter(Boolean).join(' ');
-    const line = [tags['addr:housename'], street, town].filter(Boolean).join(', ');
-    return line || undefined;
-}
-
-/**
- * The website an entry lists, as a full address.
+ * Details for a Google place (from search, or the fuller answer when the
+ * page opens), or undefined without an id or a name.
  *
- * @param {Object<string, string>} tags
- * @return {string | undefined}
- */
-export function websiteOf(tags) {
-    const raw = (tags.website || tags['contact:website'] || tags.url || '').trim().split(/\s*;\s*/)[0];
-    if (!raw) return undefined;
-    const url = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
-    try {
-        const parsed = new URL(url);
-        return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? parsed.toString() : undefined;
-    } catch (error) {
-        return undefined;
-    }
-}
-
-/**
- * The id this app keeps for an OSM element: "n123", "w45", "r6".
- *
- * @param {{type: string, id: number}} element
- * @return {string | undefined}
- */
-export function placeId(element) {
-    const letter = { node: 'n', way: 'w', relation: 'r' }[element && element.type];
-    return letter && Number.isInteger(element.id) ? letter + element.id : undefined;
-}
-
-/**
- * Details for an Overpass element (a node with lat/lon, or a way or relation
- * with a `center`), or undefined when it is no place to eat (no name).
- *
- * @param {{type: string, id: number, lat?: number, lon?: number, center?: {lat: number, lon: number}, tags?: Object<string, string>}} element
+ * @param {GooglePlace} place
  * @return {Details | undefined}
  */
-export function placeDetails(element) {
-    const id = placeId(element);
-    const tags = (element && element.tags) || {};
-    const name = (tags.name || '').trim();
-    if (!id || !name) return undefined;
-    const lat = element.lat !== undefined ? element.lat : element.center && element.center.lat;
-    const lon = element.lon !== undefined ? element.lon : element.center && element.center.lon;
-    const website = websiteOf(tags);
-    const links = [];
-    if (website) links.push(new Link(website, 'Website', undefined));
-    if (typeof lat === 'number' && typeof lon === 'number') {
-        links.push(new Link(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}%20${lat},${lon}`, 'Google Maps', undefined));
-    }
-    links.push(new Link(`https://www.openstreetmap.org/${element.type}/${element.id}`, 'OpenStreetMap', undefined));
-    const details = new Details(id, name, photoFromTags(tags) || stockPhoto(tags.cuisine, tags.amenity),
-        undefined, undefined, undefined, cuisineNames(tags.cuisine), links,
-        undefined, tags.description || undefined,
+export function placeDetails(place) {
+    const name = place && place.displayName && place.displayName.text ? place.displayName.text.trim() : '';
+    if (!place || !place.id || !name) return undefined;
+    const types = [place.primaryType, ...(place.types || [])].filter(Boolean);
+    const lat = place.location ? place.location.latitude : undefined;
+    const lon = place.location ? place.location.longitude : undefined;
+    const address = place.shortFormattedAddress || undefined;
+    const area = address && address.includes(',') ? address.split(',').pop().trim() : undefined;
+    const photo = place.photo && /^https:\/\//.test(place.photo.uri) ? place.photo : undefined;
+    const links = [new Link(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${encodeURIComponent(place.id)}`, 'Google Maps', undefined)];
+    const details = new Details(place.id, name, photo ? photo.uri : stockPhoto(types),
+        undefined, undefined, undefined, cuisineNames(types), links,
+        undefined, place.editorialSummary && place.editorialSummary.text ? place.editorialSummary.text : undefined,
         [], [], undefined, [], [], undefined, undefined, undefined, undefined, [], [], [], [], undefined, undefined, undefined);
     details.place = {
-        kind: KINDS[tags.amenity] || 'Restaurant',
-        area: tags['addr:suburb'] || tags['addr:district'] || tags['addr:city'] || undefined,
-        address: addressOf(tags),
-        openingHours: tags.opening_hours || undefined,
-        phone: tags.phone || tags['contact:phone'] || undefined,
-        website,
+        kind: placeKind(types),
+        area,
+        address,
         lat: typeof lat === 'number' ? lat : undefined,
-        lon: typeof lon === 'number' ? lon : undefined
+        lon: typeof lon === 'number' ? lon : undefined,
+        photoBy: photo && photo.by ? photo.by : undefined,
+        photoByUrl: photo && photo.byUri ? photo.byUri : undefined
     };
     return details;
 }
 
 /**
- * Straight-line distance in metres.
+ * Details for every place to eat in a search answer, each once, in Google's
+ * order (it already ranks by distance near me, by relevance in a town).
  *
- * @param {{lat: number, lon: number}} a
- * @param {{lat: number, lon: number}} b
- * @return {number}
- */
-export function distanceMetres(a, b) {
-    const rad = (/** @type {number} */ degrees) => degrees * Math.PI / 180;
-    const dLat = rad(b.lat - a.lat);
-    const dLon = rad(b.lon - a.lon);
-    const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
-    return 6371000 * 2 * Math.asin(Math.sqrt(h));
-}
-
-/**
- * Details for every place in an Overpass answer, each once, nearest first
- * when searching near somewhere, otherwise names that start with what was
- * typed first.
- *
- * @param {{elements?: any[]}} answer
- * @param {{query?: string, near?: {lat: number, lon: number}}} [search]
+ * @param {{places?: GooglePlace[]}} answer
  * @return {Details[]}
  */
-export function placesFromOverpass(answer, search = {}) {
+export function placesFromSearch(answer) {
     const seen = new Set();
-    const places = [];
-    ((answer && answer.elements) || []).forEach(element => {
-        const details = placeDetails(element);
+    const found = [];
+    ((answer && answer.places) || []).forEach(place => {
+        if (!isPlaceToEat(place)) return;
+        const details = placeDetails(place);
         if (details && !seen.has(details.id)) {
             seen.add(details.id);
-            places.push(details);
+            found.push(details);
         }
     });
-    if (search.near) {
-        const near = search.near;
-        const far = (/** @type {Details} */ details) => details.place && typeof details.place.lat === 'number'
-            ? distanceMetres(near, { lat: details.place.lat, lon: details.place.lon }) : Infinity;
-        return places.sort((a, b) => far(a) - far(b));
-    }
-    const typed = String(search.query || '').trim().toLowerCase();
-    if (!typed) return places;
-    const starts = places.filter(details => details.title.toLowerCase().startsWith(typed));
-    return [...starts, ...places.filter(details => !starts.includes(details))];
+    return found;
 }

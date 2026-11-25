@@ -164,3 +164,12 @@ resource "google_secret_manager_secret_iam_member" "run_reads" {
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.run.email}"
 }
+
+# Eat: server.js calls the Google Places API (New) as the runtime service
+# account (its own token, no API key), billed to this project. Using an API
+# on the project's account needs serviceusage.services.use.
+resource "google_project_iam_member" "run_uses_places" {
+  project = var.project
+  role    = "roles/serviceusage.serviceUsageConsumer"
+  member  = "serviceAccount:${google_service_account.run.email}"
+}

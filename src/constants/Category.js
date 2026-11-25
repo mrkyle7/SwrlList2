@@ -5,7 +5,7 @@ import { PlaySearch } from '../search/playSearch';
 import { EatSearch } from '../search/eatSearch';
 import { AllSearch } from '../search/allSearch';
 import { Constant } from './Constant';
-import { Attribution, TMDB_ATTRIBUTION, BGG_ATTRIBUTION, OSM_ATTRIBUTION } from './Attribution';
+import { Attribution, TMDB_ATTRIBUTION, BGG_ATTRIBUTION, GOOGLE_ATTRIBUTION } from './Attribution';
 import { Search } from '../search/search';
 import { WhereFilter, FILM_FILTER, TV_FILTER, BOOK_FILTER, ALBUM_FILTER, PODCAST_FILTER, BOARDGAME_FILTER, VIDEOGAME_FILTER, RESTAURANT_FILTER } from './WhereFilter';
 
@@ -97,7 +97,7 @@ export const PLAY = new Category(
     BGG_ATTRIBUTION);
 
 /**
- * Places to eat: restaurants, cafés, pubs and takeaways, from OpenStreetMap
+ * Places to eat: restaurants, cafés, pubs and takeaways, from Google Places
  * (searched by name or cuisine, near me or in a town or city). Id 6: 5 is ALL.
  */
 export const EAT = new Category(
@@ -112,7 +112,7 @@ export const EAT = new Category(
     '#2A9D8F',
     'img/restaurant-24px.svg',
     [RESTAURANT_FILTER],
-    OSM_ATTRIBUTION);
+    GOOGLE_ATTRIBUTION);
 
 /**
  * Not a list of its own: "search everything", for when we do not know what
@@ -125,12 +125,12 @@ export const ALL = new Category(
     'Search',
     'Nothing here.',
     'Nothing here.',
-    'Search films, TV, books, music, podcasts, games and places to eat all at once',
+    'Search films, TV, books, music, podcasts and games all at once',
     'Search everything',
     new AllSearch(),
     '#FF2E63',
     'img/search-24px-white.svg',
-    [FILM_FILTER, TV_FILTER, BOOK_FILTER, ALBUM_FILTER, PODCAST_FILTER, BOARDGAME_FILTER, VIDEOGAME_FILTER, RESTAURANT_FILTER]);
+    [FILM_FILTER, TV_FILTER, BOOK_FILTER, ALBUM_FILTER, PODCAST_FILTER, BOARDGAME_FILTER, VIDEOGAME_FILTER]);
 
 export const Categories = Object.freeze([WATCH, READ, LISTEN, PLAY, EAT]);
 

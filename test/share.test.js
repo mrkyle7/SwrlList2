@@ -65,11 +65,6 @@ describe('more shared links', function () {
         expect(recogniseLink('https://videogamegeek.com/videogame/69327/hades')).to.deep.equal({ source: 'item', type: 'videogame', id: '69327' });
         expect(recogniseLink('https://boardgamegeek.com/user/someone')).to.equal(undefined);
     });
-    it('opens a place to eat from OpenStreetMap', function () {
-        expect(recogniseLink('https://www.openstreetmap.org/node/2210258521')).to.deep.equal({ source: 'item', type: 'restaurant', id: 'n2210258521' });
-        expect(recogniseLink('https://www.openstreetmap.org/way/45#map=19/51.5/-0.1')).to.deep.equal({ source: 'item', type: 'restaurant', id: 'w45' });
-        expect(recogniseLink('https://www.openstreetmap.org/#map=12/51.5/-0.1')).to.equal(undefined);
-    });
     it('searches the right category for links with a title in them', function () {
         expect(recogniseLink('https://www.goodreads.com/book/show/58613451-project-hail-mary')).to.deep.equal({ source: 'search', category: 'read', query: 'project hail mary' });
         expect(recogniseLink('https://www.goodreads.com/en/book/show/44767458.Dune')).to.deep.equal({ source: 'search', category: 'read', query: 'Dune' });

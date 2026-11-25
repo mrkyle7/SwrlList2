@@ -35,7 +35,7 @@ src/
   actions/        user-initiated mutations — write to Firestore
   components/     small reusable DOM pieces (buttons, swrl card, toaster)
   constants/      enums: Category, Type, Filter, Sort, View, Collection, ...
-  detailGetters/  3rd-party detail fetchers (TMDB, OpenLibrary, iTunes, BGG, OpenStreetMap)
+  detailGetters/  3rd-party detail fetchers (TMDB, OpenLibrary, iTunes, BGG, Google Places)
   firebase/       init, login, messaging, swrler (user profile) helpers
   listeners/      Firestore onSnapshot subscriptions (my list entries, friends, inbox, ...)
   model/          data classes (Swrl, State, Recommendation, Rating, ...)
@@ -57,7 +57,7 @@ firestore.rules   security rules (applied by hand in the console, not by CI)
 firestore.indexes.json  the few indexes the new queries need (added by hand in the console)
 firebase.emulators.json emulator config (auth, firestore with the rules, functions)
 server.js         Express server used on Cloud Run (static app + third-party API proxies)
-serverlib/        server.js's tested helpers: Overpass queries, a restaurant website's picture (CommonJS)
+serverlib/        server.js's tested helpers: Google Places requests and their daily caps (CommonJS)
 webpack.config.js builds www/ + src/ into dist/
 Dockerfile        Cloud Run image: webpack build → Express
 terraform/        all GCP infrastructure, applied by GitHub Actions (see terraform/README.md)
@@ -141,9 +141,10 @@ counts are written by Cloud Functions. Details in the `swrl-firebase` skill.
   `firebase/compat/*`.
 - **TMDB, OMDb and BoardGameGeek calls go through `server.js`**
   (`/api/v1/tmdb/*`, `/api/v1/omdb`, `/api/v1/geek/*`; also the keyless
-  `/api/v1/itunes/*`, `/api/v1/oembed/spotify`, `/api/v1/eat/*` (Overpass) and
-  `/api/v1/pageimage`, which fetches a restaurant site's og:image behind an
-  address guard; keep that guard in `serverlib/pageImage.js`), which holds
+  `/api/v1/itunes/*`, `/api/v1/oembed/spotify`, and `/api/v1/eat/*`: Google
+  Places, called as the Cloud Run service account; it costs money past the
+  free monthly allowances, so keep its field masks and `DAILY_CAPS` in
+  `serverlib/places.js`), which holds
   `TMDB_API_KEY`, `OMDB_API_KEY` and `BGG_API_TOKEN` (from Secret Manager).
   BoardGameGeek is paused (`BGG_PAUSED` in `server.js`, instant 503) until
   BGG issues the key; flip it to `false` then.

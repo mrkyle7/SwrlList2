@@ -5785,7 +5785,7 @@ body:has(#login:not(.hidden)) .headerSearch {
     background: #2A9D8F;
 }
 
-/* OpenStreetMap is credited in words, linked, not with a logo */
+/* Google Maps is credited in words, linked, not with a logo */
 .attributionLink.attributionText {
     display: inline-flex;
     align-items: center;

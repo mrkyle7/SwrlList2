@@ -1,5 +1,5 @@
 import { Constant } from "./Constant";
-import { Attribution, TMDB_ATTRIBUTION, BGG_ATTRIBUTION, OSM_ATTRIBUTION } from "./Attribution";
+import { Attribution, TMDB_ATTRIBUTION, BGG_ATTRIBUTION, GOOGLE_ATTRIBUTION } from "./Attribution";
 import { DetailGetter } from "../detailGetters/detailGetter";
 import { TmdbFilmDetailGetter } from "../detailGetters/tmdbFilmDetailGetter";
 import { TmdbTVDetailGetter } from "../detailGetters/tmdbTVDetailGetter";
@@ -7,7 +7,7 @@ import { OpenLibraryBookDetailGetter } from "../detailGetters/openLibraryBookDet
 import { GeekDetailGetter } from "../detailGetters/geekDetailGetter";
 import { ItunesAlbumGetter } from "../detailGetters/itunesAlbumGetter";
 import { ItunesPodcastGetter } from "../detailGetters/itunesPodcastGetter";
-import { OsmPlaceGetter } from "../detailGetters/osmPlaceGetter";
+import { GooglePlaceGetter } from "../detailGetters/googlePlaceGetter";
 
 export class Type extends Constant {
     /**
@@ -83,14 +83,14 @@ export const VIDEOGAME = new Type(
     BGG_ATTRIBUTION
 )
 
-/** A place to eat (restaurant, café, pub, ...) from OpenStreetMap; its card says which kind. */
+/** A place to eat (restaurant, café, pub, ...) from Google Places; its card says which kind. */
 export const RESTAURANT = new Type(
     8,
     'RESTAURANT',
     'restaurant',
     null,
-    new OsmPlaceGetter(),
-    OSM_ATTRIBUTION
+    new GooglePlaceGetter(),
+    GOOGLE_ATTRIBUTION
 )
 
 export const types = Object.freeze([FILM, TV, BOOK, PODCAST, ALBUM, BOARDGAME, VIDEOGAME, RESTAURANT])

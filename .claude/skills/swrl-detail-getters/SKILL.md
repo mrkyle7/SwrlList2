@@ -36,7 +36,6 @@ kinds) and `src/search/sharedLink.js` (`resolveSharedLink`) says where it leads:
 | Open Library `/works/`, `/books/` | the book, after looking up an ISBN |
 | Apple Music album, Apple Podcasts | the album or podcast, by iTunes id (`item`) |
 | BoardGameGeek / VideoGameGeek game | the game, by geek id (`item`) |
-| OpenStreetMap `/node/`, `/way/`, `/relation/` | the place to eat (`item`, id `n123`) |
 | Goodreads, Letterboxd, Steam | a search of Read / Watch / Play for the title in the address (`slugWords`) |
 | Spotify album/show/episode/track | a Listen search for the title from `/api/v1/oembed/spotify` (server.js; Spotify's public oEmbed, no key, Spotify URLs only) |
 
@@ -102,7 +101,7 @@ across types**. The pattern is `<SOURCE>_<source-id>` (built in `src/search/*`):
 - `OPENLIBRARY-ISBN_<isbn>` - books (OpenLibrary)
 - `ITUNESALBUM_<collectionId>`, `ITUNESPODCAST_<collectionId>` - iTunes
 - `GEEK<type.geekType>_<bggId>` - board games and video games (BGG)
-- `OSMPLACE_<n|w|r><osmId>` - places to eat (OpenStreetMap node, way or relation)
+- `GPLACE_<googlePlaceId>` - places to eat (Google Places)
 
 When two users save "the same thing", they must produce identical `swrlID`s:
 that is how their list entries point at the single shared `swrls` doc (details
@@ -122,8 +121,8 @@ and counts).
 | `search/readSearch.js` | OpenLibrary | One request: `SEARCH_FIELDS` asks for isbn, author, year, cover and subjects, and `booksFromSearch` builds the cards from them (no lookup per book; the swrl page fetches full details). Must request `isbn` explicitly — search no longer returns ISBNs by default. |
 | `search/listenSearch.js` | iTunes | Album + podcast combined. |
 | `search/playSearch.js` | BGG via `/api/v1/geek/*` | Boardgame + videogame combined; details fetched in one batched `thing` call. |
-| `search/eatSearch.js` | OpenStreetMap's Overpass API via `/api/v1/eat/search` | Restaurants, cafés, takeaways, pubs and bars whose name or cuisine matches, near me or in a town or city (`components/eatWhere.js`: the "Near me / In [London]" row on the Eat search, remembered per device; Search everything uses the same choice; "London" means the Greater London boundary). `model/restaurant.js` (tested) maps elements to Details with a `place` object (kind, area, address, opening hours, phone, website, lat/lon), cuisines as `genres`, links (website, Google Maps, OpenStreetMap). |
-| `detailGetters/osmPlaceGetter.js` | `/api/v1/eat/place`, `/api/v1/pageimage` | One element by id. **Photos, best first:** the entry's `image` / `wikimedia_commons`; else the restaurant website's og:image (looked up here, when the page opens, so the page saves it); else a stock photo by cuisine (`stockPhoto`, Unsplash). |
+| `search/eatSearch.js` | Google Places Text Search via `/api/v1/eat/search` | Restaurants, cafés, takeaways, pubs and bars by name or cuisine, near me (by distance) or in a town or city ("pizza in London"), from `components/eatWhere.js` (the "Near me / In [London]" row on the Eat search, remembered per device). **Not in Search everything**: each Google search costs. Search asks only for id, name, short address, location and types, so cards show a stock photo for the cuisine. `model/restaurant.js` (tested) maps places to Details with a `place` object (kind, area, address, lat/lon, photo credit), cuisines (from `*_restaurant` types) as `genres`, and a Google Maps link. |
+| `detailGetters/googlePlaceGetter.js` | `/api/v1/eat/place` | One place by id when its page opens: the description (`editorialSummary`, the field that makes it the dearest tier, 1,000 free a month) and one photo (`photo.uri`, from Place Photos with `skipHttpRedirect`, with its author, shown as a "Photo" fact as Google asks). Those replace the stock photo and are saved with the swrl. |
 
 ## Adding a new Type
 
@@ -181,9 +180,9 @@ client.
 
 ## Attribution
 
-TMDB, BoardGameGeek and OpenStreetMap require a visible credit wherever their data is shown
-(OpenStreetMap's is in words, "© OpenStreetMap contributors" linked to its copyright page:
-an `Attribution` with no logo).
+TMDB, BoardGameGeek and Google Places require a visible credit wherever their data is shown
+(Google's is in words, "Google Maps", an `Attribution` with no logo; a Google
+photo's author is credited on the swrl page).
 `src/constants/Attribution.js` defines each one (logo, link, any required
 wording); a `Type` and a `Category` each take an optional `attribution`, and
 `components/attribution.js` renders it at the end of the list, at the end of

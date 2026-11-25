@@ -5,7 +5,7 @@ export class Attribution {
     /**
      * @param {string} name
      * @param {string} url where the logo links to
-     * @param {string | undefined} logo none for a credit in words only (OpenStreetMap)
+     * @param {string | undefined} logo none for a credit in words only (Google Maps)
      * @param {boolean} logoOnDark the logo is drawn for a dark background
      * @param {boolean} logoSaysPoweredBy the logo already contains the words "Powered by"
      * @param {string} [notice] wording the provider requires alongside the logo
@@ -36,11 +36,10 @@ export const BGG_ATTRIBUTION = new Attribution(
     true,
     false);
 
-/** OpenStreetMap's data is ODbL: credit in words, linked to its copyright page. */
-export const OSM_ATTRIBUTION = new Attribution(
-    '© OpenStreetMap contributors',
-    'https://www.openstreetmap.org/copyright',
+/** Google Places data off a Google map: credited in words (the photo's author is credited on the swrl page). */
+export const GOOGLE_ATTRIBUTION = new Attribution(
+    'Google Maps',
+    'https://www.google.com/maps',
     undefined,
     false,
-    false,
-    'Places to eat from OpenStreetMap, available under the Open Database Licence.');
+    false);
