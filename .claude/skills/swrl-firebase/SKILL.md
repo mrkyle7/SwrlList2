@@ -237,12 +237,22 @@ it's `undefined` until `setUpLogin` resolves.
 ## Cloud Messaging (`src/firebase/messaging.js`)
 
 - Enabled when `isSupported()` resolves true; asks for notification
-  permission on start and calls `getToken(messaging, { vapidKey })`.
+  permission on start and calls `getToken(messaging, { vapidKey,
+  serviceWorkerRegistration })` with the app's own worker (`www/sw.js`, scope
+  `/`), and unregisters the pre-3.30.0 worker at
+  `/firebase-cloud-messaging-push-scope` (its tokens die and
+  `functions/messages.js` prunes them). Without an app worker (plain http) the
+  SDK registers its own.
 - Uses a hardcoded VAPID public key (safe to commit; the private key is in
   the Firebase console).
 - Stores tokens in `messagingtokens` collection against `swrlUser.uid`.
 - `src/firebase/messaging-sw.js` (built to `/firebase-messaging-sw.js`) shows
-  notifications while the app is closed.
+  notifications while the app is closed. `www/sw.js` loads it with
+  `importScripts`, so notifications belong to the installed app: on Android a
+  worker under another scope opened taps in Chrome. Its own `notificationclick`
+  (added before Firebase's, which it stops) focuses an open app window and
+  sends it to the link's path, or opens the app there; the path is used on the
+  worker's own site, whatever host `fcmOptions.link` names.
 
 ## Auth notes
 

@@ -44,10 +44,10 @@ layout applies). Check signed in, signed out (anonymous) and as a friend.
 | --- | --- | --- |
 | A swrler's page: tabs (Later, In progress, Loved, Done) | `views/swrlerList.js`, `#swrlerTabs` | the query must carry the visibility constraint; tabs must fit on one line at 360px |
 | Swrl page: friends card (who has it, grouped) | `views/swrlFullPage.js` (`swrlersCard`, `swrlersCardSections`) | |
-| Discover: "Friends' recent activity" captions | `model/activity.js` (`activityCaption`), `components/categoryStrips.js` | |
+| Discover: "Friends' recent activity" captions (and the strips' 12px inset, `scroll-padding-inline`) | `model/activity.js` (`activityCaption`), `components/categoryStrips.js` | |
 | Discover: taste matches | `model/taste.js` | |
 | Friends screen | `views/friends.js` | |
-| Push notifications | `functions/messages.js` | |
+| Push notifications (and where a tap lands) | `functions/messages.js`, `src/firebase/messaging-sw.js` (loaded by `www/sw.js`), `src/firebase/messaging.js` | a tap opens the installed app at the link's path |
 | Shared links and their previews | `server.js`, `actions/shareSwrl.js` | |
 | Sharing from another app into Swrl List | `model/share.js`, `search/sharedLink.js`, `shareRoute` in `index.js` | which links open a swrl and which search: `swrl-detail-getters` |
 
