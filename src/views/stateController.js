@@ -37,7 +37,8 @@ import { initQuickAdd } from "../components/quickAdd";
 /** How many genres show before "Show all", and from how many the search box appears. */
 const FEW_GENRES = 8;
 const SEARCHABLE_GENRES = 12;
-import { filterFromId, withoutYourListOnlyFilters } from "../constants/Filter";
+import { filterFromId } from "../constants/Filter";
+import { inListState } from "../model/listStates";
 import { progressWords } from "../model/progress";
 import { categoryWords } from "../model/categoryWords";
 import { whereFilterFromId } from "../constants/WhereFilter";
@@ -261,6 +262,7 @@ export class StateController {
         const state = new State(current.view);
         state.selectedCategory = category;
         state.searchTerms = current.searchTerms;
+        state.listState = current.listState;
         this.changeState(state);
     }
 
@@ -382,7 +384,6 @@ export class StateController {
 
         this._showLabelFilters();
         this._showGenreFilters();
-        this._showInProgressFilter();
 
         const filters = document.getElementById('filters')
         filters.classList.remove('hidden');
@@ -523,6 +524,7 @@ export class StateController {
                 refreshState.genreFilters = this.currentState.genreFilters;
                 refreshState.typeFilter = this.currentState.typeFilter;
                 refreshState.swrler = this.currentState.swrler;
+                refreshState.listState = this.currentState.listState;
                 this.changeState(refreshState);
             }
         };
@@ -532,18 +534,6 @@ export class StateController {
      * Lists my labels as checkboxes in the filter popup. Only on my own
      * lists: labels are mine, so they mean nothing on someone else's.
      */
-    /** "Watching" (or reading, ...) in the filter sheet: only on Your list, where my started swrls are. */
-    _showInProgressFilter() {
-        const input = /** @type {HTMLInputElement} */ (document.getElementById('inProgressFilter'));
-        const label = document.querySelector('label[for="inProgressFilter"]');
-        const show = this.currentState.view === this.yourListView;
-        input.classList.toggle('hidden', !show);
-        label.classList.toggle('hidden', !show);
-        if (!show) input.checked = false;
-        const category = this.currentState.selectedCategory;
-        label.textContent = category ? progressWords(category.id).now : 'In progress';
-    }
-
     _showLabelFilters() {
         const section = document.getElementById('labelFilters');
         const list = document.getElementById('labelFilterList');
@@ -594,7 +584,8 @@ export class StateController {
         search.placeholder = `Find a ${word}`;
         search.setAttribute('aria-label', `Find a ${word}`);
         none.textContent = `No ${word} matches that.`;
-        const entries = getAllListEntries().filter(e => e.later && !e.deleted && e.category.id === category.id);
+        // the genres in the part of my list on show (Later, in progress or Done)
+        const entries = getAllListEntries().filter(e => e.category.id === category.id && inListState(e, this.currentState.listState));
         const visit = this._genreVisit = (this._genreVisit || 0) + 1;
         ensureGenres(entries, this.firestore).then(() => {
             if (visit !== this._genreVisit) return;
@@ -732,6 +723,7 @@ export class StateController {
             yourListState.filters = this.currentState.filters
             yourListState.labelFilters = this.currentState.labelFilters;
             yourListState.genreFilters = this.currentState.genreFilters;
+            yourListState.listState = this.currentState.listState;
             this.changeState(yourListState);
         });
     }
@@ -747,9 +739,11 @@ export class StateController {
             discoverState.searchTerms = this.currentState.searchTerms;
             discoverState.sort = this.currentState.sort;
             discoverState.typeFilter = this.currentState.typeFilter;
-            discoverState.filters = withoutYourListOnlyFilters(this.currentState.filters)
+            discoverState.filters = this.currentState.filters
             discoverState.labelFilters = this.currentState.labelFilters;
             discoverState.genreFilters = this.currentState.genreFilters;
+            // kept for coming back to Your list
+            discoverState.listState = this.currentState.listState;
             this.changeState(discoverState);
         });
     }
@@ -765,9 +759,11 @@ export class StateController {
             searchState.searchTerms = this.currentState.searchTerms;
             searchState.sort = this.currentState.sort;
             searchState.typeFilter = this.currentState.typeFilter;
-            searchState.filters = withoutYourListOnlyFilters(this.currentState.filters)
+            searchState.filters = this.currentState.filters
             searchState.labelFilters = this.currentState.labelFilters;
             searchState.genreFilters = this.currentState.genreFilters;
+            // kept for coming back to Your list
+            searchState.listState = this.currentState.listState;
             this.changeState(searchState);
         });
     }
@@ -784,7 +780,7 @@ export class StateController {
             state.swrler = this.currentState.swrler;
             state.sort = this.currentState.sort;
             state.typeFilter = this.currentState.typeFilter;
-            state.filters = withoutYourListOnlyFilters(this.currentState.filters)
+            state.filters = this.currentState.filters
             state.labelFilters = this.currentState.labelFilters;
             state.genreFilters = this.currentState.genreFilters;
             this.changeState(state);

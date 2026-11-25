@@ -112,9 +112,10 @@ containers that views attach into.
   (`addProgressButton` in `components/buttons.js`, which marks its container
   `data-progress-buttons="on"`; actions `markASwrlAsInProgress` /
   `unmarkASwrlAsInProgress`). Shown as the `.swrlProgress` badge on list and
-  inbox cards (`addProgressBadge`), first on Your List, in the Your-list-only
-  filter (`IN_PROGRESS_FILTER`, dropped by `withoutYourListOnlyFilters` when
-  moving to Discover, Search or a swrler), on a swrler's "In progress" tab
+  inbox cards (`addProgressBadge`), first on Your List, as the middle of Your
+  list's Later / Watching / Done switch (`model/listStates.js`: `State.listState`,
+  `inListState`; drawn by `showListStates` in `components/listToolbar.js`,
+  carried by the filter sheet, the Your list tab and the bottom bar), on a swrler's "In progress" tab
   (`SWRLER_IN_PROGRESS`, query `inProgress == true`), on the home tiles
   ("3 on your list · 1 watching"), as "Carry on watching" in Pick for me, as
   its own group on the swrl page's friends card and in Friends' recent

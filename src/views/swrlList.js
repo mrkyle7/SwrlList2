@@ -23,7 +23,9 @@ import { renderCategoryStrips } from '../components/categoryStrips';
 import { ensureGenres, genresFor } from '../firebase/genres';
 import { matchesGenres } from '../model/genres';
 import { closeTonightPicker, showTonightPicker } from '../components/tonightPicker';
-import { mountListToolbar, unmountListToolbar } from '../components/listToolbar';
+import { hideListStates, mountListToolbar, showListStates, unmountListToolbar, updateListStateCounts } from '../components/listToolbar';
+import { LIST_LATER, emptyListStateMessage, inListState, listStateCounts } from '../model/listStates';
+import { State } from '../model/state';
 
 export class YourListView extends UIView {
     /**
@@ -71,6 +73,7 @@ const swrlsContainer = document.getElementById('swrlList');
 let currentID;
 let currentCategory;
 let currentView;
+let currentListState;
 
 /**
  * @param {Category} category
@@ -82,6 +85,24 @@ export function showList(category, view, firestore, stateController) {
     const tabs = document.getElementById('tabs');
     tabs.classList.remove('hidden');
     mountListToolbar(swrlsContainer);
+    const listState = stateController.currentState.listState;
+    if (view === YOUR_LIST && swrlUser && !swrlUser.isAnonymous) {
+        showListStates(category.id, listState, listStateCounts(getAllListEntries(), category.id), (picked) => {
+            const current = stateController.currentState;
+            const next = new State(current.view);
+            next.selectedCategory = current.selectedCategory;
+            next.searchTerms = current.searchTerms;
+            next.sort = current.sort;
+            next.typeFilter = current.typeFilter;
+            next.filters = current.filters;
+            next.labelFilters = current.labelFilters;
+            next.genreFilters = current.genreFilters;
+            next.listState = picked;
+            stateController.changeState(next);
+        });
+    } else {
+        hideListStates();
+    }
 
     currentID = Math.random();
     const resultsID = currentID;
@@ -94,7 +115,7 @@ export function showList(category, view, firestore, stateController) {
     swrlsContainer.classList.remove('hidden');
     document.getElementById('swrlListView').classList.remove('hidden');
 
-    if (currentCategory !== category || currentView !== view) {
+    if (currentCategory !== category || currentView !== view || currentListState !== listState) {
         clearList();
         document.getElementById('messageContainer').classList.remove('hidden');
         document.getElementById('message').innerText = 'Loading Swrls...';
@@ -104,10 +125,11 @@ export function showList(category, view, firestore, stateController) {
     }
     currentCategory = category
     currentView = view;
+    currentListState = listState;
     const filters = stateController.currentState.filters;
     const userId = swrlUser ? swrlUser.uid : undefined;
     const genreFilters = view === YOUR_LIST ? stateController.currentState.genreFilters : [];
-    loadSwrls(category, view, stateController.currentState.sort, stateController.currentState.typeFilter, firestore)
+    loadSwrls(category, view, stateController.currentState.sort, stateController.currentState.typeFilter, firestore, listState)
         // filtering by genre needs every swrl's genres to hand first
         .then(async result => {
             if (genreFilters.length > 0) await ensureGenres(getAllListEntries(), firestore);
@@ -115,6 +137,9 @@ export function showList(category, view, firestore, stateController) {
         })
         .then(function ({ total, swrls: loaded }) {
             if (currentID === resultsID) {
+                if (view === YOUR_LIST && swrlUser && !swrlUser.isAnonymous) {
+                    updateListStateCounts(listStateCounts(getAllListEntries(), category.id));
+                }
                 document.getElementById('messageContainer').classList.add('hidden');
                 document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
                 document.querySelector('#swrlListView .loadingbar').classList.add('hidden');
@@ -126,7 +151,7 @@ export function showList(category, view, firestore, stateController) {
                         && matchesLabels(getLabelsFor(swrl.swrlID), labelFilters)
                         && matchesGenres(genresFor(swrl.swrlID), genreFilters));
                     renderNextSwrls(swrls, stateController, view, firestore, true);
-                    if (view === YOUR_LIST && swrls.length > 1) {
+                    if (view === YOUR_LIST && listState === LIST_LATER && swrls.length > 1) {
                         addPickBar(category, stateController);
                     }
 
@@ -135,12 +160,12 @@ export function showList(category, view, firestore, stateController) {
                         if (view === DISCOVER) {
                             showNoSwrlsDiscoverView(category);
                         } else {
-                            showNoSwrlsView(category, isFiltering(stateController));
+                            showNoSwrlsView(category, isFiltering(stateController), listState);
                         }
                     }
                 } else {
                     console.log("No Swrls found");
-                    showNoSwrlsView(category);
+                    showNoSwrlsView(category, false, view === YOUR_LIST ? listState : LIST_LATER);
                 }
                 // What friends are into, at the top of Discover, unless I am filtering it
                 const state = stateController.currentState;
@@ -177,18 +202,19 @@ export function showList(category, view, firestore, stateController) {
  * @param {Sort} sort
  * @param {WhereFilter} typeFilter
  * @param {import('firebase/firestore').Firestore} firestore
+ * @param {import('../model/listStates').ListStateID} listState on Your list: Later, in progress or Done
  * @return {Promise<{total: number, swrls: Swrl[]}>} total is how many there were before Discover's exclusions
  */
-async function loadSwrls(category, view, sort, typeFilter, firestore) {
+async function loadSwrls(category, view, sort, typeFilter, firestore, listState) {
     if (view === YOUR_LIST) {
         if (!swrlUser || swrlUser.isAnonymous) {
             showRequireLoginScreen('to see Swrls on your list');
             return { total: 0, swrls: [] };
         }
         await whenListEntriesReady();
-        // what I have started comes first, in the chosen order
+        // the part of my list on show; what I have started comes first, in the chosen order
         const entries = inProgressFirst(sortListEntries(getAllListEntries().filter(entry =>
-            entry.later && entry.category.id === category.id && (!typeFilter || entry.type.id === typeFilter.value)), sort));
+            inListState(entry, listState) && entry.category.id === category.id && (!typeFilter || entry.type.id === typeFilter.value)), sort));
         return { total: entries.length, swrls: entries.map(entry => entry.toSwrl()) };
     }
 
@@ -334,17 +360,15 @@ export function destroyList() {
 
 /**
  * @param {Category} category
- */
-/**
- * @param {Category} category
  * @param {boolean} [filtered] whether filters are hiding what is on the list
+ * @param {import('../model/listStates').ListStateID} [listState] the part of my list on show
  */
-function showNoSwrlsView(category, filtered) {
+function showNoSwrlsView(category, filtered, listState = LIST_LATER) {
     document.getElementById('messageContainer').classList.remove('hidden');
     document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
     document.getElementById('message').innerText = filtered
         ? 'Nothing on your list matches these filters. Tap the filter button to change or clear them.'
-        : category.noSwrlsMessage;
+        : emptyListStateMessage(listState, category.id, category.noSwrlsMessage);
 }
 
 /**

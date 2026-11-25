@@ -28,6 +28,9 @@ export class State {
     /** Genres to filter my list by; a swrl needs at least one of them.
      * @type {string[]} */
     genreFilters = [];
+    /** Which part of my list a category's Your list shows (model/listStates.js).
+     * @type {import('./listStates').ListStateID} */
+    listState = 'later';
     
     /** @type {import('firebase/auth').User} */
     swrler;
