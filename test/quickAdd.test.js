@@ -2,12 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { quickAddFromId, quickAddModes, DEFAULT_QUICK_ADD, QUICK_SEARCH, QUICK_MENU, QUICK_WHEEL, wheelPositions, pickOption } from '../src/model/quickAdd';
 
 describe('the search button', () => {
-    it('goes straight to search everything until I choose', () => {
-        expect(DEFAULT_QUICK_ADD).toBe(QUICK_SEARCH);
-        expect(quickAddFromId(undefined)).toBe(QUICK_SEARCH);
+    it('shows the categories until I choose', () => {
+        expect(DEFAULT_QUICK_ADD).toBe(QUICK_MENU);
+        expect(quickAddFromId(undefined)).toBe(QUICK_MENU);
+        expect(quickAddFromId('search')).toBe(QUICK_SEARCH);
         expect(quickAddFromId('menu')).toBe(QUICK_MENU);
         expect(quickAddFromId('wheel')).toBe(QUICK_WHEEL);
-        expect(quickAddFromId('spin')).toBe(QUICK_SEARCH);
+        expect(quickAddFromId('spin')).toBe(QUICK_MENU);
         expect(quickAddModes.map(mode => mode.id)).toEqual(['search', 'menu', 'wheel']);
     });
 

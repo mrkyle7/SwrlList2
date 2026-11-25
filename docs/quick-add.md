@@ -13,9 +13,10 @@ them changes; the code is described in the skills (`swrl-architecture`,
   and desktop homes, the search button in the Tiles home's header, the round
   search button bottom right (phones) and Search in the sidebar (desktop). The
   cursor is already in the box.
-- **The search button** at the bottom right on phones: straight to Search
-  everything, or (Settings → "The search button") a menu of categories or a
-  swirl you hold and slide to a category.
+- **The search button** at the bottom right on phones: a menu of the
+  categories (and Search everything) to tap, or (Settings → "The search
+  button") straight to Search everything, or a swirl you hold and slide to a
+  category.
 - **Results arrive as each source answers**, with my own matching swrls first.
 - **Add from the result**: the add button on every card, with Undo in the toast.
 
