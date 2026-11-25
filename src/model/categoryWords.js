@@ -21,6 +21,7 @@
  * @property {string} areStarted several people: "are watching it", "have booked it"
  * @property {string} reminder why the picker suggests something started: "Carry on watching"
  * @property {string} pickQuestion the picker's title: "What should you watch?"
+ * @property {string} genre what its genres are called: "genre", or "cuisine" for places to eat
  */
 
 /** @type {Object<number, CategoryWords>} by category id */
@@ -29,31 +30,31 @@ const WORDS = {
         verb: 'watch', past: 'watched', doneIt: 'watched it', doIt: 'watch it',
         now: 'Watching', start: 'Start watching', caption: 'watching',
         isStarted: 'is watching it', areStarted: 'are watching it',
-        reminder: 'Carry on watching', pickQuestion: 'What should you watch?'
+        reminder: 'Carry on watching', pickQuestion: 'What should you watch?', genre: 'genre'
     },
     2: {
         verb: 'read', past: 'read', doneIt: 'read it', doIt: 'read it',
         now: 'Reading', start: 'Start reading', caption: 'reading',
         isStarted: 'is reading it', areStarted: 'are reading it',
-        reminder: 'Carry on reading', pickQuestion: 'What should you read?'
+        reminder: 'Carry on reading', pickQuestion: 'What should you read?', genre: 'genre'
     },
     3: {
         verb: 'listen to', past: 'listened to', doneIt: 'listened to it', doIt: 'listen to it',
         now: 'Listening', start: 'Start listening', caption: 'listening to',
         isStarted: 'is listening to it', areStarted: 'are listening to it',
-        reminder: 'Carry on listening to', pickQuestion: 'What should you listen to?'
+        reminder: 'Carry on listening to', pickQuestion: 'What should you listen to?', genre: 'genre'
     },
     4: {
         verb: 'play', past: 'played', doneIt: 'played it', doIt: 'play it',
         now: 'Playing', start: 'Start playing', caption: 'playing',
         isStarted: 'is playing it', areStarted: 'are playing it',
-        reminder: 'Carry on playing', pickQuestion: 'What should you play?'
+        reminder: 'Carry on playing', pickQuestion: 'What should you play?', genre: 'genre'
     },
     6: {
         verb: 'eat at', past: 'ate at', doneIt: 'ate there', doIt: 'eat there',
         now: 'Booked', start: 'Mark as booked', caption: 'booked',
         isStarted: 'has booked it', areStarted: 'have booked it',
-        reminder: 'You have a table booked', pickQuestion: 'Where should you eat?'
+        reminder: 'You have a table booked', pickQuestion: 'Where should you eat?', genre: 'cuisine'
     }
 };
 
@@ -62,7 +63,7 @@ const FALLBACK = {
     verb: 'try', past: 'tried', doneIt: 'tried it', doIt: 'try it',
     now: 'In progress', start: 'Start', caption: 'on',
     isStarted: 'is on it', areStarted: 'are on it',
-    reminder: 'Carry on', pickQuestion: 'What should you try?'
+    reminder: 'Carry on', pickQuestion: 'What should you try?', genre: 'genre'
 };
 
 /**
