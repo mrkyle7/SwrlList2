@@ -32,6 +32,7 @@ import { applyListView, bindListToolbar, setFilterCount } from "../components/li
 import { showToasterMessage } from "../components/toaster";
 import { initDesktopSidebar, setActiveSidebarItem } from "../components/desktopSidebar";
 import { initPhoneNav, setActivePhoneNavItem } from "../components/phoneNav";
+import { initQuickAdd } from "../components/quickAdd";
 
 /** How many genres show before "Show all", and from how many the search box appears. */
 const FEW_GENRES = 8;
@@ -221,6 +222,26 @@ export class StateController {
     }
 
     /**
+     * A category's search, with the cursor in the box (the search button's
+     * choices). Called from a tap, so the phone keyboard comes up.
+     *
+     * @param {string} name
+     */
+    openCategorySearch(name) {
+        const category = Categories.find(c => c.name === name);
+        if (!category) return;
+        const current = this.currentState;
+        if (!(current.view === this.searchView && current.selectedCategory === category)) {
+            const state = new State(this.searchView);
+            state.selectedCategory = category;
+            this.changeState(state);
+        }
+        const box = /** @type {HTMLInputElement} */ (document.getElementById('swrlSearch'));
+        box.focus();
+        box.select();
+    }
+
+    /**
      * From the phone's bottom bar. On a category's list it keeps the tab
      * (Your list, Discover or Search) and the search words, so switching from
      * Watch to Read is like picking another category in the sidebar while
@@ -295,6 +316,10 @@ export class StateController {
             home: () => { if (this.currentState.view !== this.homeView) this.changeState(new State(this.homeView)); },
             search: () => this.openSearchEverything(),
             category: name => this._switchCategory(name)
+        });
+        initQuickAdd(Categories, {
+            all: () => this.openSearchEverything(),
+            category: name => this.openCategorySearch(name)
         });
         // the quick ways in to adding something: the home screen's search box
         // and the header's search button (Tiles home on phones)

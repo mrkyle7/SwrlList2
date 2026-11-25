@@ -385,6 +385,24 @@
             </div>
             <p class="settingsNote">For phones and tablets. On a computer the home screen always has the sidebar and cards.</p>
           </div>
+          <div class="friendsSection">
+            <h2 class="friendsHeading">The search button</h2>
+            <div class="settingsOptions" role="radiogroup" aria-label="The search button">
+              <label class="settingsOption">
+                <input type="radio" name="quickAddButton" value="search">
+                <span class="settingsOptionText"><span class="settingsOptionTitle">Search everything</span><span class="settingsOptionHint">Goes straight to Search everything</span></span>
+              </label>
+              <label class="settingsOption">
+                <input type="radio" name="quickAddButton" value="menu">
+                <span class="settingsOptionText"><span class="settingsOptionTitle">Choose a category</span><span class="settingsOptionHint">Shows each category to search in, then you tap one</span></span>
+              </label>
+              <label class="settingsOption">
+                <input type="radio" name="quickAddButton" value="wheel">
+                <span class="settingsOptionText"><span class="settingsOptionTitle">Swirl</span><span class="settingsOptionHint">Hold and slide to a category, or let go on the button for everything</span></span>
+              </label>
+            </div>
+            <p class="settingsNote">The round button at the bottom right on phones and tablets, for adding something quickly.</p>
+          </div>
           <div id="deleteAccountSection" class="friendsSection settingsDanger">
             <h2 class="friendsHeading">Delete my account</h2>
             <p class="settingsNote">This permanently deletes your account and everything in it: your lists, your private notes and labels, your friends and friend requests, your saved searches and the recommendations you sent. It can't be undone.</p>
@@ -588,6 +606,15 @@
     <button type="button" id="loginSheetGo" class="sheetApply">Log in with Google</button>
     <button type="button" id="loginSheetCancel" class="sheetCancel">Not now</button>
   </div>
+  <!-- The search button, bottom right on phones (components/quickAdd.js) -->
+  <div id="quickAddBackdrop" class="quickAddBackdrop hidden"></div>
+  <div id="quickAddMenu" class="quickAddMenu hidden" role="menu" aria-label="Search in"></div>
+  <div id="quickAddWheel" class="quickAddWheel hidden" role="menu" aria-label="Search in"></div>
+  <p id="quickAddWheelLabel" class="quickAddWheelLabel hidden" aria-live="polite"></p>
+  <button type="button" id="quickAddButton" class="quickAddButton" aria-label="Search to add" title="Search to add" aria-haspopup="menu" aria-expanded="false">
+    <span class="quickAddSearchIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></span>
+    <span class="quickAddCloseIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+  </button>
   <div id="genreSheetBackdrop" class="sheetBackdrop hidden"></div>
   <div id="genreSheet" class="bottomSheet hidden" role="dialog" aria-modal="true" aria-labelledby="genreSheetTitle">
     <h3 id="genreSheetTitle">Genres</h3>

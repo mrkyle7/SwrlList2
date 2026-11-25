@@ -2,13 +2,15 @@ import { UIView } from './UIView';
 import { StateController } from './stateController';
 import { State } from '../model/state';
 import { swrlUser } from '../firebase/login';
-import { getDefaultVisibility, getHomeLayout, getPageLayout, whenListEntriesReady } from '../listeners/listEntries';
+import { getDefaultVisibility, getHomeLayout, getPageLayout, getQuickAdd, whenListEntriesReady } from '../listeners/listEntries';
 import { Visibility, visibilityFromId } from '../constants/Visibility';
 import setDefaultVisibility from '../actions/setDefaultVisibility';
 import setSwrlPageLayout from '../actions/setSwrlPageLayout';
 import { PageLayout, pageLayoutFromId } from '../model/swrlPage';
 import setHomeLayout from '../actions/setHomeLayout';
 import { HomeLayout, homeLayoutFromId } from '../model/homeLayout';
+import setQuickAdd from '../actions/setQuickAdd';
+import { QuickAddMode, quickAddFromId } from '../model/quickAdd';
 import deleteAccount from '../actions/deleteAccount';
 import { showToasterMessage } from '../components/toaster';
 
@@ -36,6 +38,8 @@ const radios = document.querySelectorAll('input[name="defaultVisibility"]');
 const layoutRadios = document.querySelectorAll('input[name="swrlPageLayout"]');
 /** @type {NodeListOf<HTMLInputElement>} */
 const homeRadios = document.querySelectorAll('input[name="homeLayout"]');
+/** @type {NodeListOf<HTMLInputElement>} */
+const quickRadios = document.querySelectorAll('input[name="quickAddButton"]');
 /** @type {HTMLButtonElement} */
 // @ts-ignore
 const deleteStart = document.getElementById('deleteAccountStart');
@@ -72,6 +76,8 @@ function showSettings(firestore, stateController) {
     setRadios(undefined);
     setLayoutRadios(undefined);
     setHomeRadios(undefined);
+    setQuickRadios(undefined);
+    quickRadios.forEach(radio => radio.disabled = true);
     radios.forEach(radio => radio.disabled = true);
     layoutRadios.forEach(radio => radio.disabled = true);
     homeRadios.forEach(radio => radio.disabled = true);
@@ -83,6 +89,8 @@ function showSettings(firestore, stateController) {
         setRadios(getDefaultVisibility());
         setLayoutRadios(getPageLayout());
         setHomeRadios(getHomeLayout());
+        quickRadios.forEach(radio => radio.disabled = false);
+        setQuickRadios(getQuickAdd());
     });
 }
 
@@ -108,6 +116,10 @@ function bind(firestore, stateController) {
     homeRadios.forEach(radio => radio.addEventListener('change', () => {
         if (!radio.checked) return;
         saveHomeLayout(homeLayoutFromId(radio.value), firestore);
+    }));
+    quickRadios.forEach(radio => radio.addEventListener('change', () => {
+        if (!radio.checked) return;
+        saveQuickAdd(quickAddFromId(radio.value), firestore);
     }));
     deleteStart.addEventListener('click', () => {
         deleteConfirm.classList.remove('hidden');
@@ -187,7 +199,40 @@ function saveHomeLayout(layout, firestore) {
             if (visit !== thisVisit) return;
             homeRadios.forEach(radio => radio.disabled = false);
             setHomeRadios(getHomeLayout());
+        quickRadios.forEach(radio => radio.disabled = false);
+        setQuickRadios(getQuickAdd());
         });
+}
+
+/**
+ * Saves what the search button does. On failure the radio goes back to what
+ * is stored and the user is told.
+ *
+ * @param {QuickAddMode} mode
+ * @param {import('firebase/firestore').Firestore} firestore
+ */
+function saveQuickAdd(mode, firestore) {
+    const thisVisit = visit;
+    quickRadios.forEach(radio => radio.disabled = true);
+    setQuickAdd(mode, firestore)
+        .then(() => showToasterMessage(`Search button: ${mode.label.toLowerCase()}`))
+        .catch(error => {
+            console.error('Could not change the search button');
+            console.error(error);
+            showToasterMessage("Couldn't change the search button");
+        })
+        .finally(() => {
+            if (visit !== thisVisit) return;
+            quickRadios.forEach(radio => radio.disabled = false);
+            setQuickRadios(getQuickAdd());
+        });
+}
+
+/**
+ * @param {QuickAddMode | undefined} mode the one to tick; undefined clears them all
+ */
+function setQuickRadios(mode) {
+    quickRadios.forEach(radio => radio.checked = mode !== undefined && radio.value === mode.id);
 }
 
 /**
