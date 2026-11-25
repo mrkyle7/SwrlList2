@@ -4,17 +4,18 @@ import { WatchSearch } from './watchSearch';
 import { ReadSearch } from './readSearch';
 import { ListenSearch } from './listenSearch';
 import { PlaySearch } from './playSearch';
-import { EatSearch } from './eatSearch';
 
 /**
  * Searches every source at once (films, TV, books, albums, podcasts, board
- * and video games, places to eat) and interleaves the results, for when we do not know what
+ * and video games; not places to eat) and interleaves the results, for when we do not know what
  * kind of thing the user is after. A source that fails just adds nothing.
  */
 export class AllSearch extends Search {
     constructor() {
         super();
-        this.searches = [new WatchSearch(), new ReadSearch(), new ListenSearch(), new PlaySearch(), new EatSearch()];
+        this.searches = [new WatchSearch(), new ReadSearch(), new ListenSearch(), new PlaySearch()];
+        // not places to eat: each Google search costs, and Search everything
+        // runs on every pause in typing
     }
 
     /**

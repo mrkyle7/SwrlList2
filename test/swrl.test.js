@@ -288,8 +288,8 @@ describe('Swrl counts', function () {
 describe('A place to eat', function () {
     it('round-trips through Firestore with its type, category and place', function () {
         const data = {
-            type: 8, category: 6, swrlID: 'OSMPLACE_n42',
-            details: { id: 'n42', title: 'Dishoom', imageUrl: 'https://example.com/d.jpg', genres: ['Indian'],
+            type: 8, category: 6, swrlID: 'GPLACE_ChIJ42abcdefgh',
+            details: { id: 'ChIJ42abcdefgh', title: 'Dishoom', imageUrl: 'https://example.com/d.jpg', genres: ['Indian'],
                 place: { kind: 'Restaurant', area: 'Covent Garden', lat: 51.51, lon: -0.13 } }
         };
         const swrl = Swrl.fromFirestore(data);

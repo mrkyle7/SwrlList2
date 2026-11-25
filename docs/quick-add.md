@@ -23,7 +23,7 @@ them changes; the code is described in the skills (`swrl-architecture`,
   screen to make it an icon of its own: "Search everything" opens straight into
   the search box.
 - **Share from another app** (Chrome, IMDb, Goodreads, Letterboxd, Spotify,
-  Apple Music, BoardGameGeek, Steam, Amazon, OpenStreetMap, Netflix, ...) and pick Swrl List.
+  Apple Music, BoardGameGeek, Steam, Amazon, Netflix, ...) and pick Swrl List.
   Links we know open the swrl's page, ready to add; others search the right
   category for the title, or everything for the shared words.
 - `launch_handler` asks Chrome to reuse an open Swrl List window for a

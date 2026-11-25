@@ -5,18 +5,20 @@ import { Network } from "./network";
 import { TmdbPerson } from "./tmdbPerson";
 
 /**
- * What a place to eat has that nothing else does (Eat, from OpenStreetMap).
+ * What a place to eat has that nothing else does (Eat, from Google Places).
  * Every field is optional.
  *
  * @typedef {Object} PlaceInfo
  * @property {string} [kind] "Restaurant", "Café", "Pub", ...
  * @property {string} [area] the neighbourhood or town, for cards
  * @property {string} [address] one line
- * @property {string} [openingHours] as OpenStreetMap has it ("Mo-Su 12:00-23:00")
+ * @property {string} [openingHours] as written ("Mo-Su 12:00-23:00"); not asked of Google
  * @property {string} [phone]
  * @property {string} [website]
  * @property {number} [lat]
  * @property {number} [lon]
+ * @property {string} [photoBy] who took the photo (Google asks us to say)
+ * @property {string} [photoByUrl]
  */
 
 export class Details {

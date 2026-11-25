@@ -19,6 +19,7 @@ resource "google_project_service" "required" {
     "cloudfunctions.googleapis.com",       # functions/
     "cloudbuild.googleapis.com",           # builds the functions on deploy
     "firebase.googleapis.com",             # firebase-tools reads the project
+    "places.googleapis.com",               # Eat: Google Places API (New), called by the app's server
   ])
   project            = var.project
   service            = each.value

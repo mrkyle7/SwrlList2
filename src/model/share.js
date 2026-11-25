@@ -19,7 +19,7 @@ import { categoryWords } from './categoryWords';
  *
  * @typedef {{source: 'imdb', imdbId: string}
  *   | {source: 'tmdb', kind: 'movie' | 'tv', id: string}
- *   | {source: 'item', type: 'book' | 'album' | 'podcast' | 'boardgame' | 'videogame' | 'restaurant', id: string}
+ *   | {source: 'item', type: 'book' | 'album' | 'podcast' | 'boardgame' | 'videogame', id: string}
  *   | {source: 'openlibrary', kind: 'works' | 'books', id: string}
  *   | {source: 'spotify', url: string}
  *   | {source: 'search', category: 'watch' | 'read' | 'listen' | 'play', query: string}} SharedLink
@@ -118,11 +118,6 @@ export function recogniseLink(link) {
             return { source: 'item', type: match[1] === 'videogame' ? 'videogame' : 'boardgame', id: match[2] };
         }
         return undefined;
-    }
-    if (isHost(hostname, 'openstreetmap.org')) {
-        // a place on the map: /node/123, /way/45 (the app keeps "n123", "w45")
-        match = /^\/(node|way|relation)\/(\d{1,12})\/?$/.exec(path);
-        return match ? { source: 'item', type: 'restaurant', id: match[1].charAt(0) + match[2] } : undefined;
     }
     if (hostname === 'store.steampowered.com') {
         match = /^\/app\/\d+\/([^/?#]+)/.exec(path);

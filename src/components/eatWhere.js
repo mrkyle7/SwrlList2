@@ -5,7 +5,7 @@
  * kept in memory, and the server rounds it to about a kilometre.
  *
  * The control (#eatWhere in www/index.html) shows above the results on the
- * Eat search; Search everything uses the same choice without showing it.
+ * Eat search (Search everything does not search places to eat).
  */
 
 const STORE_KEY = 'swrlEatWhere';
