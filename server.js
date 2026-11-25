@@ -236,7 +236,10 @@ async function relayOverpass(res, query, label) {
     res.setHeader('Cache-Control', 'public, max-age=3600');
     return res.type('application/json').send(cached.body);
   }
+  /** What each server did, for the logs and the error answer (no query in it). */
+  const tried = [];
   for (const host of OVERPASS_HOSTS) {
+    const started = Date.now();
     try {
       const answer = await overpassGet(host, path);
       let json;
@@ -248,12 +251,15 @@ async function relayOverpass(res, query, label) {
         res.setHeader('Cache-Control', 'public, max-age=3600');
         return res.type('application/json').send(answer.body);
       }
-      console.error(`Overpass ${host} answered ${answer.status}${remark ? ' (' + remark.slice(0, 120) + ')' : ''} for ${label}`);
+      const said = `HTTP ${answer.status}${remark ? ': ' + remark.slice(0, 120) : json ? '' : ': ' + answer.body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120)}`;
+      tried.push({ host, result: said, ms: Date.now() - started });
+      console.error(`Overpass ${host} answered ${said} for ${label}`);
     } catch (error) {
+      tried.push({ host, result: error.message, ms: Date.now() - started });
       console.error(`Overpass ${host} failed for ${label}: ${error.message}`);
     }
   }
-  res.status(503).json({ error: 'Places to eat are not available right now' });
+  res.status(503).json({ error: 'Places to eat are not available right now', tried });
 }
 
 app.get('/api/v1/eat/search', function (req, res) {
