@@ -3849,6 +3849,103 @@ button.pageActionPrimary:hover {
     }
 }
 
+/* Your list: Later / Watching / Done, first in the toolbar (components/listToolbar.js).
+   A grey track with the part on show raised in white, so it reads as "which
+   swrls" and not as one more button. To keep one row, Filter and Compact /
+   Detailed drop their words beside it on phones and tablets. */
+.listStates {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 360px;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 22px;
+    background: #eceef2;
+}
+
+.listStateOption {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 19px;
+    background: transparent;
+    color: #444;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.listStateOption:hover {
+    background: #e0e3e8;
+}
+
+.listStateCount {
+    margin-left: 5px;
+    color: #555;
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.listStateOption[aria-pressed="true"] .listStateCount {
+    color: #b3123f;
+    font-weight: 700;
+}
+
+.listStateOption[aria-pressed="true"] {
+    background: #fff;
+    color: #222222;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+
+.listStateOption:focus-visible {
+    outline: 3px solid #1769d6;
+    outline-offset: 1px;
+}
+
+@media (max-width: 1279px) {
+    .listToolbar.withStates {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .listToolbar.withStates .listToolbarFilter {
+        padding: 0 11px;
+        gap: 4px;
+    }
+
+    .listToolbar.withStates .listToolbarFilter > span:not(.listToolbarCount),
+    .listToolbar.withStates .listViewOption span {
+        display: none;
+    }
+
+    .listToolbar.withStates .listViewOption {
+        min-width: 44px;
+        padding: 0 11px;
+    }
+}
+
+/* phones: Compact / Detailed beside the switch is one button, to the view not on show */
+@media (max-width: 1024px) {
+    .listToolbar.withStates .listViewSwitch {
+        grid-template-columns: 1fr;
+    }
+
+    .listToolbar.withStates .listViewOption[aria-pressed="true"] {
+        display: none;
+    }
+
+    .listToolbar.withStates .listStateOption {
+        padding: 0 8px;
+    }
+}
+
 /* Compact: a flat row, the poster beside the title, the buttons bottom right */
 .swrl.swrlCard {
     display: grid;

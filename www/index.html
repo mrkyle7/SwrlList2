@@ -234,17 +234,18 @@
       <p class="loggingInMessage">Just a moment…</p>
     </div>
     <div id="listToolbar" class="listToolbar hidden">
-      <button type="button" id="listFilterButton" class="listToolbarFilter">
+      <div id="listStates" class="listStates hidden" role="group" aria-label="Which swrls on your list to show"></div>
+      <button type="button" id="listFilterButton" class="listToolbarFilter" title="Filter and sort">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7.5V18l-4 2v-7.5z"/></svg>
         <span>Filter</span>
         <span id="listFilterCount" class="listToolbarCount hidden"></span>
       </button>
       <div class="listViewSwitch" role="group" aria-label="How to show the list">
-        <button type="button" class="listViewOption" data-list-view="compact" aria-pressed="true" aria-label="Compact list">
+        <button type="button" class="listViewOption" data-list-view="compact" aria-pressed="true" aria-label="Compact list" title="Compact list">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
           <span>Compact</span>
         </button>
-        <button type="button" class="listViewOption" data-list-view="detailed" aria-pressed="false" aria-label="Detailed list">
+        <button type="button" class="listViewOption" data-list-view="detailed" aria-pressed="false" aria-label="Detailed list" title="Detailed list">
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="13" width="16" height="7" rx="2"/></svg>
           <span>Detailed</span>
         </button>
@@ -560,8 +561,6 @@
       <div class="chips">
         <input type="checkbox" id="recommended" name="filter" value="1">
         <label for="recommended">Swrled to you</label>
-        <input type="checkbox" id="inProgressFilter" name="filter" value="2">
-        <label for="inProgressFilter">In progress</label>
       </div>
       <div id="labelFilters" class="hidden">
         <h3>Your labels</h3>
