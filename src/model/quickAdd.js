@@ -25,8 +25,8 @@ export const QUICK_WHEEL = new QuickAddMode('wheel', 'Swirl', 'Hold and slide to
 
 export const quickAddModes = Object.freeze([QUICK_SEARCH, QUICK_MENU, QUICK_WHEEL]);
 
-/** Until I choose: one tap to search everything. */
-export const DEFAULT_QUICK_ADD = QUICK_SEARCH;
+/** Until I choose: the categories, so one more tap lands on the right search. */
+export const DEFAULT_QUICK_ADD = QUICK_MENU;
 
 /**
  * @param {any} [id]
