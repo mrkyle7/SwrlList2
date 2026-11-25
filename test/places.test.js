@@ -18,8 +18,10 @@ describe('Google Places requests', () => {
     it('asks only for fields inside the cheaper allowances', () => {
         // search: Text Search Pro fields only, never photos, ratings or descriptions
         expect(SEARCH_FIELDS.split(',')).toEqual(['places.id', 'places.displayName', 'places.shortFormattedAddress', 'places.location', 'places.primaryType', 'places.types']);
-        // details: the description and one photo's reference, nothing else billed higher
-        expect(DETAIL_FIELDS.split(',')).toEqual(['id', 'displayName', 'shortFormattedAddress', 'location', 'primaryType', 'types', 'photos', 'editorialSummary']);
+        // details: the descriptions (editorial, then Google's AI summaries, all one
+        // billing tier) and one photo's reference, nothing else billed higher
+        expect(DETAIL_FIELDS.split(',')).toEqual(['id', 'displayName', 'shortFormattedAddress', 'location', 'primaryType', 'types', 'photos',
+            'editorialSummary', 'generativeSummary', 'reviewSummary']);
     });
 
     it('cleans what the app sends', () => {
