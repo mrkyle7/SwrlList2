@@ -1,5 +1,7 @@
 import { collection, documentId, getDocs, query, where } from 'firebase/firestore';
 import { Collection } from '../constants/Collection';
+import { getListEntry } from '../listeners/listEntries';
+import { myGenres } from '../model/myGenres';
 
 /** Genres per swrl, from my entry's details or, failing that, the shared swrl's. */
 const genresBySwrl = new Map();
@@ -42,8 +44,8 @@ export async function ensureGenres(entries, firestore) {
 
 /**
  * @param {string} swrlID
- * @return {string[]} its genres, as far as they are known
+ * @return {string[]} its genres as far as they are known, with my own changes
  */
 export function genresFor(swrlID) {
-    return genresBySwrl.get(swrlID) || [];
+    return myGenres(genresBySwrl.get(swrlID) || [], getListEntry(swrlID));
 }

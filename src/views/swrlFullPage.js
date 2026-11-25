@@ -1,3 +1,6 @@
+import { swrlKind } from '../constants/Type';
+import { myGenres } from '../model/myGenres';
+import { canEditGenres, genreWords, openGenreEditor } from '../components/genreEditor';
 import { showPrivateComments, hidePrivateComments } from '../components/privateComments';
 import { showLabels, hideLabels } from '../components/labels';
 import shareSwrl from '../actions/shareSwrl';
@@ -11,7 +14,7 @@ import { getSwrler } from '../firebase/swrler';
 import { swrlUser } from '../firebase/login';
 import { Collection } from '../constants/Collection';
 import { recommendationsSentCache, inboxRecommendationsFor } from '../listeners/recommendations';
-import { getPageLayout, whenListEntriesReady } from '../listeners/listEntries';
+import { addListEntriesChangeListener, getListEntry, getPageLayout, whenListEntriesReady } from '../listeners/listEntries';
 import { getEntriesForSwrl } from '../firebase/swrlEntries';
 import { Recommendation } from '../model/recommendation';
 import { Swrl } from '../model/swrl';
@@ -121,6 +124,7 @@ async function showSwrlFullPage(stateController) {
     allGenresShown = false;
     const swrl = stateController.currentState.swrl;
     const firestore = stateController.firestore;
+    swrlFirestore = firestore;
     showAttribution('swrlAttribution', swrl.type.attribution);
     showLabels(swrl, firestore);
     showPrivateComments(swrl, firestore, count => {
@@ -209,11 +213,12 @@ function renderHero(swrl) {
     hero.dataset.category = swrl.category ? swrl.category.name : '';
     swrlImageLarge.src = details.imageUrl;
     swrlImageLarge.alt = `Cover of ${details.title}`;
-    heroType.textContent = capitalise(swrl.type.displayName);
+    heroType.textContent = swrlKind(swrl.type, details);
     heroTitle.textContent = details.title;
     heroMeta.textContent = metaLine(details);
     heroMeta.classList.toggle('hidden', !heroMeta.textContent);
-    drawHeroGenres(details.genres);
+    heroSwrl = swrl;
+    drawHeroGenres(myGenres(details.genres, getListEntry(swrl.swrlID)));
     heroTagline.textContent = details.tagline ? `“${details.tagline.replace(/^["“]|["”]$/g, '')}”` : '';
     heroTagline.classList.toggle('hidden', !details.tagline);
 }
@@ -226,6 +231,7 @@ function renderHero(swrl) {
  */
 function drawHeroGenres(genres) {
     const { shown, hidden } = splitGenres(genres, allGenresShown);
+    const editable = heroSwrl && canEditGenres(heroSwrl.swrlID);
     const chips = shown.map(genre => element('span', 'pageHeroChip', genre));
     if (allGenresShown || hidden > 0) {
         const more = /** @type {HTMLButtonElement} */ (element('button', 'pageHeroChip pageHeroMore',
@@ -238,8 +244,31 @@ function drawHeroGenres(genres) {
         });
         chips.push(more);
     }
+    if (editable) {
+        // my own genres (cuisines), for my filters: only for swrls on my lists
+        const swrl = heroSwrl;
+        const words = genreWords(swrl.category.id);
+        const edit = /** @type {HTMLButtonElement} */ (element('button', 'pageHeroChip pageHeroEdit',
+            genres.length > 0 ? `Edit ${words.plural}` : `Add a ${words.singular}`));
+        edit.type = 'button';
+        edit.addEventListener('click', () => openGenreEditor(swrl, swrlFirestore, () => {
+            if (heroSwrl === swrl) drawHeroGenres(myGenres(swrl.details.genres, getListEntry(swrl.swrlID)));
+        }));
+        chips.push(edit);
+    }
     heroGenres.replaceChildren(...chips);
 }
+
+/** The swrl in the header now, for the genre editor. @type {Swrl | undefined} */
+let heroSwrl;
+// adding it to my list (or taking it off) shows or hides "Edit cuisines"
+addListEntriesChangeListener(() => {
+    if (heroSwrl && !swrlFullPageView.classList.contains('hidden')) {
+        drawHeroGenres(myGenres(heroSwrl.details.genres, getListEntry(heroSwrl.swrlID)));
+    }
+});
+/** @type {import('firebase/firestore').Firestore} */
+let swrlFirestore;
 
 /**
  * Lays the page out the way the user likes it: one scrolling page, or tabs

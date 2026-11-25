@@ -38,6 +38,7 @@ const FEW_GENRES = 8;
 const SEARCHABLE_GENRES = 12;
 import { filterFromId, withoutYourListOnlyFilters } from "../constants/Filter";
 import { progressWords } from "../model/progress";
+import { categoryWords } from "../model/categoryWords";
 import { whereFilterFromId } from "../constants/WhereFilter";
 import { SwrlerListScreen } from "../screens/swrlerListScreen";
 import { SwrlerLater as SwrlerLaterView, SwrlerLoved as SwrlerLovedView, SwrlerDone as SwrlerDoneView, SwrlerInProgress as SwrlerInProgressView } from "./swrlerList";
@@ -562,6 +563,13 @@ export class StateController {
         section.classList.add('hidden');
         if (this.currentState.view !== this.yourListView) return;
         const category = this.currentState.selectedCategory;
+        // places to eat have cuisines; everything else has genres
+        const word = categoryWords(category.id).genre;
+        document.getElementById('genreFiltersTitle').textContent = word === 'cuisine' ? 'Cuisine' : 'Genres';
+        document.getElementById('genreFiltersHint').textContent = `Shows anything with at least one of the ${word}s you pick.`;
+        search.placeholder = `Find a ${word}`;
+        search.setAttribute('aria-label', `Find a ${word}`);
+        none.textContent = `No ${word} matches that.`;
         const entries = getAllListEntries().filter(e => e.later && !e.deleted && e.category.id === category.id);
         const visit = this._genreVisit = (this._genreVisit || 0) + 1;
         ensureGenres(entries, this.firestore).then(() => {
@@ -595,7 +603,7 @@ export class StateController {
                 none.classList.toggle('hidden', shown.length > 0);
                 search.classList.toggle('hidden', !expanded || counts.length <= SEARCHABLE_GENRES);
                 more.classList.toggle('hidden', counts.length <= FEW_GENRES);
-                more.textContent = expanded ? 'Show fewer' : `Show all ${counts.length} genres`;
+                more.textContent = expanded ? 'Show fewer' : `Show all ${counts.length} ${word}s`;
                 more.setAttribute('aria-expanded', String(expanded));
             };
             more.onclick = () => {

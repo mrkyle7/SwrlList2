@@ -41,6 +41,10 @@ export class ListEntry {
         this.updated = updated;
         this.visibility = visibility || DEFAULT_VISIBILITY;
         this.visibilityOverride = visibilityOverride === true;
+        /** My genres (cuisines) this swrl's source lacks (model/myGenres.js). @type {string[]} */
+        this.genresAdded = [];
+        /** Its source's genres I do not want. @type {string[]} */
+        this.genresRemoved = [];
     }
 
     /**
@@ -109,9 +113,12 @@ export class ListEntry {
         const details = Details.fromJSON(json.details);
         const added = json.added !== undefined && json.added != null ? json.added.toDate() : undefined;
         const updated = json.updated !== undefined && json.updated != null ? json.updated.toDate() : undefined;
-        return new ListEntry(json.uid, json.swrlID, type, category, details,
+        const entry = new ListEntry(json.uid, json.swrlID, type, category, details,
             json.later === true, json.done === true, json.loved === true, json.deleted === true,
             added, updated, visibilityFromId(json.visibility), json.visibilityOverride === true, json.inProgress === true);
+        entry.genresAdded = stringList(json.genresAdded);
+        entry.genresRemoved = stringList(json.genresRemoved);
+        return entry;
     }
 }
 
@@ -195,4 +202,12 @@ export function mergeEntriesByUid(...sources) {
         if (!byUid.has(entry.uid)) byUid.set(entry.uid, entry);
     }));
     return [...byUid.values()];
+}
+
+/**
+ * @param {any} value
+ * @return {string[]} the strings in it, if it is an array
+ */
+function stringList(value) {
+    return Array.isArray(value) ? value.filter(item => typeof item === 'string') : [];
 }

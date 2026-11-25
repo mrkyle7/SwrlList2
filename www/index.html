@@ -550,8 +550,8 @@
         <div id="labelFilterList" class="chips"></div>
       </div>
       <div id="genreFilters" class="hidden">
-        <h3>Genres</h3>
-        <p class="sheetHint">Shows anything with at least one of the genres you pick.</p>
+        <h3 id="genreFiltersTitle">Genres</h3>
+        <p id="genreFiltersHint" class="sheetHint">Shows anything with at least one of the genres you pick.</p>
         <input id="genreSearch" class="genreSearch hidden" type="search" placeholder="Find a genre" aria-label="Find a genre" autocomplete="off">
         <div id="genreFilterList" class="chips"></div>
         <p id="genreNone" class="sheetHint hidden">No genre matches that.</p>
@@ -587,6 +587,19 @@
     <p class="loginSheetText">Swrl List keeps your list and lets you swrl things to your friends. It's free, and you log in with your Google account.</p>
     <button type="button" id="loginSheetGo" class="sheetApply">Log in with Google</button>
     <button type="button" id="loginSheetCancel" class="sheetCancel">Not now</button>
+  </div>
+  <div id="genreSheetBackdrop" class="sheetBackdrop hidden"></div>
+  <div id="genreSheet" class="bottomSheet hidden" role="dialog" aria-modal="true" aria-labelledby="genreSheetTitle">
+    <h3 id="genreSheetTitle">Genres</h3>
+    <p id="genreSheetHint" class="pickSheetHint">Only for you: your filters and cards use these.</p>
+    <div id="genreSheetChips" class="genreSheetChips"></div>
+    <form id="genreSheetForm" class="genreSheetAdd" autocomplete="off">
+      <input type="text" id="genreSheetInput" class="genreSheetInput" maxlength="40" list="genreSheetSuggestions" enterkeyhint="done" aria-label="Add">
+      <datalist id="genreSheetSuggestions"></datalist>
+      <button type="submit" id="genreSheetAddButton" class="genreSheetAddButton">Add</button>
+    </form>
+    <button type="button" id="genreSheetSave" class="sheetApply">Save</button>
+    <button type="button" id="genreSheetCancel" class="sheetCancel">Cancel</button>
   </div>
   <div id="pickSheetBackdrop" class="sheetBackdrop hidden"></div>
   <div id="pickSheet" class="bottomSheet hidden" role="dialog" aria-modal="true" aria-labelledby="pickSheetTitle">

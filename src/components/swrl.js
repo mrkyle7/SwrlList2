@@ -1,3 +1,4 @@
+import { myGenres } from '../model/myGenres';
 import { doc, getDoc } from 'firebase/firestore';
 export default { renderSwrl };
 
@@ -254,7 +255,7 @@ const GENRES_ON_CARD = 3;
  */
 export function addDetailedParts(swrlDiv, swrl) {
     const chips = swrlDiv.querySelector('.swrlChips');
-    swrl.details.genres.slice(0, GENRES_ON_CARD).forEach(genre => {
+    myGenres(swrl.details.genres, getListEntry(swrl.swrlID)).slice(0, GENRES_ON_CARD).forEach(genre => {
         const chip = document.createElement('span');
         chip.className = 'swrlChip';
         chip.textContent = genre;

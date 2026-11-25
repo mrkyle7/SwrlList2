@@ -99,7 +99,9 @@ swrlers/{uid}/listEntries/{swrlID}:
                                           // a swrler's "In progress" tab queries inProgress == true plus the visibility constraint
   added, updated,                         // serverTimestamp()
   visibility: 'private' | 'friends' | 'public',   // the EFFECTIVE value
-  visibilityOverride: boolean }           // true when set for this swrl, false = follows the default
+  visibilityOverride: boolean,            // true when set for this swrl, false = follows the default
+  genresAdded?: string[],                 // my own genres (cuisines for Eat) its source lacks: model/myGenres.js
+  genresRemoved?: string[] }              // its source's genres I removed; together they drive my filters and chips
 ```
 
 Who sees an entry: the owner all; an accepted friend `public` + `friends`;
