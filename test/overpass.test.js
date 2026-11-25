@@ -33,12 +33,20 @@ describe('Overpass queries for places to eat', () => {
         expect(parseNear('51.5,-0.1;out')).toBeUndefined();
     });
 
-    it('searches names and cuisines inside a town or city', () => {
+    it('searches names and cuisines inside a town or city, one exact amenity at a time', () => {
         const query = searchQuery({ q: 'pizza', place: 'London' });
-        expect(query).toBe('[out:json][timeout:20];(area["name"="Greater London"]["boundary"="administrative"];)->.a;(' +
-            'nwr["amenity"~"^(restaurant|cafe|fast_food|pub|bar)$"]["name"~"pizza",i](area.a);' +
-            'nwr["amenity"~"^(restaurant|cafe|fast_food|pub|bar)$"]["cuisine"~"pizza",i](area.a);' +
+        expect(query).toBe('[out:json][timeout:25];(area["name"="Greater London"]["boundary"="administrative"];)->.a;(' +
+            'nwr["amenity"="restaurant"]["name"~"pizza",i](area.a);' +
+            'nwr["amenity"="cafe"]["name"~"pizza",i](area.a);' +
+            'nwr["amenity"="fast_food"]["name"~"pizza",i](area.a);' +
+            'nwr["amenity"="pub"]["name"~"pizza",i](area.a);' +
+            'nwr["amenity"="bar"]["name"~"pizza",i](area.a);' +
+            'nwr["amenity"="restaurant"]["cuisine"~"pizza",i](area.a);' +
+            'nwr["amenity"="cafe"]["cuisine"~"pizza",i](area.a);' +
+            'nwr["amenity"="fast_food"]["cuisine"~"pizza",i](area.a);' +
             ');out center tags 40;');
+        // never a pattern on amenity: Overpass cannot use its index for that
+        expect(query).not.toContain('"amenity"~');
     });
 
     it('searches near a point', () => {

@@ -11,6 +11,8 @@
 
 /** The kinds of place to eat we search for (OSM `amenity` values). */
 const AMENITIES = ['restaurant', 'cafe', 'fast_food', 'pub', 'bar'];
+/** The kinds whose `cuisine` is worth searching ("pizza", "thai"). */
+const CUISINE_AMENITIES = ['restaurant', 'cafe', 'fast_food'];
 /** How far "near me" reaches, in metres. */
 const NEAR_RADIUS_M = 2500;
 /** At most this many places per search. */
@@ -99,7 +101,9 @@ function parseNear(text) {
 function searchQuery(search) {
   const pattern = searchPattern(search.q);
   if (!pattern || (!search.near && !search.place)) return undefined;
-  const amenity = `["amenity"~"^(${AMENITIES.join('|')})$"]`;
+  // one exact amenity per statement: Overpass finds exact tags in its index,
+  // where a pattern on amenity makes it read every element in the area
+  // (Greater London took longer than the 20 s we wait)
   let scope;
   let head = '';
   if (search.near) {
@@ -110,10 +114,9 @@ function searchQuery(search) {
     head = `(${areas})->.a;`;
     scope = '(area.a)';
   }
-  return '[out:json][timeout:20];' + head + '(' +
-    `nwr${amenity}["name"~"${pattern}",i]${scope};` +
-    `nwr${amenity}["cuisine"~"${pattern}",i]${scope};` +
-    `);out center tags ${MAX_RESULTS};`;
+  const byName = AMENITIES.map(kind => `nwr["amenity"="${kind}"]["name"~"${pattern}",i]${scope};`).join('');
+  const byCuisine = CUISINE_AMENITIES.map(kind => `nwr["amenity"="${kind}"]["cuisine"~"${pattern}",i]${scope};`).join('');
+  return '[out:json][timeout:25];' + head + '(' + byName + byCuisine + `);out center tags ${MAX_RESULTS};`;
 }
 
 /**

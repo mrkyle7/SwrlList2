@@ -30,8 +30,11 @@ see the `swrl-firebase` skill.
 `appRoutes` list in `server.js`, mirrored in `www/sw.js` and `src/index.js`) and proxies the third-party
 APIs that need a key (`/api/v1/tmdb/*`, `/api/v1/omdb`, `/api/v1/geek/*`), plus
 keyless ones that are better from the server: iTunes, Spotify oEmbed,
-`/api/v1/eat/search` and `/api/v1/eat/place` (OpenStreetMap's Overpass API;
-queries built in `serverlib/overpass.js`, "near" rounded to about a kilometre,
+`/api/v1/eat/search` and `/api/v1/eat/place` (OpenStreetMap's Overpass API,
+`relayOverpass` in `server.js`: tries overpass-api.de, then the kumi.systems and
+private.coffee public instances, 10 s each, and logs which failed and why;
+queries built in `serverlib/overpass.js` with one exact `amenity` per statement,
+never a pattern on amenity, which Overpass cannot answer from its index, "near" rounded to about a kilometre,
 search words and location kept out of the logs) and `/api/v1/pageimage` (a
 restaurant website's og:image; `serverlib/pageImage.js` only fetches public
 addresses, checks each redirect, and stops after 3.5 s or 256 KB). The
