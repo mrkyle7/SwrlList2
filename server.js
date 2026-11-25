@@ -187,6 +187,75 @@ app.get('/api/v1/itunes/lookup', function (req, res) {
 // typed and where (a town or city, or "near" rounded to about a kilometre);
 // neither the search words nor the location go into the logs.
 
+// The public Overpass servers (https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances),
+// tried in turn: the main one rate-limits by IP, and Cloud Run's outgoing
+// addresses are shared, so it can refuse us when it is busy.
+const OVERPASS_HOSTS = ['overpass-api.de', 'overpass.kumi.systems', 'overpass.private.coffee'];
+const OVERPASS_HOST_TIMEOUT_MS = 10000;
+
+/**
+ * One Overpass request, at most OVERPASS_HOST_TIMEOUT_MS.
+ *
+ * @param {string} host
+ * @param {string} path
+ * @returns {Promise<{status: number, body: string}>}
+ */
+function overpassGet(host, path) {
+  return new Promise((resolve, reject) => {
+    const request = https.get({
+      host,
+      path,
+      headers: { 'Accept': 'application/json', 'User-Agent': 'SwrlList/2 (+https://swrl-list.com)' },
+      timeout: OVERPASS_HOST_TIMEOUT_MS
+    }, response => {
+      const chunks = [];
+      response.on('data', chunk => chunks.push(chunk));
+      response.on('end', () => resolve({ status: response.statusCode || 0, body: Buffer.concat(chunks).toString('utf8') }));
+      response.on('error', reject);
+    });
+    request.on('timeout', () => request.destroy(new Error('timed out')));
+    request.on('error', reject);
+  });
+}
+
+/**
+ * Runs an Overpass query on the first server that answers it properly (a
+ * 200 with JSON and no runtime error), caching the answer like relay() does.
+ * Logs each server that fails, without the query (it holds search words or a
+ * location).
+ *
+ * @param {import('express').Response} res
+ * @param {string} query
+ * @param {string} label what to log, e.g. "eat search"
+ */
+async function relayOverpass(res, query, label) {
+  const path = '/api/interpreter?data=' + encodeURIComponent(query);
+  const cacheKey = 'overpass' + path;
+  const cached = proxyCache.get(cacheKey);
+  if (cached && cached.expires > Date.now()) {
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    return res.type('application/json').send(cached.body);
+  }
+  for (const host of OVERPASS_HOSTS) {
+    try {
+      const answer = await overpassGet(host, path);
+      let json;
+      try { json = JSON.parse(answer.body); } catch (error) { json = undefined; }
+      const remark = json && typeof json.remark === 'string' ? json.remark : '';
+      if (answer.status === 200 && json && Array.isArray(json.elements) && !/error|timed out/i.test(remark)) {
+        if (proxyCache.size >= PROXY_CACHE_MAX_ENTRIES) proxyCache.delete(proxyCache.keys().next().value);
+        proxyCache.set(cacheKey, { expires: Date.now() + PROXY_CACHE_TTL_MS, body: answer.body });
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.type('application/json').send(answer.body);
+      }
+      console.error(`Overpass ${host} answered ${answer.status}${remark ? ' (' + remark.slice(0, 120) + ')' : ''} for ${label}`);
+    } catch (error) {
+      console.error(`Overpass ${host} failed for ${label}: ${error.message}`);
+    }
+  }
+  res.status(503).json({ error: 'Places to eat are not available right now' });
+}
+
 app.get('/api/v1/eat/search', function (req, res) {
   const q = searchTerm(req.query.q);
   const near = typeof req.query.near === 'string' ? overpass.parseNear(req.query.near) : undefined;
@@ -195,13 +264,7 @@ app.get('/api/v1/eat/search', function (req, res) {
   if (!query) {
     return res.status(400).json({ error: 'Bad search: say what to look for, and near where or in which town or city' });
   }
-  relay(res, {
-    service: 'Overpass',
-    host: 'overpass-api.de',
-    path: '/api/interpreter?data=' + encodeURIComponent(query),
-    logPath: '/api/interpreter (eat search)',
-    contentType: 'application/json'
-  });
+  relayOverpass(res, query, 'eat search');
 });
 
 app.get('/api/v1/eat/place', function (req, res) {
@@ -209,12 +272,7 @@ app.get('/api/v1/eat/place', function (req, res) {
   if (!query) {
     return res.status(400).json({ error: 'Bad place id' });
   }
-  relay(res, {
-    service: 'Overpass',
-    host: 'overpass-api.de',
-    path: '/api/interpreter?data=' + encodeURIComponent(query),
-    contentType: 'application/json'
-  });
+  relayOverpass(res, query, 'eat place');
 });
 
 // The picture a restaurant's own website shares (og:image), for places
