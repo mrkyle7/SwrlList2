@@ -27,8 +27,12 @@ export const initMessaging = async (firebaseApp, firestore) => {
             return;
         }
         // The token is refreshed by the SDK; asking again on each start is how
-        // a new one reaches Firestore.
-        const currentToken = await getToken(messaging, { vapidKey: VAPID_KEY });
+        // a new one reaches Firestore. With the app's own worker (www/sw.js loads
+        // the push handler), so a tapped notification opens the installed app.
+        const serviceWorkerRegistration = await appWorker();
+        const currentToken = await getToken(messaging, serviceWorkerRegistration
+            ? { vapidKey: VAPID_KEY, serviceWorkerRegistration }
+            : { vapidKey: VAPID_KEY });
         if (currentToken) {
             deviceToken = currentToken;
             updateDeviceToken(firestore);
@@ -38,6 +42,28 @@ export const initMessaging = async (firebaseApp, firestore) => {
     } catch (err) {
         console.log('An error occurred while setting up push messaging. ', err);
     }
+}
+
+/** Where Firebase registered its own push worker before 3.30.0. */
+const OLD_PUSH_SCOPE = '/firebase-cloud-messaging-push-scope';
+
+/**
+ * The app's service worker (www/sw.js, scope /), once it is active, and the
+ * old separate push worker gone: its notifications opened in the browser,
+ * and with both, a message would show twice. Undefined where there is no app
+ * worker (an http address other than localhost), so the SDK registers its own.
+ *
+ * @return {Promise<ServiceWorkerRegistration | undefined>}
+ */
+async function appWorker() {
+    if (!('serviceWorker' in navigator)) return undefined;
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations
+        .filter(registration => new URL(registration.scope).pathname.startsWith(OLD_PUSH_SCOPE))
+        .map(registration => registration.unregister()));
+    const app = registrations.find(registration => new URL(registration.scope).pathname === '/');
+    if (!app) return undefined;
+    return navigator.serviceWorker.ready;
 }
 
 /**

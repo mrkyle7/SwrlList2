@@ -937,7 +937,9 @@ body {
     padding: 12px;
     padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     display: flex;
-    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
     font-size: 13px;
 }
 
@@ -956,6 +958,41 @@ body {
 .sidebarMenuFooter a:hover {
     color: #fff;
     text-decoration: underline;
+}
+
+/* "Buy me a coffee" (the phone menu and the desktop sidebar): Buy Me a
+   Coffee's own yellow and cup, on a line of its own above Privacy and Support */
+.coffeeLink, .sidebarMenuFooter a.coffeeLink {
+    flex: 0 0 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 22px;
+    background: #FFDD00;
+    color: #0D0C22;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.coffeeLink img {
+    width: auto;
+    height: 22px;
+}
+
+.coffeeLink:hover, .sidebarMenuFooter a.coffeeLink:hover {
+    background: #ffe633;
+    color: #0D0C22;
+    text-decoration: none;
+}
+
+.coffeeLink:focus-visible {
+    outline: 3px solid #1769d6;
+    outline-offset: 2px;
 }
 
 /* The edge strip that opens the menu on a swipe sits above the menu's left
@@ -2568,6 +2605,8 @@ button.pageActionPrimary:hover {
     padding: 4px 12px 8px;
     overflow-x: auto;
     scroll-snap-type: x proximity;
+    /* without it, snapping lines the first poster up with the screen's edge, past the padding */
+    scroll-padding-inline: 12px;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
 }
@@ -4509,6 +4548,13 @@ button.pageActionPrimary:hover {
         color: inherit;
     }
 
+    .sideFooter a.coffeeLink {
+        min-height: 40px;
+        margin-bottom: 4px;
+        color: #0D0C22;
+        font-size: 14px;
+    }
+
     /* --- the phone menu and the coloured bar make way --- */
     #menuButton, #sidebarMenu, #menuSwipeable, #inboxDisplay, #login {
         display: none !important;
@@ -6160,6 +6206,17 @@ body.eatSearch :is(#searchResults, #savedSearchesCard) {
         stroke: currentColor;
         stroke-width: 2.4;
         stroke-linecap: round;
+    }
+
+    /* the swrl logo, white on the pink button (Search everything keeps the magnifier) */
+    .quickAddSearchIcon {
+        display: flex;
+    }
+
+    .quickAddSearchIcon img {
+        width: 34px;
+        height: 34px;
+        filter: brightness(0) invert(1);
     }
 
     .quickAddButton:active {

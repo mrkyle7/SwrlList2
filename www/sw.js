@@ -21,9 +21,18 @@
  * - Third-party APIs, Firebase, our /api, /__/ (sign-in helpers),
  *   /version.json and the workers themselves: always the network.
  *
- * Push notifications are handled separately by firebase-messaging-sw.js, which
- * Firebase registers under its own scope.
+ * Push notifications: firebase-messaging-sw.js (built from
+ * src/firebase/messaging-sw.js) is loaded into this worker, so notifications
+ * belong to the installed app and a tap opens it (src/firebase/messaging.js
+ * gets the push token with this worker's registration).
  */
+try {
+  importScripts('/firebase-messaging-sw.js');
+} catch (error) {
+  // without push, the app still opens from the cache
+  console.error('Push notifications unavailable', error);
+}
+
 const BUILD = '__BUILD__';
 const CACHE = 'swrl-shell-' + BUILD;
 /** This build's bundle and stylesheet; installing fails without them. */

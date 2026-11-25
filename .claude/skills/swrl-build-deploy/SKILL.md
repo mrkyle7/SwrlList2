@@ -53,7 +53,7 @@ it.
 ## Build pieces
 
 - `webpack.config.js` - two builds: the app (`bundle.<contenthash>.js`) and the push
-  service worker (`firebase-messaging-sw.js`). Its `hashedShell` plugin renames
+  service worker (`firebase-messaging-sw.js`, loaded into `sw.js` with `importScripts`). Its `hashedShell` plugin renames
   `www/css/index.css` to `css/index.<hash>.css`, points `index.html` at both
   hashed files, and writes this build's id and files into `sw.js` (the
   `'__BUILD__'` and `'__SHELL_FILES__'` placeholders). The build fails if
