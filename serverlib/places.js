@@ -25,8 +25,15 @@ const http = require('http');
 const PLACES_HOST = 'places.googleapis.com';
 const SEARCH_FIELDS = ['places.id', 'places.displayName', 'places.shortFormattedAddress', 'places.location',
   'places.primaryType', 'places.types'].join(',');
-const DETAIL_FIELDS = ['id', 'displayName', 'shortFormattedAddress', 'location', 'primaryType', 'types',
-  'photos', 'editorialSummary'].join(',');
+const BASE_DETAIL_FIELDS = ['id', 'displayName', 'shortFormattedAddress', 'location', 'primaryType', 'types',
+  'photos', 'editorialSummary'];
+/**
+ * Google's AI summaries, for the many places with no editorial summary. They
+ * are in the same billing tier as `editorialSummary` (Enterprise +
+ * Atmosphere), which the request already pays for, so they add no cost.
+ */
+const SUMMARY_FIELDS = ['generativeSummary', 'reviewSummary'];
+const DETAIL_FIELDS = [...BASE_DETAIL_FIELDS, ...SUMMARY_FIELDS].join(',');
 const NEAR_RADIUS_M = 2500;
 const RESULTS = 15;
 const PHOTO_WIDTH = 800;
@@ -209,7 +216,12 @@ function searchPlaces(search) {
  * @returns {Promise<{status: number, json: any}>}
  */
 async function placeDetails(id, caps) {
-  const details = await placesCall('GET', `/v1/places/${encodeURIComponent(id)}`, { fieldMask: DETAIL_FIELDS });
+  const path = `/v1/places/${encodeURIComponent(id)}`;
+  let details = await placesCall('GET', path, { fieldMask: DETAIL_FIELDS });
+  if (details.status === 400) {
+    // a field this project or region cannot have: ask again without the AI summaries
+    details = await placesCall('GET', path, { fieldMask: BASE_DETAIL_FIELDS.join(',') });
+  }
   if (details.status !== 200 || !details.json) return details;
   const photo = (details.json.photos || [])[0];
   delete details.json.photos;
@@ -223,4 +235,4 @@ async function placeDetails(id, caps) {
   return details;
 }
 
-module.exports = { cleanPlace, parseNear, searchBody, cleanPlaceId, DailyCaps, DAILY_CAPS, searchPlaces, placeDetails, SEARCH_FIELDS, DETAIL_FIELDS, NEAR_RADIUS_M };
+module.exports = { cleanPlace, parseNear, searchBody, cleanPlaceId, DailyCaps, DAILY_CAPS, searchPlaces, placeDetails, SEARCH_FIELDS, DETAIL_FIELDS, BASE_DETAIL_FIELDS, NEAR_RADIUS_M };

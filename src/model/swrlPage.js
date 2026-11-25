@@ -160,6 +160,7 @@ export function detailFacts(details) {
         add('Address', details.place.address);
         add('Opening hours', details.place.openingHours);
         add('Phone', details.place.phone);
+        add('Description', details.place.summaryNote);
         add('Photo', details.place.photoBy);
     }
     return facts;

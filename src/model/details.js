@@ -19,6 +19,7 @@ import { TmdbPerson } from "./tmdbPerson";
  * @property {number} [lon]
  * @property {string} [photoBy] who took the photo (Google asks us to say)
  * @property {string} [photoByUrl]
+ * @property {string} [summaryNote] shown with an AI description ("Summarized with Gemini")
  */
 
 export class Details {

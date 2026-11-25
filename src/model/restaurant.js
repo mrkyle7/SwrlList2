@@ -17,8 +17,11 @@ export const PLACE_ID_PREFIX = 'GPLACE_';
 
 const UNSPLASH = (photo) => `https://images.unsplash.com/photo-${photo}?auto=format&fit=crop&w=800&q=80`;
 
-/** When nothing better is known: a restaurant dining room. */
-export const DEFAULT_PLACE_PHOTO = UNSPLASH('1517248135467-4c7edcad34c4');
+/**
+ * When no cuisine photo fits: Eat's icon on its teal, so it cannot be taken
+ * for a photo of the place itself.
+ */
+export const DEFAULT_PLACE_PHOTO = 'img/place-placeholder.svg';
 
 /** Stock photos by cuisine (from Google types without "_restaurant", and a few kinds of place). */
 const CUISINE_PHOTOS = {
@@ -113,7 +116,9 @@ export function isPlaceToEat(place) {
  * @property {{latitude: number, longitude: number}} [location]
  * @property {string} [primaryType]
  * @property {string[]} [types]
- * @property {{text: string}} [editorialSummary]
+ * @property {{text: string}} [editorialSummary] written by Google's editors (few places have one)
+ * @property {{overview?: {text: string}, disclosureText?: {text: string}}} [generativeSummary] Gemini's, from details
+ * @property {{text?: {text: string}, disclosureText?: {text: string}}} [reviewSummary] Gemini's summary of reviews, from details
  * @property {{uri: string, by?: string, byUri?: string}} [photo] added by server.js on details
  */
 
@@ -134,20 +139,46 @@ export function placeDetails(place) {
     const area = address && address.includes(',') ? address.split(',').pop().trim() : undefined;
     const photo = place.photo && /^https:\/\//.test(place.photo.uri) ? place.photo : undefined;
     const links = [new Link(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${encodeURIComponent(place.id)}`, 'Google Maps', undefined)];
+    const kind = placeKind(types);
+    const cuisines = cuisineNames(types);
+    const summary = placeDescription(place, { kind, cuisine: cuisines[0], area });
     const details = new Details(place.id, name, photo ? photo.uri : stockPhoto(types),
-        undefined, undefined, undefined, cuisineNames(types), links,
-        undefined, place.editorialSummary && place.editorialSummary.text ? place.editorialSummary.text : undefined,
+        undefined, undefined, undefined, cuisines, links,
+        undefined, summary.text,
         [], [], undefined, [], [], undefined, undefined, undefined, undefined, [], [], [], [], undefined, undefined, undefined);
     details.place = {
-        kind: placeKind(types),
+        kind,
         area,
         address,
         lat: typeof lat === 'number' ? lat : undefined,
         lon: typeof lon === 'number' ? lon : undefined,
         photoBy: photo && photo.by ? photo.by : undefined,
-        photoByUrl: photo && photo.byUri ? photo.byUri : undefined
+        photoByUrl: photo && photo.byUri ? photo.byUri : undefined,
+        summaryNote: summary.note
     };
     return details;
+}
+
+/**
+ * A place's description, best first: Google's editors' summary; Gemini's
+ * overview or summary of reviews (with the note Google asks to show, "Summarized
+ * with Gemini"); else a plain line from what we know ("Pizza restaurant in
+ * London").
+ *
+ * @param {GooglePlace} place
+ * @param {{kind: string, cuisine?: string, area?: string}} known
+ * @return {{text: string, note?: string}}
+ */
+export function placeDescription(place, known) {
+    const editorial = place.editorialSummary && place.editorialSummary.text;
+    if (editorial && editorial.trim()) return { text: editorial.trim() };
+    const ai = [
+        place.generativeSummary && { text: place.generativeSummary.overview && place.generativeSummary.overview.text, note: place.generativeSummary.disclosureText && place.generativeSummary.disclosureText.text },
+        place.reviewSummary && { text: place.reviewSummary.text && place.reviewSummary.text.text, note: place.reviewSummary.disclosureText && place.reviewSummary.disclosureText.text }
+    ].find(found => found && found.text && found.text.trim());
+    if (ai) return { text: ai.text.trim(), note: (ai.note && ai.note.trim()) || 'Summarized with Gemini' };
+    const what = known.cuisine && known.kind === 'Restaurant' ? `${known.cuisine} restaurant` : known.kind;
+    return { text: known.area ? `${what} in ${known.area}.` : `${what}.` };
 }
 
 /**
