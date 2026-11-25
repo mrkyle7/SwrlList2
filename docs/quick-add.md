@@ -10,9 +10,9 @@ them changes; the code is described in the skills (`swrl-architecture`,
 - **Opening is instant after the first visit.** The service worker opens the
   app from its cache, whatever the signal (`swrl-build-deploy`, "Build pieces").
 - **One tap to search everything** from any home: the search box on the Cards
-  and desktop homes, the search button in the Tiles home's header, Search in the
-  bottom bar (Cards) and the sidebar (desktop). The cursor is already in the
-  box.
+  and desktop homes, the search button in the Tiles home's header, the round
+  search button bottom right (phones) and Search in the sidebar (desktop). The
+  cursor is already in the box.
 - **The search button** at the bottom right on phones: straight to Search
   everything, or (Settings → "The search button") a menu of categories or a
   swirl you hold and slide to a category.

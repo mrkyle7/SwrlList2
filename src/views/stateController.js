@@ -314,7 +314,6 @@ export class StateController {
         });
         initPhoneNav({
             home: () => { if (this.currentState.view !== this.homeView) this.changeState(new State(this.homeView)); },
-            search: () => this.openSearchEverything(),
             category: name => this._switchCategory(name)
         });
         initQuickAdd(Categories, {
