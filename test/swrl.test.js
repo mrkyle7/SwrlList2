@@ -3,8 +3,8 @@ import { describe, it, expect } from 'vitest';
 
 import { Swrl } from '../src/model/swrl';
 import { swrlStats } from '../src/components/stats';
-import { FILM, TV, ALBUM, BOOK } from '../src/constants/Type';
-import { WATCH, LISTEN, READ } from '../src/constants/Category';
+import { FILM, TV, ALBUM, BOOK, RESTAURANT } from '../src/constants/Type';
+import { WATCH, LISTEN, READ, EAT } from '../src/constants/Category';
 import { Details } from '../src/model/details';
 import { Timestamp } from 'firebase/firestore';
 import { Link } from '../src/model/link';
@@ -284,3 +284,18 @@ describe('Swrl counts', function () {
             .to.deep.equal({ listCount: 0, recommendedCount: 0, lovedCount: 0 });
     })
 })
+
+describe('A place to eat', function () {
+    it('round-trips through Firestore with its type, category and place', function () {
+        const data = {
+            type: 8, category: 6, swrlID: 'OSMPLACE_n42',
+            details: { id: 'n42', title: 'Dishoom', imageUrl: 'https://example.com/d.jpg', genres: ['Indian'],
+                place: { kind: 'Restaurant', area: 'Covent Garden', lat: 51.51, lon: -0.13 } }
+        };
+        const swrl = Swrl.fromFirestore(data);
+        expect(swrl.type).to.equal(RESTAURANT);
+        expect(swrl.category).to.equal(EAT);
+        expect(swrl.details.place).to.deep.equal({ kind: 'Restaurant', area: 'Covent Garden', lat: 51.51, lon: -0.13 });
+        expect(swrl.details.toJSON().place).to.deep.equal(data.details.place);
+    });
+});

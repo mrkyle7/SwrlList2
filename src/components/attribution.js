@@ -17,6 +17,20 @@ export function createAttribution(attribution) {
     link.rel = 'noopener';
     link.title = attribution.name;
 
+    if (!attribution.logo) {
+        // a credit in words only: the link says it
+        link.className = 'attributionLink attributionText';
+        link.textContent = attribution.name;
+        element.appendChild(link);
+        if (attribution.notice) {
+            const notice = document.createElement('p');
+            notice.className = 'attributionNotice';
+            notice.innerText = attribution.notice;
+            element.appendChild(notice);
+        }
+        return element;
+    }
+
     if (!attribution.logoSaysPoweredBy) {
         const poweredBy = document.createElement('span');
         poweredBy.className = 'attributionPoweredBy';

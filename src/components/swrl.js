@@ -12,7 +12,7 @@ import { addLoveButton, addAddButton, addRecommendButton, addDoneButton, addProg
 import { showToasterMessage } from './toaster';
 import { Constant } from '../constants/Constant';
 import { Swrl } from '../model/swrl';
-import { typeLabel } from '../constants/Type';
+import { swrlKind } from '../constants/Type';
 import { inboxRecommendationsFor } from '../listeners/recommendations';
 import { getSwrlerCached } from '../firebase/swrler';
 import { recommendationReason } from '../model/recommendation';
@@ -55,8 +55,8 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
         });
     // textContent, never innerHTML: the details come from third parties
     $swrl('.swrlTitle').textContent = swrl.details.title;
-    $swrl('.swrlMeta').textContent = cardMeta(typeLabel(swrl.type), swrl.details);
-    $swrl('.swrlType').textContent = typeLabel(swrl.type);
+    $swrl('.swrlMeta').textContent = cardMeta(swrlKind(swrl.type, swrl.details), swrl.details);
+    $swrl('.swrlType').textContent = swrlKind(swrl.type, swrl.details);
     addDetailedParts(swrlDiv, swrl);
     showReason(swrlDiv, swrl, firestore);
     showNote(swrlDiv, swrl, firestore);

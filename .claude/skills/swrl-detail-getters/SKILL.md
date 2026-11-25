@@ -7,9 +7,10 @@ description: Use when adding a new content source (new Type or new 3rd-party API
 
 A "Swrl" is any item the user might save. Items are grouped into:
 
-- **Category** (`src/constants/Category.js`): `WATCH`, `READ`, `LISTEN`, `PLAY`
+- **Category** (`src/constants/Category.js`): `WATCH` (1), `READ` (2), `LISTEN` (3),
+  `PLAY` (4), `EAT` (6; 5 is `ALL`)
 - **Type** (`src/constants/Type.js`): `FILM`, `TV`, `BOOK`, `ALBUM`, `PODCAST`,
-  `BOARDGAME`, `VIDEOGAME`, `APP`, `WEBSITE`, ...
+  `BOARDGAME`, `VIDEOGAME`, `RESTAURANT` (8)
 
 There is also `ALL` ("search everything", `/search`): not a list, left out of
 `Categories`, whose `AllSearch` (`src/search/allSearch.js`) runs every
@@ -35,6 +36,7 @@ kinds) and `src/search/sharedLink.js` (`resolveSharedLink`) says where it leads:
 | Open Library `/works/`, `/books/` | the book, after looking up an ISBN |
 | Apple Music album, Apple Podcasts | the album or podcast, by iTunes id (`item`) |
 | BoardGameGeek / VideoGameGeek game | the game, by geek id (`item`) |
+| OpenStreetMap `/node/`, `/way/`, `/relation/` | the place to eat (`item`, id `n123`) |
 | Goodreads, Letterboxd, Steam | a search of Read / Watch / Play for the title in the address (`slugWords`) |
 | Spotify album/show/episode/track | a Listen search for the title from `/api/v1/oembed/spotify` (server.js; Spotify's public oEmbed, no key, Spotify URLs only) |
 
@@ -100,6 +102,7 @@ across types**. The pattern is `<SOURCE>_<source-id>` (built in `src/search/*`):
 - `OPENLIBRARY-ISBN_<isbn>` - books (OpenLibrary)
 - `ITUNESALBUM_<collectionId>`, `ITUNESPODCAST_<collectionId>` - iTunes
 - `GEEK<type.geekType>_<bggId>` - board games and video games (BGG)
+- `OSMPLACE_<n|w|r><osmId>` - places to eat (OpenStreetMap node, way or relation)
 
 When two users save "the same thing", they must produce identical `swrlID`s:
 that is how their list entries point at the single shared `swrls` doc (details
@@ -119,6 +122,8 @@ and counts).
 | `search/readSearch.js` | OpenLibrary | One request: `SEARCH_FIELDS` asks for isbn, author, year, cover and subjects, and `booksFromSearch` builds the cards from them (no lookup per book; the swrl page fetches full details). Must request `isbn` explicitly — search no longer returns ISBNs by default. |
 | `search/listenSearch.js` | iTunes | Album + podcast combined. |
 | `search/playSearch.js` | BGG via `/api/v1/geek/*` | Boardgame + videogame combined; details fetched in one batched `thing` call. |
+| `search/eatSearch.js` | OpenStreetMap's Overpass API via `/api/v1/eat/search` | Restaurants, cafés, takeaways, pubs and bars whose name or cuisine matches, near me or in a town or city (`components/eatWhere.js`: the "Near me / In [London]" row on the Eat search, remembered per device; Search everything uses the same choice; "London" means the Greater London boundary). `model/restaurant.js` (tested) maps elements to Details with a `place` object (kind, area, address, opening hours, phone, website, lat/lon), cuisines as `genres`, links (website, Google Maps, OpenStreetMap). |
+| `detailGetters/osmPlaceGetter.js` | `/api/v1/eat/place`, `/api/v1/pageimage` | One element by id. **Photos, best first:** the entry's `image` / `wikimedia_commons`; else the restaurant website's og:image (looked up here, when the page opens, so the page saves it); else a stock photo by cuisine (`stockPhoto`, Unsplash). |
 
 ## Adding a new Type
 
@@ -143,14 +148,19 @@ and counts).
 
 ## Adding a new Category
 
-Rare — the four categories map onto a real-world "verb" (Watch/Read/Listen/Play).
-If you really need one:
+Rare — the categories map onto a real-world "verb" (Watch/Read/Listen/Play/Eat).
+Eat (3.24.0) is the worked example. If you really need one:
 
 1. Write a new `Search` subclass in `src/search/`.
 2. Add the `Category` in `src/constants/Category.js`.
 3. Extend `Categories` array and `categoryFromId`.
 4. Add menu entry + icon in `www/index.html` + CSS.
 5. Update `src/views/homePage.js` category buttons (the `.section` tiles in `www/index.html`, with their `.sectionCount` and `.sectionPills`), the desktop sidebar and the phone bottom bar `#phoneNav`.
+6. Give it words in `src/model/categoryWords.js` (and the verb in `server.js`'s
+   `VERBS` for link previews), a colour that passes with dark text, the route in
+   `src/index.js`, `server.js` `appRoutes` and `www/sw.js`, a manifest shortcut,
+   `ALL`'s type filters and `AllSearch`, and the home grids' CSS (desktop
+   columns; the Cards grid's last tile).
 
 ## API-key hygiene
 
@@ -171,7 +181,9 @@ client.
 
 ## Attribution
 
-TMDB and BoardGameGeek require a visible credit wherever their data is shown.
+TMDB, BoardGameGeek and OpenStreetMap require a visible credit wherever their data is shown
+(OpenStreetMap's is in words, "© OpenStreetMap contributors" linked to its copyright page:
+an `Attribution` with no logo).
 `src/constants/Attribution.js` defines each one (logo, link, any required
 wording); a `Type` and a `Category` each take an optional `attribution`, and
 `components/attribution.js` renders it at the end of the list, at the end of

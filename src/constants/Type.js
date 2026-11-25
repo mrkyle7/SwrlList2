@@ -1,5 +1,5 @@
 import { Constant } from "./Constant";
-import { Attribution, TMDB_ATTRIBUTION, BGG_ATTRIBUTION } from "./Attribution";
+import { Attribution, TMDB_ATTRIBUTION, BGG_ATTRIBUTION, OSM_ATTRIBUTION } from "./Attribution";
 import { DetailGetter } from "../detailGetters/detailGetter";
 import { TmdbFilmDetailGetter } from "../detailGetters/tmdbFilmDetailGetter";
 import { TmdbTVDetailGetter } from "../detailGetters/tmdbTVDetailGetter";
@@ -7,6 +7,7 @@ import { OpenLibraryBookDetailGetter } from "../detailGetters/openLibraryBookDet
 import { GeekDetailGetter } from "../detailGetters/geekDetailGetter";
 import { ItunesAlbumGetter } from "../detailGetters/itunesAlbumGetter";
 import { ItunesPodcastGetter } from "../detailGetters/itunesPodcastGetter";
+import { OsmPlaceGetter } from "../detailGetters/osmPlaceGetter";
 
 export class Type extends Constant {
     /**
@@ -82,7 +83,17 @@ export const VIDEOGAME = new Type(
     BGG_ATTRIBUTION
 )
 
-export const types = Object.freeze([FILM, TV, BOOK, PODCAST, ALBUM, BOARDGAME, VIDEOGAME])
+/** A place to eat (restaurant, café, pub, ...) from OpenStreetMap; its card says which kind. */
+export const RESTAURANT = new Type(
+    8,
+    'RESTAURANT',
+    'restaurant',
+    null,
+    new OsmPlaceGetter(),
+    OSM_ATTRIBUTION
+)
+
+export const types = Object.freeze([FILM, TV, BOOK, PODCAST, ALBUM, BOARDGAME, VIDEOGAME, RESTAURANT])
 
 export const typeFromId =
     /**
@@ -101,3 +112,13 @@ export const typeFromId =
  * @return {string}
  */
 export const typeLabel = (type) => type.displayName.charAt(0).toUpperCase() + type.displayName.slice(1);
+
+/**
+ * What a card calls a swrl: a place to eat says which kind ("Café", "Pub"),
+ * everything else its type ("Film", "Board game").
+ *
+ * @param {Type} type
+ * @param {{place?: {kind?: string}}} [details]
+ * @return {string}
+ */
+export const swrlKind = (type, details) => (details && details.place && details.place.kind) || typeLabel(type);

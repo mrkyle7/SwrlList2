@@ -1,4 +1,4 @@
-import { progressWords } from './progress';
+import { categoryWords } from './categoryWords';
 
 /**
  * Pure helpers for the rows at the top of a category's Discover tab
@@ -77,8 +77,6 @@ export function friendsActivity(friendsEntries, mine, limit) {
     return [...bySwrl.values()].sort((a, b) => b.updated - a.updated).slice(0, limit);
 }
 
-/** What people do with each category's things: [present, past]. */
-const VERBS = { 1: ['watch', 'watched'], 2: ['read', 'read'], 3: ['listen to', 'listened to'], 4: ['play', 'played'] };
 
 /**
  * The line under a tile in "Friends' recent activity", leading with love:
@@ -90,15 +88,15 @@ const VERBS = { 1: ['watch', 'watched'], 2: ['read', 'read'], 3: ['listen to', '
  * @return {string}
  */
 export function activityCaption(friends, categoryID) {
-    const [verb, past] = VERBS[categoryID] || ['try', 'tried'];
+    const words = categoryWords(categoryID);
     const loved = friends.filter(f => f.loved).map(f => f.name);
     if (loved.length > 0) return `${nameList(loved)} loved it`;
     const done = friends.filter(f => f.done).map(f => f.name);
-    if (done.length > 0) return `${nameList(done)} ${past} it`;
+    if (done.length > 0) return `${nameList(done)} ${words.doneIt}`;
     const started = friends.filter(f => f.inProgress).map(f => f.name);
-    if (started.length > 0) return `${nameList(started)} ${started.length === 1 ? 'is' : 'are'} ${progressWords(categoryID).caption} it`;
+    if (started.length > 0) return `${nameList(started)} ${started.length === 1 ? words.isStarted : words.areStarted}`;
     const names = friends.map(f => f.name);
-    return `${nameList(names)} ${names.length === 1 ? 'wants' : 'want'} to ${verb} it`;
+    return `${nameList(names)} ${names.length === 1 ? 'wants' : 'want'} to ${words.doIt}`;
 }
 
 /** @param {Date | undefined} date */

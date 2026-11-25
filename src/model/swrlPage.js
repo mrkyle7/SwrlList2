@@ -156,6 +156,11 @@ export function detailFacts(details) {
     add('Player count', details.playerCount);
     add('2 player recommendation', details.twoPlayerRecommendation);
     add('Playing time', details.playingTime);
+    if (details.place) {
+        add('Address', details.place.address);
+        add('Opening hours', details.place.openingHours);
+        add('Phone', details.place.phone);
+    }
     return facts;
 }
 
@@ -167,6 +172,7 @@ export function detailFacts(details) {
  */
 export function metaLine(details) {
     const parts = [
+        details.place && details.place.area,
         details.artist || details.author,
         details.releaseYear,
         details.runtime

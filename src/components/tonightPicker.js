@@ -7,9 +7,8 @@ import { inboxRecommendationsFor, isRecommendedToMe } from '../listeners/recomme
 import { hasLabel, matchesLabels } from '../model/labels';
 import { pickWeighted } from '../model/taste';
 import { State } from '../model/state';
-import { progressWords } from '../model/progress';
+import { categoryWords } from '../model/categoryWords';
 
-const VERBS = { 1: 'watch', 2: 'read', 3: 'listen to', 4: 'play' };
 const PICKS = 3;
 /** How much likelier a swrl from a friend is to come up than anything else on the list. */
 const SWRLED_WEIGHT = 3;
@@ -36,7 +35,7 @@ const go = document.getElementById('pickGo');
  * @param {import('../views/stateController').StateController} stateController
  */
 export function showTonightPicker(category, stateController) {
-    document.getElementById('pickSheetTitle').textContent = `What should you ${VERBS[category.id] || 'try'}?`;
+    document.getElementById('pickSheetTitle').textContent = categoryWords(category.id).pickQuestion;
     fillChoices(category);
     swrledOnly.checked = false;
     results.classList.add('hidden');
@@ -146,7 +145,7 @@ function tile(entry, stateController) {
         : 'On your list';
     // something already started is the obvious answer: say so, ahead of who sent it
     const swrled = entry.inProgress ? undefined : inboxRecommendationsFor(entry.swrlID)[0];
-    if (entry.inProgress) why.textContent = 'Carry on ' + progressWords(swrl.category.id).caption;
+    if (entry.inProgress) why.textContent = categoryWords(swrl.category.id).reminder;
     if (swrled) {
         getSwrlerCached(swrled.from, stateController.firestore).then(swrler => {
             if (swrler) why.textContent = 'Swrled by ' + swrler.displayName;
