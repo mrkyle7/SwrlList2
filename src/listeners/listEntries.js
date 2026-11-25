@@ -6,6 +6,7 @@ import { ListEntry } from '../model/listEntry';
 import { DEFAULT_PAGE_LAYOUT, PageLayout, pageLayoutFromId } from '../model/swrlPage';
 import { DEFAULT_LIST_VIEW, ListView, listViewFromId } from '../model/listView';
 import { DEFAULT_HOME_LAYOUT, HomeLayout, homeLayoutFromId } from '../model/homeLayout';
+import { DEFAULT_QUICK_ADD, QuickAddMode, quickAddFromId } from '../model/quickAdd';
 
 /**
  * My own list entries (swrlers/{uid}/listEntries), keyed by swrlID. This is
@@ -37,6 +38,8 @@ let listView = DEFAULT_LIST_VIEW;
 let homeLayout = DEFAULT_HOME_LAYOUT;
 /** @type {Set<(layout: HomeLayout) => void>} */
 const homeLayoutListeners = new Set();
+/** What the search button does (my profile's `quickAddButton`). @type {QuickAddMode} */
+let quickAdd = DEFAULT_QUICK_ADD;
 
 export default { setUpListEntriesListener, cancelListEntriesListener };
 
@@ -108,7 +111,8 @@ function subscribe(firestore, uid) {
 /**
  * Reads my settings from my swrlers doc: `defaultVisibility` (absent means
  * friends), `swrlPageLayout` (absent means tabs), `listView` (absent
- * means compact) and `homeLayout` (absent means tiles). When the read fails the
+ * means compact), `homeLayout` (absent means cards) and `quickAddButton` (absent
+ * means search). When the read fails the
  * default visibility is unknown, so fail closed: entries made meanwhile are
  * private rather than shared by mistake. The page layout, list view and
  * home layout just stay at their defaults then.
@@ -125,6 +129,7 @@ async function loadProfileSettings(firestore, uid) {
         pageLayout = pageLayoutFromId(data.swrlPageLayout);
         listView = listViewFromId(data.listView);
         setCurrentHomeLayout(homeLayoutFromId(data.homeLayout));
+        quickAdd = quickAddFromId(data.quickAddButton);
     } catch (error) {
         console.error("Couldn't read the default visibility, new entries will be private");
         console.error(error);
@@ -136,6 +141,7 @@ async function loadProfileSettings(firestore, uid) {
 export function cancelListEntriesListener() {
     stopListening();
     setCurrentHomeLayout(DEFAULT_HOME_LAYOUT);
+    quickAdd = DEFAULT_QUICK_ADD;
 }
 
 /** Stops listening and forgets my entries and settings, except the home layout. */
@@ -302,4 +308,21 @@ export function setCurrentHomeLayout(layout) {
  */
 export function addHomeLayoutListener(listener) {
     homeLayoutListeners.add(listener);
+}
+
+/**
+ * What the search button at the bottom right does: search everything, a
+ * menu of categories, or the swirl. The default until I choose.
+ *
+ * @return {QuickAddMode}
+ */
+export function getQuickAdd() {
+    return quickAdd;
+}
+
+/**
+ * @param {QuickAddMode} mode
+ */
+export function setCurrentQuickAdd(mode) {
+    quickAdd = mode;
 }
