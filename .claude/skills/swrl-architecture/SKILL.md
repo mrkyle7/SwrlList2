@@ -88,14 +88,14 @@ containers that views attach into.
   `listeners/listEntries.js` with `getHomeLayout` / `addHomeLayoutListener`);
   `components/homeLayout.js` puts it on `<body data-home-layout>` (and keeps a
   per-device `localStorage` hint so a reload does not flash the wrong layout). The
-  bottom bar `#phoneNav` (`components/phoneNav.js`: Home, Search, Watch, Read,
-  Listen, Play, Eat) is the phone's sidebar: CSS shows it only under 1025px, with Cards, on
+  bottom bar `#phoneNav` (`components/phoneNav.js`: Home, Watch, Read,
+  Listen, Play, Eat; search is the round button above it, `components/quickAdd.js`) is the phone's sidebar: CSS shows it only under 1025px, with Cards, on
   `data-screen` home and list; `StateController._switchCategory` keeps the tab
   (Your list / Discover / Search) and search words when switching category.
   `StateController.openSearchEverything()` opens Search everything (category
   `ALL`) and focuses the box inside the tap, so the phone keyboard comes up; the
-  home search box, the Tiles header's search button and the Search items in the
-  bar and sidebar use it. On Search everything the bar and sidebar mark
+  home search box, the Tiles header's search button, the round search button
+  and the sidebar's Search item use it. On Search everything the sidebar marks
   "search". The
   phone Cards CSS is a block at the very end of `www/css/index.css`.
 - **Start-up:** `www/index.html` paints the launch splash (`#launchSplash`,

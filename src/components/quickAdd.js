@@ -14,7 +14,8 @@ import { QUICK_MENU, QUICK_WHEEL, pickOption, wheelPositions } from '../model/qu
  *   keyboard opens it with the first category focused.
  *
  * Either way it lands on that category's search with the cursor in the box.
- * The category icons are the bottom bar's (#phoneNav), so they always match.
+ * The category icons are the bottom bar's (#phoneNav), so they always match;
+ * search everything has its own magnifier.
  */
 
 const button = /** @type {HTMLButtonElement} */ (document.getElementById('quickAddButton'));
@@ -68,7 +69,11 @@ export function initQuickAdd(categoryList, actions) {
 function icon(key) {
     const holder = document.createElement('span');
     holder.className = 'quickAddIcon';
-    const source = document.querySelector(`.phoneNavItem[data-nav="${key === 'all' ? 'search' : key}"] svg`);
+    if (key === 'all') {
+        holder.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>';
+        return holder;
+    }
+    const source = document.querySelector(`.phoneNavItem[data-nav="${key}"] svg`);
     if (source) holder.appendChild(source.cloneNode(true));
     return holder;
 }

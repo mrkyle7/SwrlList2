@@ -1,7 +1,7 @@
 /**
  * The bar at the bottom of phones and tablets with the cards home layout:
- * Home, Search everything and the four categories, the phone's version of
- * the desktop sidebar.
+ * Home and the categories, the phone's version of the desktop sidebar
+ * (search is the round button at the bottom right, components/quickAdd.js).
  * The stylesheet shows it only under 1025px, with `data-home-layout="cards"`,
  * on the home screen and the category lists.
  */
@@ -11,7 +11,7 @@ const nav = document.getElementById('phoneNav');
 /**
  * Wires the bar up. Call once.
  *
- * @param {{home: () => void, search: () => void, category: (name: string) => void}} go
+ * @param {{home: () => void, category: (name: string) => void}} go
  */
 export function initPhoneNav(go) {
     nav.querySelectorAll('[data-nav]').forEach(item => {
@@ -20,8 +20,6 @@ export function initPhoneNav(go) {
             const key = /** @type {HTMLElement} */ (item).dataset.nav;
             if (key === 'home') {
                 go.home();
-            } else if (key === 'search') {
-                go.search();
             } else {
                 go.category(key);
             }
@@ -32,7 +30,7 @@ export function initPhoneNav(go) {
 /**
  * Marks the item for the screen showing.
  *
- * @param {string | undefined} key home, search or a category's name
+ * @param {string | undefined} key home or a category's name
  */
 export function setActivePhoneNavItem(key) {
     nav.querySelectorAll('[data-nav]').forEach(item => {
