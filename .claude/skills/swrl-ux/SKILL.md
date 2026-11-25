@@ -47,7 +47,7 @@ the change:
 | An on/off action | A pair of buttons, one shown: off is an outline icon, on is filled or pink (`.swrlLoved`/`.swrlNotLoved`, ...) with "Tap to undo" in its label | `#swrlButtons`, `#swrlPageButtons` |
 | Actions on the swrl page | Two big actions (On your list, Swrl to a friend), then an equal grid of toggles that stacks icon over label on phones; pills in the header on desktop | `.pageActions`, `.pageToggles` |
 | Choosing filters or options | A bottom sheet on phones, a centred dialog on desktop, with chips, "Clear all" and one filled "Show results"; Esc and a click outside close it | `#filters`, `#pickSheet` |
-| Getting around | Phones: header with back arrow, menu on home, tabs; with the Cards home layout also a bottom bar (Home, Search and the four categories, marks where you are) on home and the category lists. Desktop: the sidebar (always there, marks where you are), tabs and the toolbar on one line under the title | `components/desktopSidebar.js`, `components/phoneNav.js` |
+| Getting around | Phones: header with back arrow, menu on home, tabs; with the Cards home layout also a bottom bar (Home, Search and the five categories, marks where you are) on home and the category lists. Desktop: the sidebar (always there, marks where you are), tabs and the toolbar on one line under the title | `components/desktopSidebar.js`, `components/phoneNav.js` |
 | Small facts on a coloured tile | White pills with 13px bold dark text (`.sectionPill`): readable on every category colour, purple included | phone Cards home |
 | A coloured bar with text | `setHeaderColour(colour)` picks white or dark text and icons by contrast (`model/contrast.js`); never set the header's colour directly | `components/headerColour.js` |
 | Something clickable that is not a button | `makeKeyboardClickable(element, role)`: Tab reaches it, Enter and Space use it (cards, tabs) | `components/keyboard.js` |
@@ -68,14 +68,15 @@ the change:
   at 360px with the longest label in any category ("Start listening",
   "Mark as done", "Swrl to a friend").
 
-**Colour** (keep the palette: hot pink, the four category colours, the blue)
+**Colour** (keep the palette: hot pink, the five category colours, the blue)
 - Text and icons that carry meaning reach 4.5:1 (3:1 at 24px, or 19px bold).
 - Pink **text** on white, and pink behind white text, is `var(--swrl-pink-strong)`
   (`#d81b4f`, 5:1) or `#b3123f`, never `#FF2E63` (3.6:1). `#FF2E63` is for fills
   with large text (the header), the logo and accents. Muted text is
   `var(--text-muted)`; blue behind small white text is `var(--swrl-blue-strong)`.
-- On green, orange and light blue, text is dark (`#222222`, 6-8:1), as on the
-  home tiles; white text on them fails (2.0-2.7:1). On Listen's purple
+- On green, orange, light blue and Eat's teal `#2A9D8F`, text is dark (`#222222`,
+  4.8-8:1), as on the home tiles; white text on them fails (2.0-3.3:1). Teal
+  text on white is `#1f6f66` (6:1). On Listen's purple
   `#b042f4` neither passes at small sizes (white 4.3:1, dark 3.7:1): only large
   text (24px, or 19px bold) goes on purple; small text sits on white.
 - The inbox and sidebar count badges sit on blue `#4990e2`: white text there is
@@ -85,7 +86,9 @@ the change:
 **Wording**
 - Sentence case. A button is a verb and an object ("Add to your list",
   "Swrl to a friend", never a bare "Swrl").
-- The verb fits the category: watch, read, listen to, play (from the helper).
+- The verb fits the category: watch, read, listen to, play, eat at (from
+  `model/categoryWords.js`, which owns every category word: "Booked" is Eat's
+  "in progress", "ate there", "Where should you eat?").
 - Toasts say what happened in under 40 characters and name the swrl.
 - Words that work with a finger and a mouse: "Select", "Undo", "Remove", not
   "Tap to ..." in labels people see or hear on desktop.
@@ -186,6 +189,8 @@ work nearby, or as their own change; tick them off here when fixed.
       filter sheet; no "Skip to content" link (13 sidebar stops first).
 - [x] Wording: on/off button labels say "Tap to undo" / "Tap to remove",
       which reads oddly with a mouse or a screen reader on desktop.
-- [ ] The category verbs are written out in four places
+- [x] The category verbs are written out in four places
       (`model/share.js`, `model/activity.js`, `components/tonightPicker.js`,
-      `model/progress.js`); one helper should own them.
+      `model/progress.js`); one helper should own them. (3.24.0:
+      `model/categoryWords.js`; only `server.js`, which cannot import it, keeps
+      a copy of the verbs.)

@@ -15,6 +15,8 @@ import { SavedSearch } from '../model/savedSearch';
 import { State } from '../model/state';
 import { getAllListEntries } from '../listeners/listEntries';
 import { listMatches } from '../model/listMatches';
+import { initEatWhere, showEatWhere } from '../components/eatWhere';
+import { EAT } from '../constants/Category';
 
 export class SearchView extends UIView {
     /**
@@ -86,6 +88,9 @@ function showSearch(category, searchText, firestore, stateController) {
     // "Search everything" is not a list: only the Search tab applies.
     yourListTab.classList.toggle('hidden', category === ALL);
     discoverTab.classList.toggle('hidden', category === ALL);
+    // places to eat: near me, or in a town or city
+    showEatWhere(category === EAT);
+    document.body.classList.toggle('eatSearch', category === EAT);
 
     if (category !== currentCategory) {
         clearResults();
@@ -189,6 +194,8 @@ function renderSavedSearches(querySnapshot, firestore, stateController) {
 
 function destroySearch() {
     unmountListToolbar();
+    showEatWhere(false);
+    document.body.classList.remove('eatSearch');
     searchView.classList.remove('hidden');
     searchBar.classList.add('hidden');
     tabs.classList.add('hidden');
@@ -237,6 +244,10 @@ export function initSearchBar(firestore, stateController) {
         e.preventDefault();
         runSearch(stateController, firestore);
     })
+    // a new place to look searches again for what is typed
+    initEatWhere(() => {
+        if (currentCategory === EAT && searchBar.value.trim().length > 0) runSearch(stateController, firestore);
+    });
 }
 
 function cancelCurrentSearch() {

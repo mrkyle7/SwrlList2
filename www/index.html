@@ -102,6 +102,7 @@
       <a href="#" class="sideItem" data-nav="read"><span class="sideDot" style="background:#F6A900"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 1zM20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 1z"/></svg></span><span>Read</span></a>
       <a href="#" class="sideItem" data-nav="listen"><span class="sideDot" style="background:#b042f4"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="5" height="6" rx="2"/><rect x="16" y="14" width="5" height="6" rx="2"/></svg></span><span>Listen</span></a>
       <a href="#" class="sideItem" data-nav="play"><span class="sideDot" style="background:#71A8D6"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9h12a4 4 0 0 1 4 4v1a3 3 0 0 1-5.2 2L15 14H9l-1.8 2A3 3 0 0 1 2 14v-1a4 4 0 0 1 4-4zM8 11v4M6 13h4"/></svg></span><span>Play</span></a>
+      <a href="#" class="sideItem" data-nav="eat"><span class="sideDot" style="background:#2A9D8F"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v20M4 2v6a3 3 0 0 0 6 0V2M17 22V2c-2.2 0-3.5 2.5-3.5 6v5H17"/></svg></span><span>Eat</span></a>
       <div class="sideSep"></div>
       <a href="#" class="sideItem" data-nav="swrls"><span class="sideIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13l2.5-7h11L20 13v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zM4 13h5l1 2h4l1-2h5"/></svg></span><span>Swrls</span><span class="sideCount hidden">0</span></a>
       <a href="#" class="sideItem" data-nav="friends"><span class="sideIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 5.2a3 3 0 0 1 0 5.6M17.5 13.6A5 5 0 0 1 20.5 19"/></svg></span><span>Friends</span></a>
@@ -161,6 +162,15 @@
           <h2 class="defaultTitle">Play</h2>
           <p class="sectionCount homeExtra" data-category="play"></p>
           <p class="sectionPills homeExtra" data-category="play"></p>
+        </div>
+      </div>
+
+      <div class="section eat">
+        <div class="section-detail">
+          <img class="icon" src="img/restaurant-24px.svg" />
+          <h2 class="defaultTitle">Eat</h2>
+          <p class="sectionCount homeExtra" data-category="eat"></p>
+          <p class="sectionPills homeExtra" data-category="eat"></p>
         </div>
       </div>
       <section id="homeSwrled" class="homeSwrled homeExtra hidden" aria-labelledby="homeSwrledTitle">
@@ -392,6 +402,12 @@
     </div>
     <div id="recommendationList" class="hidden swrlsContainer"></div>
     <div id="searchView" class="hidden">
+      <div id="eatWhere" class="eatWhere hidden" role="group" aria-label="Where to look">
+        <button type="button" id="eatNearMe" class="eatWhereChip" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Near me</button>
+        <button type="button" id="eatInTown" class="eatWhereChip" aria-pressed="true">In</button>
+        <input type="text" id="eatTown" class="eatTown" aria-label="Town or city" placeholder="Town or city" autocomplete="address-level2" enterkeyhint="search">
+        <p id="eatWhereNote" class="eatWhereNote" aria-live="polite"></p>
+      </div>
       <div id="searchResults" class="hidden swrlsContainer">
         <div id="addToSavedSearch" class="hidden">
           <div><span id="addToSavedSearchContent"></span> <img class="swrlButton" src="img/save-24px.svg" /></div>
@@ -563,6 +579,7 @@
     <a href="#" class="phoneNavItem" data-nav="read"><span class="phoneNavIcon" style="--nav-colour:#F6A900"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 1zM20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 1z"/></svg></span><span>Read</span></a>
     <a href="#" class="phoneNavItem" data-nav="listen"><span class="phoneNavIcon" style="--nav-colour:#b042f4"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="5" height="6" rx="2"/><rect x="16" y="14" width="5" height="6" rx="2"/></svg></span><span>Listen</span></a>
     <a href="#" class="phoneNavItem" data-nav="play"><span class="phoneNavIcon" style="--nav-colour:#71A8D6"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9h12a4 4 0 0 1 4 4v1a3 3 0 0 1-5.2 2L15 14H9l-1.8 2A3 3 0 0 1 2 14v-1a4 4 0 0 1 4-4zM8 11v4M6 13h4"/></svg></span><span>Play</span></a>
+    <a href="#" class="phoneNavItem" data-nav="eat"><span class="phoneNavIcon" style="--nav-colour:#2A9D8F"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v20M4 2v6a3 3 0 0 0 6 0V2M17 22V2c-2.2 0-3.5 2.5-3.5 6v5H17"/></svg></span><span>Eat</span></a>
   </nav>
   <div id="loginSheetBackdrop" class="sheetBackdrop hidden"></div>
   <div id="loginSheet" class="bottomSheet hidden" role="dialog" aria-modal="true" aria-labelledby="loginSheetTitle">

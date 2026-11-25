@@ -5779,3 +5779,137 @@ body:has(#login:not(.hidden)) .headerSearch {
         transition: none;
     }
 }
+
+/* --- Eat: places to eat (teal; dark text, as on the other light tiles) ------ */
+.main .section.eat {
+    background: #2A9D8F;
+}
+
+/* OpenStreetMap is credited in words, linked, not with a logo */
+.attributionLink.attributionText {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: #1f6f66;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: normal;
+    text-decoration: underline;
+}
+
+/* Eat on the home screens: five categories */
+@media (max-width: 1024px) {
+    /* Cards: the fifth tile takes the whole row under the 2x2 grid */
+    body[data-home-layout="cards"] .main .section.eat {
+        grid-column: 1 / -1;
+    }
+}
+@media only screen and (min-width: 1025px) {
+    .main .sections {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+    .main .section h2 {
+        font-size: 24px;
+    }
+}
+
+/* --- Eat search: where to look (components/eatWhere.js) ---------------------
+   Under the search box; the results move down to make room. */
+.eatWhere {
+    position: absolute;
+    top: 156px;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    box-sizing: border-box;
+    width: calc(100% - 8px);
+    margin: 0 auto;
+    padding: 4px 4px 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+}
+
+body.eatSearch :is(#searchResults, #savedSearchesCard) {
+    top: 212px;
+}
+
+.eatWhereChip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid #c9cdd3;
+    border-radius: 22px;
+    background: #fff;
+    color: #222222;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.eatWhereChip svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+}
+
+.eatWhereChip[aria-pressed="true"] {
+    border-color: #1f6f66;
+    background: #e3f4f1;
+    color: #134e47;
+}
+
+.eatWhereChip:hover {
+    border-color: #8b929b;
+}
+
+.eatWhereChip:focus-visible, .eatTown:focus-visible {
+    outline: 3px solid #1769d6;
+    outline-offset: 2px;
+}
+
+.eatTown {
+    flex: 1 1 120px;
+    min-width: 0;
+    max-width: 260px;
+    height: 44px;
+    box-sizing: border-box;
+    margin-left: -4px;
+    padding: 0 14px;
+    border: 1px solid #c9cdd3;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 16px;
+    color: #222222;
+}
+
+.eatWhereNote {
+    flex-basis: 100%;
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.eatWhereNote:empty {
+    display: none;
+}
+
+@media only screen and (min-width: 1025px) {
+    /* inside the content area (already beside the sidebar): line up with the search box */
+    .eatWhere {
+        left: 0;
+        right: 0;
+        width: auto;
+        max-width: 1040px;
+    }
+}

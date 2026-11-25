@@ -1,3 +1,5 @@
+import { categoryWords } from './categoryWords';
+
 /**
  * Reading what another app shared with Swrl List (the PWA share target), or
  * what the user pasted: is it a link to something we know, and if not, what
@@ -17,7 +19,7 @@
  *
  * @typedef {{source: 'imdb', imdbId: string}
  *   | {source: 'tmdb', kind: 'movie' | 'tv', id: string}
- *   | {source: 'item', type: 'book' | 'album' | 'podcast' | 'boardgame' | 'videogame', id: string}
+ *   | {source: 'item', type: 'book' | 'album' | 'podcast' | 'boardgame' | 'videogame' | 'restaurant', id: string}
  *   | {source: 'openlibrary', kind: 'works' | 'books', id: string}
  *   | {source: 'spotify', url: string}
  *   | {source: 'search', category: 'watch' | 'read' | 'listen' | 'play', query: string}} SharedLink
@@ -117,6 +119,11 @@ export function recogniseLink(link) {
         }
         return undefined;
     }
+    if (isHost(hostname, 'openstreetmap.org')) {
+        // a place on the map: /node/123, /way/45 (the app keeps "n123", "w45")
+        match = /^\/(node|way|relation)\/(\d{1,12})\/?$/.exec(path);
+        return match ? { source: 'item', type: 'restaurant', id: match[1].charAt(0) + match[2] } : undefined;
+    }
     if (hostname === 'store.steampowered.com') {
         match = /^\/app\/\d+\/([^/?#]+)/.exec(path);
         const query = match ? slugWords(match[1]) : '';
@@ -174,8 +181,6 @@ export function parseShare(shared) {
     return { link, query };
 }
 
-/** What each category's things are for: "you should watch this". */
-const VERBS = { 1: 'watch', 2: 'read', 3: 'listen to', 4: 'play' };
 
 /**
  * The words that go with a link shared outside the app (WhatsApp, Messages),
@@ -185,7 +190,7 @@ const VERBS = { 1: 'watch', 2: 'read', 3: 'listen to', 4: 'play' };
  * @return {string}
  */
 export function shareText(share) {
-    const verb = VERBS[share.category] || 'try';
+    const verb = categoryWords(share.category).verb;
     const message = (share.message || '').trim();
     const opening = share.fromName
         ? `${share.fromName} swrled you ${share.title}`

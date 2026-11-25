@@ -29,7 +29,7 @@ import { State } from './model/state';
 import { initMessaging } from './firebase/messaging';
 import { Collection } from './constants/Collection';
 import { Swrl } from './model/swrl';
-import { Category, WATCH, LISTEN, READ, PLAY, ALL } from './constants/Category';
+import { Category, WATCH, LISTEN, READ, PLAY, EAT, ALL } from './constants/Category';
 import { parseShare } from './model/share';
 import { resolveSharedLink } from './search/sharedLink';
 import { showToasterMessage } from './components/toaster';
@@ -124,6 +124,9 @@ const app = {
                         break;
                     case 'play':
                         listRoute(PLAY);
+                        break;
+                    case 'eat':
+                        listRoute(EAT);
                         break;
                     case 'recommend':
                         recommendRoute(match, firestore);

@@ -2,11 +2,12 @@ import { WatchSearch } from '../search/watchSearch';
 import { ReadSearch } from '../search/readSearch';
 import { ListenSearch } from '../search/listenSearch';
 import { PlaySearch } from '../search/playSearch';
+import { EatSearch } from '../search/eatSearch';
 import { AllSearch } from '../search/allSearch';
 import { Constant } from './Constant';
-import { Attribution, TMDB_ATTRIBUTION, BGG_ATTRIBUTION } from './Attribution';
+import { Attribution, TMDB_ATTRIBUTION, BGG_ATTRIBUTION, OSM_ATTRIBUTION } from './Attribution';
 import { Search } from '../search/search';
-import { WhereFilter, FILM_FILTER, TV_FILTER, BOOK_FILTER, ALBUM_FILTER, PODCAST_FILTER, BOARDGAME_FILTER, VIDEOGAME_FILTER } from './WhereFilter';
+import { WhereFilter, FILM_FILTER, TV_FILTER, BOOK_FILTER, ALBUM_FILTER, PODCAST_FILTER, BOARDGAME_FILTER, VIDEOGAME_FILTER, RESTAURANT_FILTER } from './WhereFilter';
 
 export class Category extends Constant {
     /**
@@ -96,6 +97,24 @@ export const PLAY = new Category(
     BGG_ATTRIBUTION);
 
 /**
+ * Places to eat: restaurants, cafés, pubs and takeaways, from OpenStreetMap
+ * (searched by name or cuisine, near me or in a town or city). Id 6: 5 is ALL.
+ */
+export const EAT = new Category(
+    6,
+    'eat',
+    'Eat',
+    'Nowhere to eat yet :( Try searching for a restaurant, café or pub!',
+    'Nowhere to eat yet :( Try searching for a restaurant, café or pub!',
+    'Search for a restaurant, café or pub',
+    'Search by name or cuisine',
+    new EatSearch(),
+    '#2A9D8F',
+    'img/restaurant-24px.svg',
+    [RESTAURANT_FILTER],
+    OSM_ATTRIBUTION);
+
+/**
  * Not a list of its own: "search everything", for when we do not know what
  * kind of thing is wanted (a share from another app, the /search page). It is
  * left out of `Categories`, so it has no home section, list or Discover.
@@ -106,14 +125,14 @@ export const ALL = new Category(
     'Search',
     'Nothing here.',
     'Nothing here.',
-    'Search films, TV, books, music, podcasts and games all at once',
+    'Search films, TV, books, music, podcasts, games and places to eat all at once',
     'Search everything',
     new AllSearch(),
     '#FF2E63',
     'img/search-24px-white.svg',
-    [FILM_FILTER, TV_FILTER, BOOK_FILTER, ALBUM_FILTER, PODCAST_FILTER, BOARDGAME_FILTER, VIDEOGAME_FILTER]);
+    [FILM_FILTER, TV_FILTER, BOOK_FILTER, ALBUM_FILTER, PODCAST_FILTER, BOARDGAME_FILTER, VIDEOGAME_FILTER, RESTAURANT_FILTER]);
 
-export const Categories = Object.freeze([WATCH, READ, LISTEN, PLAY]);
+export const Categories = Object.freeze([WATCH, READ, LISTEN, PLAY, EAT]);
 
 export const categoryFromId =
     /**
