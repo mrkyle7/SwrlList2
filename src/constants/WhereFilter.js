@@ -1,5 +1,5 @@
 import { Constant } from "./Constant";
-import { FILM, ALBUM, BOOK, TV, PODCAST, BOARDGAME, VIDEOGAME } from "./Type";
+import { FILM, ALBUM, BOOK, TV, PODCAST, BOARDGAME, VIDEOGAME, RESTAURANT } from "./Type";
 
 export class WhereFilter extends Constant {
     /**
@@ -21,8 +21,9 @@ export const ALBUM_FILTER = new WhereFilter(4, "type", ALBUM.id);
 export const PODCAST_FILTER = new WhereFilter(5, "type", PODCAST.id);
 export const BOARDGAME_FILTER = new WhereFilter(6, "type", BOARDGAME.id);
 export const VIDEOGAME_FILTER = new WhereFilter(7, "type", VIDEOGAME.id);
+export const RESTAURANT_FILTER = new WhereFilter(8, "type", RESTAURANT.id);
 
-export const whereFilters = Object.freeze([FILM_FILTER, TV_FILTER, BOOK_FILTER, ALBUM_FILTER, PODCAST_FILTER, BOARDGAME_FILTER, VIDEOGAME_FILTER])
+export const whereFilters = Object.freeze([FILM_FILTER, TV_FILTER, BOOK_FILTER, ALBUM_FILTER, PODCAST_FILTER, BOARDGAME_FILTER, VIDEOGAME_FILTER, RESTAURANT_FILTER])
 
 export const whereFilterFromId =
     /**

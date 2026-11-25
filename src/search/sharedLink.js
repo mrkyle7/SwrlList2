@@ -1,8 +1,9 @@
 import { tmdbFilmToSwrl, tmdbTVToSwrl } from './watchSearch';
 import { booksFromSearch, SEARCH_FIELDS } from './readSearch';
 import { Swrl } from '../model/swrl';
-import { ALBUM, BOARDGAME, BOOK, PODCAST, VIDEOGAME } from '../constants/Type';
-import { LISTEN, PLAY, READ, WATCH } from '../constants/Category';
+import { ALBUM, BOARDGAME, BOOK, PODCAST, VIDEOGAME, RESTAURANT } from '../constants/Type';
+import { EAT, LISTEN, PLAY, READ, WATCH } from '../constants/Category';
+import { PLACE_ID_PREFIX } from '../model/restaurant';
 
 /**
  * What a shared link leads to: the swrl itself, or a search of one category.
@@ -16,7 +17,8 @@ const ITEM_TYPES = {
     album: { type: ALBUM, category: LISTEN, prefix: 'ITUNESALBUM_' },
     podcast: { type: PODCAST, category: LISTEN, prefix: 'ITUNESPODCAST_' },
     boardgame: { type: BOARDGAME, category: PLAY, prefix: 'GEEK' + BOARDGAME.geekType + '_' },
-    videogame: { type: VIDEOGAME, category: PLAY, prefix: 'GEEK' + VIDEOGAME.geekType + '_' }
+    videogame: { type: VIDEOGAME, category: PLAY, prefix: 'GEEK' + VIDEOGAME.geekType + '_' },
+    restaurant: { type: RESTAURANT, category: EAT, prefix: PLACE_ID_PREFIX }
 };
 
 const SEARCH_CATEGORIES = { watch: WATCH, read: READ, listen: LISTEN, play: PLAY };

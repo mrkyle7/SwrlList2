@@ -89,7 +89,7 @@ containers that views attach into.
   `components/homeLayout.js` puts it on `<body data-home-layout>` (and keeps a
   per-device `localStorage` hint so a reload does not flash the wrong layout). The
   bottom bar `#phoneNav` (`components/phoneNav.js`: Home, Search, Watch, Read,
-  Listen, Play) is the phone's sidebar: CSS shows it only under 1025px, with Cards, on
+  Listen, Play, Eat) is the phone's sidebar: CSS shows it only under 1025px, with Cards, on
   `data-screen` home and list; `StateController._switchCategory` keeps the tab
   (Your list / Discover / Search) and search words when switching category.
   `StateController.openSearchEverything()` opens Search everything (category

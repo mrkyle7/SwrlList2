@@ -1,7 +1,7 @@
 # Swrl List 2 — Agent guide
 
 A web app (installable PWA) where users save things to **watch, read, listen
-to, or play** and recommend them to friends. Backed by Firebase (Firestore +
+to, play, or eat at** and recommend them to friends. Backed by Firebase (Firestore +
 Auth + Cloud Messaging + Cloud Functions), served from Google Cloud Run.
 
 This file is a **routing layer**. It tells you where the code lives and which
@@ -35,12 +35,12 @@ src/
   actions/        user-initiated mutations — write to Firestore
   components/     small reusable DOM pieces (buttons, swrl card, toaster)
   constants/      enums: Category, Type, Filter, Sort, View, Collection, ...
-  detailGetters/  3rd-party detail fetchers (TMDB, OpenLibrary, iTunes, BGG)
+  detailGetters/  3rd-party detail fetchers (TMDB, OpenLibrary, iTunes, BGG, OpenStreetMap)
   firebase/       init, login, messaging, swrler (user profile) helpers
   listeners/      Firestore onSnapshot subscriptions (my list entries, friends, inbox, ...)
   model/          data classes (Swrl, State, Recommendation, Rating, ...)
   screens/        top-level screens that host Views (list, swrl, swrler, friends, settings, ...)
-  search/         per-category search strategies (watch/read/listen/play)
+  search/         per-category search strategies (watch/read/listen/play/eat)
   utils/          swipe, zip, property checker
   views/          DOM-rendering views; orchestrated by views/stateController.js
   index.js        entry point — starts the app on DOM ready
@@ -57,6 +57,7 @@ firestore.rules   security rules (applied by hand in the console, not by CI)
 firestore.indexes.json  the few indexes the new queries need (added by hand in the console)
 firebase.emulators.json emulator config (auth, firestore with the rules, functions)
 server.js         Express server used on Cloud Run (static app + third-party API proxies)
+serverlib/        server.js's tested helpers: Overpass queries, a restaurant website's picture (CommonJS)
 webpack.config.js builds www/ + src/ into dist/
 Dockerfile        Cloud Run image: webpack build → Express
 terraform/        all GCP infrastructure, applied by GitHub Actions (see terraform/README.md)
@@ -140,7 +141,9 @@ counts are written by Cloud Functions. Details in the `swrl-firebase` skill.
   `firebase/compat/*`.
 - **TMDB, OMDb and BoardGameGeek calls go through `server.js`**
   (`/api/v1/tmdb/*`, `/api/v1/omdb`, `/api/v1/geek/*`; also the keyless
-  `/api/v1/itunes/*` and `/api/v1/oembed/spotify`), which holds
+  `/api/v1/itunes/*`, `/api/v1/oembed/spotify`, `/api/v1/eat/*` (Overpass) and
+  `/api/v1/pageimage`, which fetches a restaurant site's og:image behind an
+  address guard; keep that guard in `serverlib/pageImage.js`), which holds
   `TMDB_API_KEY`, `OMDB_API_KEY` and `BGG_API_TOKEN` (from Secret Manager).
   BoardGameGeek is paused (`BGG_PAUSED` in `server.js`, instant 503) until
   BGG issues the key; flip it to `false` then.

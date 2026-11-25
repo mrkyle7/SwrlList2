@@ -37,7 +37,7 @@ const EXTRAS = [
   '/img/spinner.gif'
 ];
 // Deep links (/swrl/<id>, /watch, ...) are all the same single page.
-const APP_ROUTE = /^\/(swrl|swrler|recommend|savedsearches|friends|settings|recommendations|watch|listen|read|play|search|share|about)(\/[^/]*)?\/?$/;
+const APP_ROUTE = /^\/(swrl|swrler|recommend|savedsearches|friends|settings|recommendations|watch|listen|read|play|eat|search|share|about)(\/[^/]*)?\/?$/;
 const HASHED = /\.[0-9a-f]{8}\.(js|css)$/;
 
 self.addEventListener('install', (event) => {

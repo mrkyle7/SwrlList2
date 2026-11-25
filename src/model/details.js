@@ -4,6 +4,21 @@ import { Rating } from "./rating";
 import { Network } from "./network";
 import { TmdbPerson } from "./tmdbPerson";
 
+/**
+ * What a place to eat has that nothing else does (Eat, from OpenStreetMap).
+ * Every field is optional.
+ *
+ * @typedef {Object} PlaceInfo
+ * @property {string} [kind] "Restaurant", "Café", "Pub", ...
+ * @property {string} [area] the neighbourhood or town, for cards
+ * @property {string} [address] one line
+ * @property {string} [openingHours] as OpenStreetMap has it ("Mo-Su 12:00-23:00")
+ * @property {string} [phone]
+ * @property {string} [website]
+ * @property {number} [lat]
+ * @property {number} [lon]
+ */
+
 export class Details {
     /**
      * @param {string} id
@@ -64,6 +79,8 @@ export class Details {
         this.playerCount = playerCount;
         this.twoPlayerRecommendation = twoPlayerRecommendation;
         this.playingTime = playingTime;
+        /** Only for places to eat. @type {PlaceInfo | undefined} */
+        this.place = undefined;
     }
 
     /**
@@ -72,7 +89,16 @@ export class Details {
     toJSON() {
         const json = {};
         Object.keys(this).forEach(key => {
-            if (key === 'links' || key === 'ratings' || key === 'networks'
+            if (key === 'place') {
+                // Firestore refuses undefined inside a map: keep only what is there
+                if (this.place) {
+                    const place = {};
+                    Object.keys(this.place).forEach(field => {
+                        if (this.place[field] !== undefined && this.place[field] !== null) place[field] = this.place[field];
+                    });
+                    if (Object.keys(place).length > 0) json[key] = place;
+                }
+            } else if (key === 'links' || key === 'ratings' || key === 'networks'
                 || key === 'tMDBActors' || key === 'tMDBDirectors') {
                 const specialArray = [];
                 this[key].forEach(obj => {
@@ -147,13 +173,15 @@ export class Details {
                 }
             )
         }
-        return new Details(json.id, json.title, json.imageUrl, json.artist, json.author, json.releaseYear,
+        const details = new Details(json.id, json.title, json.imageUrl, json.artist, json.author, json.releaseYear,
             json.genres || [],
             links, json.tagline, json.overview,
             json.actors || [], tMDBActors, json.director, tMDBDirectors, ratings, json.runtime,
             json.numberOfSeasons, json.averageEpisodeLength, json.lastAirDate, networks,
             json.designers || [], json.platforms || [], json.publishers || [],
             json.playerCount, json.twoPlayerRecommendation, json.playingTime);
+        if (json.place && typeof json.place === 'object') details.place = { ...json.place };
+        return details;
     }
 
     /** @return {string} */

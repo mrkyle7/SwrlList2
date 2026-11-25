@@ -4,6 +4,8 @@ const fs = require('fs');
 const https = require('https');
 const path = require('path');
 const querystring = require('querystring');
+const overpass = require('./serverlib/overpass');
+const { fetchPageImage } = require('./serverlib/pageImage');
 
 const app = express();
 // Built by `npm run build` (webpack): www/ plus bundle.<hash>.js.
@@ -177,6 +179,72 @@ app.get('/api/v1/itunes/lookup', function (req, res) {
     path: '/lookup?id=' + id + '&entity=' + entity,
     contentType: 'application/json'
   });
+});
+
+// --- Places to eat: OpenStreetMap through the Overpass API ------------------------
+// No key; Overpass asks for a real User-Agent and gentle use, which the cache
+// in relay() gives. Queries are built in serverlib/overpass.js from what was
+// typed and where (a town or city, or "near" rounded to about a kilometre);
+// neither the search words nor the location go into the logs.
+
+app.get('/api/v1/eat/search', function (req, res) {
+  const q = searchTerm(req.query.q);
+  const near = typeof req.query.near === 'string' ? overpass.parseNear(req.query.near) : undefined;
+  const place = !near && typeof req.query.place === 'string' ? overpass.cleanPlace(req.query.place) : undefined;
+  const query = q ? overpass.searchQuery({ q, near, place }) : undefined;
+  if (!query) {
+    return res.status(400).json({ error: 'Bad search: say what to look for, and near where or in which town or city' });
+  }
+  relay(res, {
+    service: 'Overpass',
+    host: 'overpass-api.de',
+    path: '/api/interpreter?data=' + encodeURIComponent(query),
+    logPath: '/api/interpreter (eat search)',
+    contentType: 'application/json'
+  });
+});
+
+app.get('/api/v1/eat/place', function (req, res) {
+  const query = overpass.placeQuery(req.query.id);
+  if (!query) {
+    return res.status(400).json({ error: 'Bad place id' });
+  }
+  relay(res, {
+    service: 'Overpass',
+    host: 'overpass-api.de',
+    path: '/api/interpreter?data=' + encodeURIComponent(query),
+    contentType: 'application/json'
+  });
+});
+
+// The picture a restaurant's own website shares (og:image), for places
+// OpenStreetMap has no photo for. serverlib/pageImage.js guards the fetch
+// (public addresses only, checked redirects, a few seconds, 256 KB) and only
+// the image address comes back. Remembered for a day, misses included.
+const PAGE_IMAGE_TTL_MS = 24 * 60 * 60 * 1000;
+const PAGE_IMAGE_MAX_ENTRIES = 2000;
+/** @type {Map<string, {expires: number, imageUrl: string | null}>} */
+const pageImageCache = new Map();
+
+app.get('/api/v1/pageimage', async function (req, res) {
+  const page = typeof req.query.url === 'string' ? req.query.url.trim() : '';
+  if (!page || page.length > 500) {
+    return res.status(400).json({ error: 'Bad page address' });
+  }
+  let cached = pageImageCache.get(page);
+  if (!cached || cached.expires <= Date.now()) {
+    const imageUrl = await fetchPageImage(page).catch(() => null);
+    if (pageImageCache.size >= PAGE_IMAGE_MAX_ENTRIES) {
+      pageImageCache.delete(pageImageCache.keys().next().value);
+    }
+    cached = { expires: Date.now() + PAGE_IMAGE_TTL_MS, imageUrl };
+    pageImageCache.set(page, cached);
+  }
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  if (!cached.imageUrl) {
+    return res.status(404).json({ error: 'No picture on that page' });
+  }
+  res.json({ imageUrl: cached.imageUrl });
 });
 
 // --- Spotify oEmbed ---------------------------------------------------------------
@@ -379,7 +447,7 @@ app.use('/__', function (req, res) {
 const appRoutes = [
   '/',
   '/swrl/:id', '/swrler/:id', '/recommend/:id',
-  '/savedsearches', '/friends', '/settings', '/recommendations', '/watch', '/listen', '/read', '/play',
+  '/savedsearches', '/friends', '/settings', '/recommendations', '/watch', '/listen', '/read', '/play', '/eat',
   '/search', '/share', '/about'
 ];
 
@@ -471,7 +539,8 @@ function withPreview(html, preview) {
   return html;
 }
 
-const VERBS = { 1: 'watch', 2: 'read', 3: 'listen to', 4: 'play' };
+// The same words as src/model/categoryWords.js (this file cannot import it).
+const VERBS = { 1: 'watch', 2: 'read', 3: 'listen to', 4: 'play', 6: 'eat at' };
 
 /**
  * @param {string} path the request path
@@ -491,18 +560,20 @@ async function previewFor(path, shareID) {
   if (!swrl || !swrl.details || !swrl.details.title) return undefined;
   const title = swrl.details.title;
   const verb = VERBS[swrl.category] || 'try';
+  // "eat at this" does not read: places to eat say "eat here"
+  const doThis = swrl.category === 6 ? 'eat here' : verb + ' this';
   const cut = (text, length) => text.length > length ? text.substring(0, length - 1) + '\u2026' : text;
   if (share && share.fromName) {
     return {
       title: cut(share.fromName + ' swrled you ' + title, 110),
-      description: cut(share.message ? '\u201c' + share.message + '\u201d' : share.fromName + ' thinks you should ' + verb + ' this.', 200),
+      description: cut(share.message ? '\u201c' + share.message + '\u201d' : share.fromName + ' thinks you should ' + doThis + '.', 200),
       image: swrl.details.imageUrl,
       url: SITE + path + '?from=' + encodeURIComponent(shareID)
     };
   }
   return {
     title: cut(title + ' on Swrl List', 110),
-    description: 'You should ' + verb + ' this. Save it to your list, or swrl it to a friend.',
+    description: 'You should ' + doThis + '. Save it to your list, or swrl it to a friend.',
     image: swrl.details.imageUrl,
     url: SITE + path
   };

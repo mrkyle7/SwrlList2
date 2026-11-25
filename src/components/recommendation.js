@@ -12,7 +12,7 @@ import { StateController } from '../views/stateController';
 import { getSwrler } from '../firebase/swrler';
 import { State } from '../model/state';
 import { Swrl } from '../model/swrl';
-import { typeLabel } from '../constants/Type';
+import { swrlKind } from '../constants/Type';
 import { whenListEntriesReady } from '../listeners/listEntries';
 import { addReplies } from './recommendationReplies';
 import { hasUnreadReply } from '../listeners/recommendations';
@@ -57,8 +57,8 @@ export const renderRecommendation = async (stateController, view, recommendation
     image.src = swrl.details.imageUrl;
     image.addEventListener('error', () => { image.src = 'img/NoPoster.jpg'; }, { once: true });
     $('.swrlTitle').textContent = swrl.details.title;
-    $('.swrlMeta').textContent = cardMeta(typeLabel(swrl.type), swrl.details);
-    $('.swrlType').textContent = typeLabel(swrl.type);
+    $('.swrlMeta').textContent = cardMeta(swrlKind(swrl.type, swrl.details), swrl.details);
+    $('.swrlType').textContent = swrlKind(swrl.type, swrl.details);
     addDetailedParts(card, swrl);
     showNote(card, swrl, firestore);
 
