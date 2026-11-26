@@ -130,6 +130,14 @@ loved = `lovedCount`, recommended = `recommendations.length`. Entries flagged
 
 ### Reading rule
 
+**Cache first:** screens and start-up read with `getDocFast` / `getDocsFast`
+(`src/firebase/cacheFirst.js`): the persistent cache's copy at once, the
+server's in the background (one read, as before), and an `onFresh` callback
+when it differs. Plain `getDoc` asks the server first and stalls on a slow
+connection. A cached "does not exist" or an empty cached query still goes to
+the server. Reads made while Firestore is still starting are not always
+written to its cache, so never rely on a document being cached.
+
 Listeners (`src/listeners/*`) use `onSnapshot` and maintain an in-memory cache
 (my entries keyed by `swrlID`; my friends and requests; the recommendation
 inboxes). Views read from the cache synchronously; "is this on my list / done /
@@ -255,6 +263,15 @@ it's `undefined` until `setUpLogin` resolves.
   worker's own site, whatever host `fcmOptions.link` names.
 
 ## Auth notes
+
+- Auth is created with `initializeAuth` and only the local stores
+  (`indexedDBLocalPersistence`, `browserLocalPersistence`), so start-up does
+  not load the popup/redirect helper; `signInWithPopup` and
+  `reauthenticateWithPopup` are given `browserPopupRedirectResolver`
+  themselves. `getAuth(app)` elsewhere returns that same instance.
+- On every start Auth checks the saved user with the server before
+  `onAuthStateChanged` fires, and Firestore waits for Auth: that is why the app
+  opens from its own saved copy first (`firebase/bootCache.js`).
 
 - Google sign-in uses `signInWithPopup`. Redirect sign-in does not work off
   the `*.firebaseapp.com` domain (browsers partition the storage it needs).

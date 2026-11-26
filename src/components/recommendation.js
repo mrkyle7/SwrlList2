@@ -1,4 +1,5 @@
-import { doc, getDoc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { getDocFast } from '../firebase/cacheFirst';
 import { INBOX, SENT } from '../constants/View';
 import { swrlUser } from '../firebase/login';
 import { addStats } from './stats';
@@ -36,7 +37,7 @@ export const renderRecommendation = async (stateController, view, recommendation
         return undefined;
     }
     if (!recommendation.swrl) {
-        const swrlDoc = await getDoc(doc(firestore, Collection.SWRLS, recommendation.swrlID));
+        const swrlDoc = await getDocFast(doc(firestore, Collection.SWRLS, recommendation.swrlID));
         recommendation.swrl = Swrl.fromFirestore(swrlDoc.data());
     }
     const swrl = recommendation.swrl;

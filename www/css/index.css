@@ -6425,3 +6425,72 @@ body.eatSearch :is(#searchResults, #savedSearchesCard) {
         transition: none;
     }
 }
+
+/* --- A cover full screen (tap the poster on a swrl's page) --- */
+.pageHeroPoster.zoomable {
+    cursor: zoom-in;
+}
+.pageHeroPoster.zoomable:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+.imageViewer {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: calc(56px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px));
+    background: #0c0c0e;
+    cursor: zoom-out;
+}
+.imageViewer.open {
+    display: flex;
+    animation: imageViewerIn 160ms ease-out;
+}
+.imageViewerPicture {
+    /* fill the screen, scaled to fit (a small cover is scaled up too) */
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+.imageViewerClose {
+    position: absolute;
+    top: calc(8px + env(safe-area-inset-top, 0px));
+    right: 8px;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    cursor: pointer;
+}
+.imageViewerClose:hover {
+    background: rgba(255, 255, 255, 0.24);
+}
+.imageViewerClose:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+.imageViewerClose svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+}
+body.imageViewerOpen {
+    overflow: hidden;
+}
+@keyframes imageViewerIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .imageViewer.open { animation: none; }
+}

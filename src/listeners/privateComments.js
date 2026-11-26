@@ -1,4 +1,5 @@
-import { collection, getDocs, limit, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, limit, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { getDocsFast } from '../firebase/cacheFirst';
 import { swrlUser } from '../firebase/login';
 import { privateCommentsPath } from '../constants/Collection';
 import { PrivateComment } from '../model/privateComment';
@@ -46,7 +47,8 @@ export function getLatestNote(swrlID, firestore) {
     const key = noteKey(swrlID);
     if (!latestNotes.has(key)) {
         const [first, ...rest] = privateCommentsPath(swrlUser.uid, swrlID);
-        latestNotes.set(key, getDocs(query(collection(firestore, first, ...rest), orderBy('created', 'desc'), limit(1)))
+        latestNotes.set(key, getDocsFast(query(collection(firestore, first, ...rest), orderBy('created', 'desc'), limit(1)),
+            fresh => latestNotes.set(key, Promise.resolve(fresh.empty ? undefined : String(fresh.docs[0].data().text || '') || undefined)))
             .then(snapshot => snapshot.empty ? undefined : String(snapshot.docs[0].data().text || '') || undefined)
             .catch(error => {
                 console.error(`Could not read notes for ${swrlID}`);

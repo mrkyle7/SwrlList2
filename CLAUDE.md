@@ -91,6 +91,10 @@ counts are written by Cloud Functions. Details in the `swrl-firebase` skill.
   shown in the app's menu, so the owner can confirm which build is live. Patch
   for fixes and small tweaks, minor for new features, major for breaking
   changes (data model or rules changes that need owner action). One bump per PR.
+- **New versions reach open apps quietly** (next start, no reload). If a
+  release changes how the app looks or works enough to confuse someone
+  mid-session, set `updateNotice` in `package.json` (`{"version", "text"}`):
+  open apps then ask with a toast before switching (`swrl-build-deploy`).
 - **By default, open a PR and auto-merge it** when the work is done: push the
   branch, open the PR against `master`, enable auto-merge (or merge once CI is
   green if auto-merge is unavailable). A merge deploys the live site, so never
@@ -154,6 +158,11 @@ counts are written by Cloud Functions. Details in the `swrl-firebase` skill.
   the next apply undoes manual changes. Secret values never go in terraform:
   GitHub Actions secrets are copied into Secret Manager by the deploy job.
 - **`npm test` must pass with zero type errors** — CI gates merges on it.
+- **Never wait on the network to show something the app has seen before.**
+  On screens and start-up use `getDocFast` / `getDocsFast`
+  (`src/firebase/cacheFirst.js`), not `getDoc` / `getDocs`, and never reload
+  or reset a screen to apply data or a new build (see `swrl-build-deploy`,
+  "Opening instantly").
 - Raw DOM rendering, no framework. No React/Vue/Svelte. Don't import one.
 - Ask before major dependency bumps; verify with a real build and `npm test`.
 

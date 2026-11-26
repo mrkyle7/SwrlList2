@@ -1,20 +1,31 @@
-import { shouldReload, shortVersion } from '../model/update';
+import { shortVersion, updateAction } from '../model/update';
 import { showToasterMessage } from './toaster';
 
 /**
- * Keeps an open or installed app on the live build. It asks the server which
- * build is live (dist/version.json, never cached) shortly after starting,
- * whenever the app comes back into view, and every 15 minutes while open.
- * When a newer one is live it reloads, but never while someone is typing or
- * has a sheet open: then it waits for the next quiet moment.
+ * Keeps an open or installed app current without ever pulling the screen out
+ * from under anyone. It asks the server which build is live
+ * (dist/version.json, never cached) shortly after starting, whenever the app
+ * comes back into view, and every 15 minutes while open.
+ *
+ * - An ordinary new build (model/update.js `updateAction` 'quiet'): the
+ *   service worker downloads it in the background and the app opens it the
+ *   next time it starts. Nothing reloads, nothing resets now.
+ * - A build with a change worth knowing about (`updateNotice` in package.json,
+ *   'ask'): a toast says what changed, with an Update button. Only that tap
+ *   reloads (at a quiet moment: never over typing or an open sheet), and the
+ *   reload comes back to the same screen (the address is kept). Ignored, it
+ *   asks again at most every 10 minutes.
  */
 
 const CHECK_EVERY_MS = 15 * 60 * 1000;
 const FIRST_CHECK_MS = 10 * 1000;
+const ASK_AGAIN_MS = 10 * 60 * 1000;
 const TRIED_KEY = 'swrlReloadedFor';
 
-/** @type {string | undefined} a newer build is live and waiting for a quiet moment */
-let pending;
+/** @type {string | undefined} a newer build is downloading or ready, for next start */
+let prepared;
+/** When the update toast was last shown. */
+let askedAt = 0;
 
 /** @return {string | null} */
 function triedFor() {
@@ -36,13 +47,52 @@ function busy() {
     return typed || open !== null;
 }
 
-/** @param {string} live */
-function reloadTo(live) {
+/**
+ * The new build into the service worker's cache, in the background, so the
+ * next start opens it (www/sw.js). No reload.
+ *
+ * @param {string} live
+ */
+function prepare(live) {
+    if (prepared === live) return;
+    prepared = live;
+    const worker = navigator.serviceWorker;
+    if (!worker || !worker.getRegistration) return;
+    worker.getRegistration()
+        .then(registration => registration ? registration.update() : undefined)
+        .catch(() => undefined);
+}
+
+/**
+ * Asks whether to switch now, saying what changed.
+ *
+ * @param {string} live
+ * @param {string} text what changed, from the release's notice
+ */
+function ask(live, text) {
+    if (triedFor() === live) return; // reloaded for it already: a cache is in the way, do not loop
+    if (Date.now() - askedAt < ASK_AGAIN_MS) return;
+    askedAt = Date.now();
+    showToasterMessage(text, {
+        long: true,
+        action: { label: 'Update', run: () => reloadWhenQuiet(live) }
+    });
+}
+
+/**
+ * Switches to the new build once nothing would be lost: never over typing
+ * or an open sheet. The reload keeps the address, so it opens the same screen.
+ *
+ * @param {string} live
+ */
+function reloadWhenQuiet(live) {
+    if (busy()) {
+        setTimeout(() => reloadWhenQuiet(live), 2000);
+        return;
+    }
     try { sessionStorage.setItem(TRIED_KEY, live); } catch { /* reload anyway */ }
     showToasterMessage('Updating Swrl List to ' + shortVersion(live));
-    setTimeout(() => {
-        newWorkerReady().catch(() => undefined).finally(() => window.location.reload());
-    }, 1200);
+    newWorkerReady().catch(() => undefined).finally(() => window.location.reload());
 }
 
 /** How long to wait for a new service worker before reloading anyway. */
@@ -77,21 +127,16 @@ async function newWorkerReady() {
     });
 }
 
-/** Reloads now if there is a newer build waiting and nothing would be lost. */
-function reloadIfQuiet() {
-    if (pending && document.visibilityState === 'visible' && !busy()) reloadTo(pending);
-}
-
 async function check() {
     if (!navigator.onLine) return;
     try {
         const response = await fetch('/version.json', { cache: 'no-store' });
         if (!response.ok) return;
-        const { version } = await response.json();
-        if (shouldReload(APP_VERSION, version, triedFor())) {
-            pending = version;
-            reloadIfQuiet();
-        }
+        const live = await response.json();
+        const action = updateAction(APP_VERSION, live);
+        if (action === 'none') return;
+        prepare(live.version);
+        if (action === 'ask') ask(live.version, live.notice.text);
     } catch (error) {
         // offline or the server is busy: try again later
     }
@@ -101,11 +146,7 @@ export function startUpdateCheck() {
     setTimeout(check, FIRST_CHECK_MS);
     setInterval(() => { if (document.visibilityState === 'visible') check(); }, CHECK_EVERY_MS);
     document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-            if (pending) reloadIfQuiet(); else check();
-        }
+        if (document.visibilityState === 'visible') check();
     });
-    // a newer build found while typing: reload once the person has finished
-    document.addEventListener('focusout', () => setTimeout(reloadIfQuiet, 2000));
     window.addEventListener('online', check);
 }

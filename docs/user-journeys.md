@@ -36,7 +36,9 @@ layout applies). Check signed in, signed out (anonymous) and as a friend.
 | Labels, and notes (the Notes tab; stored as private comments) on the swrl page | `components/labels.js`, `components/privateComments.js`, `views/swrlFullPage.js` | |
 | Settings (defaults: visibility, list view, page layout, phone home layout) | `views/settings.js` | |
 | Keyboard on desktop (Tab order, Enter on cards and tabs, Esc, skip link) | `components/keyboard.js`, `views/stateController.js` | |
-| An open or installed app getting the new build | `components/updateCheck.js`, `dist/version.json` | |
+| An open or installed app getting the new build | `components/updateCheck.js`, `dist/version.json` | quietly at next start; asks first only after a release with `updateNotice` |
+| Opening the app offline or on a slow connection | `firebase/bootCache.js`, `firebase/cacheFirst.js`, `www/sw.js` | the first screen from what the device has, then live data in place |
+| A swrl's cover full screen | `components/imageViewer.js`, `views/swrlFullPage.js` | |
 
 ## Friends and other people
 

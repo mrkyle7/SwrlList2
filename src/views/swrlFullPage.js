@@ -6,7 +6,8 @@ import { showLabels, hideLabels } from '../components/labels';
 import shareSwrl from '../actions/shareSwrl';
 import { showAttribution, hideAttribution } from '../components/attribution';
 import { showSwrlVisibility, hideSwrlVisibility } from '../components/swrlVisibility';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
+import { getDocFast } from '../firebase/cacheFirst';
 import { UIView } from './UIView';
 import { StateController } from './stateController';
 import { State } from '../model/state';
@@ -22,6 +23,8 @@ import { TABS, activeTab, artShape, capitalise, metaLine, splitGenres, tabsToSho
 import { addAddButton, addLoveButton, addRecommendButton, addDoneButton, addProgressButton } from '../components/buttons';
 import { progressWords } from '../model/progress';
 import { drawTabs, markActiveTab } from '../components/pageTabs';
+import { makeImageZoomable } from '../components/imageViewer';
+import { largeImage } from '../model/imageSize';
 import {
     avatar, buildCast, buildLinks, buildRatings, buildStory, element, pageBlock
 } from '../components/swrlPageSections';
@@ -101,6 +104,8 @@ export class SwrlFullPage extends UIView {
 /** @type {HTMLImageElement} */
 // @ts-ignore
 const swrlImageLarge = document.getElementById('swrlImageLarge');
+// tap the cover to see it full screen
+makeImageZoomable(/** @type {HTMLImageElement} */ (swrlImageLarge));
 // square art (albums, podcasts) is sized and lined up differently from tall posters
 swrlImageLarge.addEventListener('load', () => {
     hero.dataset.shape = artShape(swrlImageLarge.naturalWidth, swrlImageLarge.naturalHeight);
@@ -154,7 +159,7 @@ async function showSwrlFullPage(stateController) {
     const thisVisit = socialCardsToken;
 
     // my own entries must have loaded, or the buttons would all say "not on my list"
-    Promise.all([getDoc(doc(firestore, Collection.SWRLS, swrl.swrlID)), whenListEntriesReady()])
+    Promise.all([getDocFast(doc(firestore, Collection.SWRLS, swrl.swrlID)), whenListEntriesReady()])
         .then(([docSnapshot]) => {
             if (socialCardsToken !== thisVisit) return;
             let currentSwrl = swrl;
@@ -213,6 +218,11 @@ function renderHero(swrl) {
     hero.dataset.category = swrl.category ? swrl.category.name : '';
     swrlImageLarge.src = details.imageUrl;
     swrlImageLarge.alt = `Cover of ${details.title}`;
+    // only a real cover opens full screen
+    const zoomable = Boolean(largeImage(details.imageUrl));
+    swrlImageLarge.classList.toggle('zoomable', zoomable);
+    swrlImageLarge.tabIndex = zoomable ? 0 : -1;
+    swrlImageLarge.title = zoomable ? 'See the cover full size' : '';
     heroType.textContent = swrlKind(swrl.type, details);
     heroTitle.textContent = details.title;
     heroMeta.textContent = metaLine(details);

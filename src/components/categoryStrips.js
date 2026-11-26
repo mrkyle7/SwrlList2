@@ -1,4 +1,5 @@
-import { doc, getDoc } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
+import { getDocFast } from '../firebase/cacheFirst';
 import { Collection } from '../constants/Collection';
 import { Category } from '../constants/Category';
 import { swrlUser } from '../firebase/login';
@@ -124,7 +125,7 @@ const swrlLookups = new Map();
  */
 function sharedSwrl(swrlID, firestore) {
     if (!swrlLookups.has(swrlID)) {
-        swrlLookups.set(swrlID, getDoc(doc(firestore, Collection.SWRLS, swrlID))
+        swrlLookups.set(swrlID, getDocFast(doc(firestore, Collection.SWRLS, swrlID))
             .then(snapshot => snapshot.exists() ? Swrl.fromFirestore(snapshot.data()) : undefined)
             .catch(error => {
                 swrlLookups.delete(swrlID);

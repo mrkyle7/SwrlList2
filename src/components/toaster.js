@@ -10,7 +10,7 @@ let timeout;
  * little longer; the button is the only part of the toast that takes taps.
  *
  * @param {string} message
- * @param {{kind?: 'warning', action?: {label: string, run: () => void}}} [options] a warning stays a little longer and carries an icon
+ * @param {{kind?: 'warning', action?: {label: string, run: () => void}, long?: boolean}} [options] a warning stays a little longer and carries an icon; long: a question that waits 15 s
  */
 export function showToasterMessage(message, options = {}) {
     if (timeout) {
@@ -35,7 +35,7 @@ export function showToasterMessage(message, options = {}) {
     toaster.classList.remove('show', 'leaving');
     void toaster.offsetWidth;
     toaster.classList.add('show');
-    timeout = setTimeout(() => hide(toaster), warning || action ? 5000 : 3000);
+    timeout = setTimeout(() => hide(toaster), options.long ? 15000 : warning || action ? 5000 : 3000);
 };
 
 /**

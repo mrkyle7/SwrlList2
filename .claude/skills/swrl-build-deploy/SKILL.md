@@ -101,18 +101,50 @@ Project `swrl-1118`, region `us-east1`, service `swrl-list`.
   pages and the service workers with `no-cache`; `www/sw.js`
   never answers `/version.json` from its cache.
 - `src/components/updateCheck.js` asks for it 10 s after start, whenever the
-  app comes back into view, and every 15 minutes while open. A different
-  version means a newer build is live: it shows "Updating Swrl List to vX" and
-  reloads, but waits while someone has typed into a field or has a sheet open,
-  and never reloads twice in a tab for the same version (`sessionStorage`).
-  Before reloading it asks for the new service worker and waits (up to 15 s)
-  until it is active, or the reload would open the old build from the old
-  cache.
+  app comes back into view, and every 15 minutes while open, and never pulls
+  the screen out from under anyone (`updateAction` in `src/model/update.js`):
+  - an ordinary new build: it asks the service worker to fetch it
+    (`registration.update()`) and does nothing visible; the app opens the new
+    build the next time it starts;
+  - a build after a release marked with `updateNotice` in `package.json`
+    (`{"version": "x.y.z", "text": "What changed, in a few words"}`, copied into
+    `version.json`) when this app is older than that release: a toast with the
+    text and an **Update** button (15 s, asked again at most every 10 minutes).
+    Only that tap reloads, once nothing is typed or open, onto the same screen
+    (the address is kept), after waiting for the new worker; never twice in a
+    tab for the same version (`sessionStorage`).
+- Mark a release with `updateNotice` only when someone mid-session would be
+  confused by the change (a new look, moved navigation). Leave it in place in
+  later releases until a newer notice replaces it, so an app that skipped
+  versions is still asked.
 - Testing it: build, open the app, then `GIT_SHA=<anything> npm run build`
-  (a new version string and new hashes) while it is open; within about 10 s it
-  should reload onto the new bundle with one `swrl-shell-*` cache left.
+  (a new version string and new hashes) while it is open; within about 10 s
+  the new worker installs (one `swrl-shell-*` cache left) with no reload, and
+  reopening the app opens the new bundle.
 - Testing it: Playwright's `page.route('**/version.json', ...)` works because
   the service worker leaves that path alone.
+
+## Opening instantly (offline first)
+
+On start the app assumes it is offline and shows what it has, then catches up:
+
+- **The app itself:** the service worker serves the shell from this build's
+  cache (`www/sw.js`); a cold start never waits on the network.
+- **Who I am, my settings and my list:** `src/firebase/bootCache.js` keeps a
+  copy in its own IndexedDB database (`swrl-boot`, shape in
+  `src/model/bootData.js`, saved a moment after each change, deleted on
+  logout). `login.js` opens from it before Firebase answers; the list listener
+  is primed from it (`primeListEntries`) and its first live snapshot replaces
+  it outright. Firebase alone cannot do this: Auth checks the saved sign-in
+  with the server (`getAccountInfo`) before saying who is signed in, and
+  Firestore, its cache included, waits for Auth.
+- **Other reads:** `src/firebase/cacheFirst.js` (`getDocFast`, `getDocsFast`):
+  the local copy at once, the server's in the background. Use them on any
+  screen or start-up path; plain `getDoc` waits on the server first.
+- **Live changes** from elsewhere redraw Your list in place (same scroll, no
+  "Loading"), and only when what it shows changed; my own taps never redraw it.
+- Measured (Playwright, 30 entries, 3 s latency / 20 kB/s): first card 12 s
+  before, 0.26 s after; offline 0.38 s before, 0.23 s after.
 
 ## Dependency updates
 
