@@ -1,5 +1,6 @@
 import { myGenres } from '../model/myGenres';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
+import { getDocFast } from '../firebase/cacheFirst';
 export default { renderSwrl };
 
 import { DISCOVER, YOUR_LIST, RECOMMEND, SEARCH, SWRLER_LATER, SWRLER_LOVED, SWRLER_DONE } from '../constants/View';
@@ -101,29 +102,39 @@ export function renderSwrl(stateController, view, swrl, firestore, swrlsContaine
                 e.stopPropagation();
                 e.preventDefault();
                 const swrlFullPage = new State(stateController.swrlView);
-                swrlFullPage.swrl = latestSwrl;
+                swrlFullPage.swrl = latest;
                 stateController.changeState(swrlFullPage);
             })
         };
-        // my own entries must have loaded, or the buttons would all say "not on my list"
-        Promise.all([
-            getDoc(doc(firestore, Collection.SWRLS, swrl.swrlID)).catch(error => {
+        // The buttons need only my own entries (local, from the cache), never
+        // the network: they show as soon as those have loaded. The shared doc
+        // (counts, latest details) comes from the cache at once when we have
+        // it and from the server after, and only refreshes the counts.
+        let latest = swrl;
+        let shown = false;
+        const useShared = (/** @type {import('firebase/firestore').DocumentSnapshot} */ docSnapshot) => {
+            if (!docSnapshot || !docSnapshot.exists()) return;
+            try {
+                latest = Swrl.fromFirestore(docSnapshot.data());
+                if (shown) addStats(swrlDiv, latest);
+            } catch (error) {
+                console.error(`Error getting details for ${docSnapshot.id}`);
+                console.error(error);
+            }
+        };
+        const shared = getDocFast(doc(firestore, Collection.SWRLS, swrl.swrlID), useShared)
+            .then(useShared)
+            .catch(error => {
                 console.error(`Could not get the shared swrl for ${swrl.swrlID}`);
                 console.error(error);
-                return undefined;
-            }),
-            whenListEntriesReady()])
-            .then(([docSnapshot]) => {
-                let latestSwrl = swrl;
-                if (docSnapshot && docSnapshot.exists()) {
-                    try {
-                        latestSwrl = Swrl.fromFirestore(docSnapshot.data());
-                    } catch (error) {
-                        console.error(`Error getting details for ${docSnapshot.id}`);
-                        console.error(error);
-                    }
-                }
-                showButtons(latestSwrl);
+            });
+        // my own entries must have loaded, or the buttons would all say "not on my list";
+        // a cached shared doc usually arrives first, so the first counts are right too
+        whenListEntriesReady()
+            .then(() => Promise.race([shared, new Promise(resolve => setTimeout(resolve, 150))]))
+            .then(() => {
+                shown = true;
+                showButtons(latest);
             });
     } else {
         addStats(swrlDiv, swrl);

@@ -1,4 +1,5 @@
 import { disableNetwork, doc, enableNetwork, getDoc } from 'firebase/firestore';
+import { getDocFast } from './firebase/cacheFirst';
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -254,7 +255,7 @@ async function shareRoute(params, firestore) {
             const shared = target && target.swrl;
             if (shared) {
                 // The stored doc, when someone already has it, carries the counts.
-                const docSnapshot = await getDoc(doc(firestore, Collection.SWRLS, shared.swrlID)).catch(() => undefined);
+                const docSnapshot = await getDocFast(doc(firestore, Collection.SWRLS, shared.swrlID)).catch(() => undefined);
                 const swrl = docSnapshot && docSnapshot.exists() ? Swrl.fromFirestore(docSnapshot.data()) : shared;
                 const state = new State(stateController.swrlView);
                 state.swrl = swrl;
@@ -329,7 +330,7 @@ function swrlRoute(match, firestore, startState, shareID) {
         const share = shareID
             ? getDoc(doc(firestore, Collection.SHARES, shareID)).catch(() => undefined)
             : Promise.resolve(undefined);
-        Promise.all([getDoc(doc(firestore, Collection.SWRLS, swrlId)), share])
+        Promise.all([getDocFast(doc(firestore, Collection.SWRLS, swrlId)), share])
             .then(([docSnapshot, shareSnapshot]) => {
                 if (docSnapshot.exists()) {
                     const swrl = Swrl.fromFirestore(docSnapshot.data());
@@ -407,7 +408,7 @@ function recommendRoute(match, firestore) {
     if (swrlId) {
         console.log(`Found deep link for swrl, id: ${swrlId}`);
         document.getElementById('loadingView').classList.remove('hidden');
-        getDoc(doc(firestore, Collection.SWRLS, swrlId))
+        getDocFast(doc(firestore, Collection.SWRLS, swrlId))
             .then(docSnapshot => {
                 if (docSnapshot.exists()) {
                     const swrl = Swrl.fromFirestore(docSnapshot.data());

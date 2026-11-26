@@ -1,4 +1,4 @@
-import { GoogleAuthProvider, deleteUser, getAuth, reauthenticateWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, browserPopupRedirectResolver, deleteUser, getAuth, reauthenticateWithPopup } from 'firebase/auth';
 import { handleLogout, pauseUserListeners, resumeUserListeners } from '../firebase/login';
 import { DeleteError, classifyDeleteError } from '../model/accountDeletion';
 
@@ -32,7 +32,7 @@ export default async function deleteAccount(firestore) {
             await deleteUser(user);
         } catch (error) {
             if (classifyDeleteError(error) !== DeleteError.NEEDS_RECENT_LOGIN) throw error;
-            await reauthenticateWithPopup(user, new GoogleAuthProvider());
+            await reauthenticateWithPopup(user, new GoogleAuthProvider(), browserPopupRedirectResolver);
             await deleteUser(user);
         }
     } catch (error) {

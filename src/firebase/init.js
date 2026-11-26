@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { connectAuthEmulator, getAuth } from 'firebase/auth';
+import { browserLocalPersistence, connectAuthEmulator, indexedDBLocalPersistence, initializeAuth } from 'firebase/auth';
 import {
     CACHE_SIZE_UNLIMITED, connectFirestoreEmulator, initializeFirestore,
     persistentLocalCache, persistentMultipleTabManager
@@ -31,11 +31,19 @@ export default function initialiseFirebase() {
         })
     });
 
+    // Auth from the signed-in user saved on this device, with no sign-in
+    // helper loaded at start: getAuth() also loads the popup/redirect helper
+    // (an iframe from the auth domain) and holds back "who is signed in" until
+    // it answers, a whole round trip on a slow connection before anything of
+    // mine could show. The helper is given to the popup calls themselves
+    // (login.js, deleteAccount.js). getAuth(app) elsewhere returns this one.
+    const auth = initializeAuth(app, { persistence: [indexedDBLocalPersistence, browserLocalPersistence] });
+
     // Set by `npm run build:emulators` only; in a normal build this is `false`
     // and the block is removed.
     if (USE_FIREBASE_EMULATORS) {
         connectFirestoreEmulator(firestore, 'localhost', 8085);
-        connectAuthEmulator(getAuth(app), 'http://localhost:9099', { disableWarnings: true });
+        connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
     }
 
     return { app, firestore };

@@ -15,7 +15,7 @@ import { UIView } from './UIView';
 import { StateController} from './stateController';
 import { Sort } from '../constants/Sort';
 import { WhereFilter } from '../constants/WhereFilter';
-import { getAllListEntries, getListEntry, whenListEntriesReady } from '../listeners/listEntries';
+import { addListEntriesChangeListener, getAllListEntries, getListEntry, whenListEntriesReady } from '../listeners/listEntries';
 import { sortListEntries } from '../model/listEntry';
 import { getLabelsFor } from '../listeners/labels';
 import { matchesLabels } from '../model/labels';
@@ -74,14 +74,44 @@ let currentID;
 let currentCategory;
 let currentView;
 let currentListState;
+/** What Your list shows now (ids and when each changed), to tell whether a live change needs a redraw. */
+let renderedKey = '';
+/** For redrawing in place when the list changes elsewhere. */
+let lastStateController;
+let lastFirestore;
+/** @type {ReturnType<typeof setTimeout> | undefined} */
+let quietRefreshTimer;
+
+/**
+ * When my entries change on another device, or the live list replaces the
+ * copy the app opened from, Your list redraws in place: same scroll position,
+ * no "Loading", and only when what it shows has actually changed. Changes I
+ * make here are left to the cards (the buttons already show them), so a card
+ * never jumps away from under my finger.
+ */
+addListEntriesChangeListener(change => {
+    if (!change || !change.remote || currentView !== YOUR_LIST || !lastStateController) return;
+    if (swrlsContainer.classList.contains('hidden')) return;
+    if (lastStateController.currentState.view !== lastStateController.yourListView) return;
+    clearTimeout(quietRefreshTimer);
+    quietRefreshTimer = setTimeout(() => {
+        if (currentView === YOUR_LIST && lastStateController.currentState.view === lastStateController.yourListView) {
+            showList(currentCategory, YOUR_LIST, lastFirestore, lastStateController, { quiet: true });
+        }
+    }, 250);
+});
 
 /**
  * @param {Category} category
  * @param {Constant} view
  * @param {import('firebase/firestore').Firestore} firestore
  * @param {StateController} stateController
+ * @param {{quiet?: boolean}} [options] quiet: a live update of what is showing; redraw only if it changed, keep the scroll
  */
-export function showList(category, view, firestore, stateController) {
+export function showList(category, view, firestore, stateController, options = {}) {
+    lastStateController = stateController;
+    lastFirestore = firestore;
+    const quiet = options.quiet === true;
     const tabs = document.getElementById('tabs');
     tabs.classList.remove('hidden');
     mountListToolbar(swrlsContainer);
@@ -115,7 +145,10 @@ export function showList(category, view, firestore, stateController) {
     swrlsContainer.classList.remove('hidden');
     document.getElementById('swrlListView').classList.remove('hidden');
 
-    if (currentCategory !== category || currentView !== view || currentListState !== listState) {
+    if (quiet) {
+        // nothing changes on screen until we know the list did
+    } else if (currentCategory !== category || currentView !== view || currentListState !== listState) {
+        renderedKey = '';
         clearList();
         document.getElementById('messageContainer').classList.remove('hidden');
         document.getElementById('message').innerText = 'Loading Swrls...';
@@ -140,16 +173,27 @@ export function showList(category, view, firestore, stateController) {
                 if (view === YOUR_LIST && swrlUser && !swrlUser.isAnonymous) {
                     updateListStateCounts(listStateCounts(getAllListEntries(), category.id));
                 }
+                const labelFilters = stateController.currentState.labelFilters;
+                const swrls = total > 0 ? loaded.filter(swrl => filters.every(f => f.match(swrl, userId))
+                    && matchesLabels(getLabelsFor(swrl.swrlID), labelFilters)
+                    && matchesGenres(genresFor(swrl.swrlID), genreFilters)) : [];
+                const key = swrls.map(swrl => {
+                    const entry = getListEntry(swrl.swrlID);
+                    return swrl.swrlID + ':' + (entry && entry.updated ? entry.updated.getTime() : '') + ':' + (entry ? entry.inProgress : '');
+                }).join(',');
+                if (quiet && key === renderedKey) return; // nothing to redraw
+                renderedKey = key;
+                // a live redraw keeps where I had scrolled to
+                const scroller = document.scrollingElement;
+                const scrolledPage = scroller ? scroller.scrollTop : 0;
+                const scrolledList = swrlsContainer.scrollTop;
+
                 document.getElementById('messageContainer').classList.add('hidden');
                 document.querySelector('#messageContainer .loadingSpinner').classList.add('hidden');
                 document.querySelector('#swrlListView .loadingbar').classList.add('hidden');
 
                 clearList();
                 if (total > 0) {
-                    const labelFilters = stateController.currentState.labelFilters;
-                    const swrls = loaded.filter(swrl => filters.every(f => f.match(swrl, userId))
-                        && matchesLabels(getLabelsFor(swrl.swrlID), labelFilters)
-                        && matchesGenres(genresFor(swrl.swrlID), genreFilters));
                     renderNextSwrls(swrls, stateController, view, firestore, true);
                     if (view === YOUR_LIST && listState === LIST_LATER && swrls.length > 1) {
                         addPickBar(category, stateController);
@@ -178,6 +222,10 @@ export function showList(category, view, firestore, stateController) {
                                 document.getElementById('messageContainer').classList.add('hidden');
                             }
                         });
+                }
+                if (quiet) {
+                    if (scroller) scroller.scrollTop = scrolledPage;
+                    swrlsContainer.scrollTop = scrolledList;
                 }
             } else {
                 console.log('View was changed');

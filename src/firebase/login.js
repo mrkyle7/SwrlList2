@@ -3,12 +3,13 @@ export let swrlUser;
 export default { swrlUser, setUpLogin };
 
 import {
-    getAuth, GoogleAuthProvider, onAuthStateChanged, signInAnonymously, signInWithPopup, signOut
+    browserPopupRedirectResolver, getAuth, GoogleAuthProvider, onAuthStateChanged, signInAnonymously, signInWithPopup, signOut
 } from 'firebase/auth';
 import { deleteField, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { Collection } from '../constants/Collection';
 import { setUpRecommendationsListener, cancelRecommendationsListener } from '../listeners/recommendations';
-import { setUpListEntriesListener, cancelListEntriesListener } from '../listeners/listEntries';
+import { setUpListEntriesListener, cancelListEntriesListener, primeListEntries } from '../listeners/listEntries';
+import { clearBootCache, loadBootCache } from './bootCache';
 import { setUpFriendsListener, cancelFriendsListener } from '../listeners/friends';
 import { setUpLabelsListener, cancelLabelsListener } from '../listeners/labels';
 import swrl from '../components/swrl';
@@ -40,7 +41,26 @@ export function setUpLogin(firebaseApp, firestore) {
     document.querySelector("#logout").addEventListener("click", logout);
     document.querySelector("#logout").addEventListener("touchstart", logout);
     document.querySelector("#login").addEventListener("click", () => login(firestore));
+    // Open at once as whoever was signed in last time, from the copy saved on
+    // this device (firebase/bootCache.js): Firebase Auth checks the saved
+    // sign-in with the server before answering, a round trip or more on a
+    // slow connection. Its answer below then confirms it (and starts the live
+    // listeners), switches to someone else, or signs out.
+    let authAnswered = false;
+    loadBootCache().then(boot => {
+        if (!boot || authAnswered) return;
+        // @ts-ignore just what start-up reads; replaced by the real user moments later
+        swrlUser = { uid: boot.user.uid, displayName: boot.user.displayName, photoURL: boot.user.photoURL, isAnonymous: false, providerData: [] };
+        primeListEntries(boot);
+        showSignedIn();
+        resolveLoginReady();
+    });
     onAuthStateChanged(auth, (user) => {
+        authAnswered = true;
+        if (!user || user.isAnonymous || (swrlUser && swrlUser.uid !== user.uid)) {
+            // nobody, or someone else: the saved copy is not theirs
+            clearBootCache();
+        }
         if (user) {
             // User is signed in.
             swrlUser = user;
@@ -123,7 +143,7 @@ function login(firestore) {
     // Firebase auth domain reading storage from inside our page, and browsers
     // now partition that storage per site, so the redirect comes back with no
     // user on any domain other than *.firebaseapp.com.
-    signInWithPopup(auth, provider)
+    signInWithPopup(auth, provider, browserPopupRedirectResolver)
         .then(function (result) {
             swrlUser = result.user;
             console.log("firebase user from popup: " + swrlUser.displayName);
@@ -145,16 +165,20 @@ function login(firestore) {
 */
 function handleLoginSuccess(firestore) {
     resolveLoginReady();
-    loggingInView.classList.add('hidden');
-    loggingInAnonymousView.classList.add('hidden');
-
     updateSwrlerDetails(firestore);
     setUpRecommendationsListener(firestore);
     setUpListEntriesListener(firestore);
     setUpFriendsListener(firestore);
     setUpLabelsListener(firestore);
-    showLoginButtons();
     updateDeviceToken(firestore);
+    showSignedIn();
+}
+
+/** The menu and header as for someone signed in: their photo and name, Log out, Friends, Settings... */
+function showSignedIn() {
+    loggingInView.classList.add('hidden');
+    loggingInAnonymousView.classList.add('hidden');
+    showLoginButtons();
     /** @type {HTMLImageElement} */
     const userPhotoElement = document.querySelector("#userPhoto");
     userPhotoElement.src = swrlUser.photoURL;
@@ -176,7 +200,7 @@ function handleLoginSuccess(firestore) {
     document.getElementById("friendsMenu").classList.remove('hidden');
     document.getElementById("settingsMenu").classList.remove('hidden');
     document.getElementById("login").classList.add('hidden');
-    document.getElementById("loginStatus").innerHTML = swrlUser.displayName;
+    document.getElementById("loginStatus").textContent = swrlUser.displayName;
 }
 
 /**
@@ -240,6 +264,7 @@ export function resumeUserListeners(firestore) {
 
 /** Puts the page into its signed-out state and stops my listeners. */
 export function handleLogout() {
+    clearBootCache();
     document.querySelector("#inboxDisplay").classList.add('hidden');
     document.querySelector("#logout").classList.add('hidden');
     document.querySelector("#savedSearchesMenu").classList.add('hidden');

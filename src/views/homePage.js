@@ -1,4 +1,5 @@
-import { doc, getDoc } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
+import { getDocFast } from '../firebase/cacheFirst';
 import { UIView } from './UIView';
 import { StateController } from './stateController';
 import { State } from '../model/state';
@@ -144,7 +145,7 @@ async function showSwrledToMe(stateController, thisVisit) {
     }
     const swrls = (await Promise.all(ids.map(async id => {
         try {
-            const snapshot = await getDoc(doc(stateController.firestore, Collection.SWRLS, id));
+            const snapshot = await getDocFast(doc(stateController.firestore, Collection.SWRLS, id));
             return snapshot.exists() ? Swrl.fromFirestore(snapshot.data()) : undefined;
         } catch (error) {
             console.error(`Could not get swrl ${id} for the home screen`);

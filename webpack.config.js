@@ -27,7 +27,12 @@ module.exports = (env = {}) => {
     apply(compiler) {
       compiler.hooks.thisCompilation.tap('SwrlVersion', compilation => {
         compilation.hooks.processAssets.tap({ name: 'SwrlVersion', stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL }, () => {
-          compilation.emitAsset('version.json', new webpack.sources.RawSource(JSON.stringify({ version })));
+          // updateNotice in package.json ({version, text}) marks a release that
+          // changes how the app looks or works enough to ask before switching;
+          // it stays until a later release replaces it, so an app that skipped
+          // that release still gets asked
+          const notice = require('./package.json').updateNotice;
+          compilation.emitAsset('version.json', new webpack.sources.RawSource(JSON.stringify(notice ? { version, notice } : { version })));
         });
       });
     }

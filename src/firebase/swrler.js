@@ -1,4 +1,5 @@
-import { doc, getDoc } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
+import { getDocFast } from './cacheFirst';
 import { Collection } from "../constants/Collection";
 
 /**
@@ -9,7 +10,7 @@ import { Collection } from "../constants/Collection";
  */
 export const getSwrler = (uid, firestore) => {
     return new Promise((resolve, reject) => {
-        getDoc(doc(firestore, Collection.SWRLERS, uid))
+        getDocFast(doc(firestore, Collection.SWRLERS, uid))
             .then(docRef => {
                 if (docRef.exists()) {
                     // @ts-ignore

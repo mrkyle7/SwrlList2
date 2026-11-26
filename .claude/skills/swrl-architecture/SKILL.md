@@ -144,6 +144,18 @@ containers that views attach into.
   the sender line, a "New" pill and a footer (date, Reply, Mark as read,
   Dismiss). On desktop `#recommendationList` is the list's two-column grid.
 
+- **Start-up and live data:** the first screen opens from the saved copy
+  (`firebase/bootCache.js`, `primeListEntries`) before Firebase answers; see
+  `swrl-build-deploy`, "Opening instantly". `addListEntriesChangeListener`
+  listeners get `{remote}`: true for changes from elsewhere (another device,
+  the live list replacing the saved copy), false for taps here and the server
+  confirming them. Your list redraws in place only on remote changes that
+  change what it shows (`showList(..., {quiet: true})`).
+- **Full-screen images:** `components/imageViewer.js` (`makeImageZoomable`,
+  `showImageViewer`) with `model/imageSize.js` (`largeImage`, a sharper copy
+  per source). Its popstate listener is added at import, before index.js's
+  `window.onpopstate`, so back closes the viewer without navigating.
+
 ## Conventions
 
 - **One action per file** in `src/actions/`. Each default-exports a function
